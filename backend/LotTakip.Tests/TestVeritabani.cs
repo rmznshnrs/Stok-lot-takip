@@ -1,5 +1,8 @@
+using System.Data.Common;
+using LotTakip.Business;
 using LotTakip.DataAccess;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Storage;
 
 // Testler tek bir gerçek veritabanını paylaşır; aynı anda koşarlarsa birbirini kilitler.
@@ -20,8 +23,11 @@ public sealed class TestVeritabani : IAsyncLifetime
 
     public const string AdminSifre = "test-admin-sifresi";
 
+    /// <summary>Komutlar veritabanına gitmeden hemen önce çalışan test kancası (hata, çakışma üretmek için).</summary>
+    public KomutKancasi Kanca { get; } = new();
+
     public AppDbContext YeniContext() =>
-        new(new DbContextOptionsBuilder<AppDbContext>().UseSqlServer(Baglanti).Options);
+        new(new DbContextOptionsBuilder<AppDbContext>().UseSqlServer(Baglanti).AddInterceptors(Kanca).Options);
 
     public async Task InitializeAsync()
     {
@@ -31,6 +37,42 @@ public sealed class TestVeritabani : IAsyncLifetime
     }
 
     public Task DisposeAsync() => Task.CompletedTask;
+
+    /// <summary>Kalıcı (commit edilmiş) tüm veriyi siler. Transaction dışında çalışan testler için.</summary>
+    public async Task TumVeriyiSilAsync()
+    {
+        await using var db = YeniContext();
+        await db.Database.ExecuteSqlRawAsync("""
+            DELETE FROM SatisKalemi; DELETE FROM Satis; DELETE FROM Musteri; DELETE FROM StokDuzeltme;
+            DELETE FROM UretimTuketim; DELETE FROM Uretim; DELETE FROM UrunAgaci; DELETE FROM Urun;
+            DELETE FROM StokLotu; DELETE FROM Tedarikci; DELETE FROM Parca; DELETE FROM Kullanici;
+            """);
+    }
+}
+
+/// <summary>
+/// Her komuttan önce <see cref="Oncesi"/> çağrılır (null değilse). Test, belirli bir komutta hata
+/// fırlatabilir ya da başka bir bağlantıdan araya girip çakışma oluşturabilir.
+/// </summary>
+public sealed class KomutKancasi : DbCommandInterceptor
+{
+    public Func<DbCommand, Task>? Oncesi { get; set; }
+
+    public override async ValueTask<InterceptionResult<DbDataReader>> ReaderExecutingAsync(
+        DbCommand command, CommandEventData eventData, InterceptionResult<DbDataReader> result, CancellationToken ct = default)
+    {
+        if (Oncesi is { } k)
+            await k(command);
+        return result;
+    }
+
+    public override async ValueTask<InterceptionResult<int>> NonQueryExecutingAsync(
+        DbCommand command, CommandEventData eventData, InterceptionResult<int> result, CancellationToken ct = default)
+    {
+        if (Oncesi is { } k)
+            await k(command);
+        return result;
+    }
 }
 
 [CollectionDefinition(Ad)]
@@ -58,6 +100,7 @@ public abstract class VeritabaniTesti(TestVeritabani vt) : IAsyncLifetime
 
     public virtual async Task DisposeAsync()
     {
+        Vt.Kanca.Oncesi = null;
         if (_tx is not null)
             await _tx.RollbackAsync();
         await Db.DisposeAsync();
@@ -65,5 +108,5 @@ public abstract class VeritabaniTesti(TestVeritabani vt) : IAsyncLifetime
 
     /// <summary>Örnek veriyi bu testin transaction'ı içinde yükler.</summary>
     protected Task<OrnekVeri.Sonuc> OrnekVeriYukle() =>
-        OrnekVeri.YukleAsync(Db, TestVeritabani.AdminSifre, sifirla: false);
+        OrnekVeri.Olustur(Db).YukleAsync(TestVeritabani.AdminSifre, sifirla: false);
 }

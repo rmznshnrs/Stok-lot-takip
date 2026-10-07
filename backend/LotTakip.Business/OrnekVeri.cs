@@ -1,24 +1,28 @@
+using LotTakip.DataAccess;
 using LotTakip.Entity;
+using LotTakip.Shared;
 using Microsoft.EntityFrameworkCore;
 
-namespace LotTakip.DataAccess;
+namespace LotTakip.Business;
 
 /// <summary>
 /// Deneme için örnek veri.
 /// 7 parça, 3 tedarikçi, 10 lot (biri geri çağrılmış), 2 ürün, 9 üretim, 2 müşteri, 2 satış.
-///
-/// Üretimlerin hangi lottan kaç parça kullandığı FIFO sırasına göre hesaplanıp
-/// sabit veri olarak yazılır; KalanAdet bu tüketimlerden hesaplanır.
-/// TODO: üretimleri üretim servisiyle (FIFO) oluştur; bu tablo kalkar.
+/// Üretimler gerçek üretim servisiyle (FIFO), satışlar satış servisiyle yapılır; böylece
+/// lotlarda kalan adetler kuralların kendisinden çıkar.
 /// </summary>
-public static class OrnekVeri
+public class OrnekVeri(AppDbContext db, IUretimServisi uretimServisi, ISatisServisi satisServisi)
 {
     public const string AdminKullaniciAdi = "admin";
 
     public sealed record Sonuc(int Parca, int Tedarikci, int Lot, int Urun, int Uretim, int Musteri, int Satis);
 
+    /// <summary>DI olmadan (komut satırı, testler) aynı bağlamla kurar.</summary>
+    public static OrnekVeri Olustur(AppDbContext db) =>
+        new(db, new UretimServisi(db, new StokLotuRepository(db), new UretimRepository(db)), new SatisServisi(db));
+
     private static readonly TimeSpan Istanbul = TimeSpan.FromHours(3);
-    private static DateTimeOffset Zaman(int y, int a, int g, int s, int d) => new(y, a, g, s, d, 0, Istanbul);
+    private static DateTimeOffset Zaman_(int y, int a, int g, int s, int d) => new(y, a, g, s, d, 0, Istanbul);
 
     private static readonly (string Kod, string Ad, string Birim, int MinStok)[] Parcalar =
     [
@@ -62,25 +66,12 @@ public static class OrnekVeri
             [("ROLE-12", 2), ("D-1N4007", 2), ("R-10K", 2), ("PCB-RK", 1), ("KON-2P", 2)]),
     ];
 
-    private static readonly (string Lot, int Adet)[] IpEskiLed =
-        [("L-D-2601", 1), ("L-KON-2602", 1), ("L-LED-2412", 4), ("L-PCB-IP-01", 1), ("L-R-2501", 4)];
-    private static readonly (string Lot, int Adet)[] IpYeniLed =
-        [("L-D-2601", 1), ("L-KON-2602", 1), ("L-LED-2602", 4), ("L-PCB-IP-01", 1), ("L-R-2501", 4)];
-    private static readonly (string Lot, int Adet)[] Rk =
-        [("L-D-2601", 2), ("L-KON-2602", 2), ("L-PCB-RK-01", 1), ("L-R-2501", 2), ("L-ROLE-2602", 2)];
-
-    // Eski LED lotu (20 adet) SN-IP-0005'te biter, SN-IP-0006 yeni lottan alır
-    private static readonly (string SeriNo, string Urun, DateTimeOffset Tarih, (string Lot, int Adet)[] Tuketim)[] Uretimler =
+    // Ürün, adet, tarih. Son grupta eski LED lotu biter, yeni lota geçilir (FIFO).
+    private static readonly (string Urun, int Adet, DateTimeOffset Tarih)[] Uretimler =
     [
-        ("SN-IP-0001", "IP", Zaman(2026, 4, 2, 10, 0), IpEskiLed),
-        ("SN-IP-0002", "IP", Zaman(2026, 4, 2, 10, 0), IpEskiLed),
-        ("SN-IP-0003", "IP", Zaman(2026, 4, 2, 10, 0), IpEskiLed),
-        ("SN-IP-0004", "IP", Zaman(2026, 4, 2, 10, 0), IpEskiLed),
-        ("SN-RK-0001", "RK", Zaman(2026, 4, 9, 14, 30), Rk),
-        ("SN-RK-0002", "RK", Zaman(2026, 4, 9, 14, 30), Rk),
-        ("SN-RK-0003", "RK", Zaman(2026, 4, 9, 14, 30), Rk),
-        ("SN-IP-0005", "IP", Zaman(2026, 5, 6, 9, 15), IpEskiLed),
-        ("SN-IP-0006", "IP", Zaman(2026, 5, 6, 9, 15), IpYeniLed),
+        ("IP", 4, Zaman_(2026, 4, 2, 10, 0)),
+        ("RK", 3, Zaman_(2026, 4, 9, 14, 30)),
+        ("IP", 2, Zaman_(2026, 5, 6, 9, 15)),
     ];
 
     private static readonly (string Ad, string Iletisim)[] Musteriler =
@@ -100,8 +91,7 @@ public static class OrnekVeri
     /// <paramref name="sifirla"/> tüm takip verisini siler (kullanıcılar kalır).
     /// "admin" kullanıcısı yoksa <paramref name="adminSifre"/> ile oluşturulur.
     /// </summary>
-    public static async Task<Sonuc> YukleAsync(AppDbContext db, string? adminSifre, bool sifirla,
-                                               CancellationToken ct = default)
+    public async Task<Sonuc> YukleAsync(string? adminSifre, bool sifirla, CancellationToken ct = default)
     {
         // Çağıran zaten bir transaction açtıysa (ör. testler) onun içinde çalış
         await using var tx = db.Database.CurrentTransaction is null
@@ -109,7 +99,7 @@ public static class OrnekVeri
             : null;
 
         if (sifirla)
-            await SifirlaAsync(db, ct);
+            await SifirlaAsync(ct);
         else if (await db.Parcalar.AnyAsync(ct))
             throw new InvalidOperationException(
                 "Veritabanında zaten veri var. Silip yeniden yüklemek için --sifirla kullanın.");
@@ -128,68 +118,45 @@ public static class OrnekVeri
             db.Kullanicilar.Add(admin);
         }
 
+        // Tanımlar ve mal girişleri (henüz hiç üretim yok: kalan = giriş)
         var parcalar = Parcalar.ToDictionary(p => p.Kod,
             p => new Parca { Kod = p.Kod, Ad = p.Ad, Birim = p.Birim, MinStok = p.MinStok });
-        var tedarikciler = Tedarikciler.ToDictionary(t => t.Ad,
-            t => new Tedarikci { Ad = t.Ad, Iletisim = t.Iletisim });
-
-        var harcanan = Uretimler.SelectMany(u => u.Tuketim)
-            .GroupBy(t => t.Lot).ToDictionary(g => g.Key, g => g.Sum(t => t.Adet));
-        var lotlar = Lotlar.ToDictionary(l => l.LotNo, l =>
+        var tedarikciler = Tedarikciler.ToDictionary(t => t.Ad, t => new Tedarikci { Ad = t.Ad, Iletisim = t.Iletisim });
+        foreach (var l in Lotlar)
         {
             var giris = new DateTimeOffset(l.Siparis.AddDays(7).ToDateTime(new TimeOnly(9, 30)), Istanbul);
-            return new StokLotu
+            db.StokLotlari.Add(new StokLotu
             {
                 LotNo = l.LotNo, Parca = parcalar[l.Parca], Tedarikci = tedarikciler[l.Tedarikci],
-                SiparisTarihi = l.Siparis, SiparisNo = l.SiparisNo, GirisAdet = l.Adet,
-                KalanAdet = l.Adet - harcanan.GetValueOrDefault(l.LotNo), GeriCagrildi = l.Geri,
-                GirisZamani = giris, OlusturanKullanici = admin, OlusturmaZamani = giris,
-            };
-        });
-
+                SiparisTarihi = l.Siparis, SiparisNo = l.SiparisNo, GirisAdet = l.Adet, KalanAdet = l.Adet,
+                GeriCagrildi = l.Geri, GirisZamani = giris, OlusturanKullanici = admin, OlusturmaZamani = giris,
+            });
+        }
         var urunler = Urunler.ToDictionary(u => u.Kod, u =>
         {
             var urun = new Urun { Kod = u.Kod, Ad = u.Ad, SeriOneki = u.Onek };
             urun.Agac = [.. u.Agac.Select(a => new UrunAgaci { Urun = urun, Parca = parcalar[a.Parca], Adet = a.Adet })];
             return urun;
         });
-
-        var uretimler = Uretimler.ToDictionary(u => u.SeriNo, u =>
-        {
-            var uretim = new Uretim
-            {
-                SeriNo = u.SeriNo, Urun = urunler[u.Urun], Tarih = u.Tarih,
-                OlusturanKullanici = admin, OlusturmaZamani = u.Tarih,
-            };
-            uretim.Tuketimler = [.. u.Tuketim.Select(t => new UretimTuketim { Uretim = uretim, StokLotu = lotlar[t.Lot], Adet = t.Adet })];
-            return uretim;
-        });
-
-        var musteriler = Musteriler.ToDictionary(m => m.Ad, m => new Musteri { Ad = m.Ad, Iletisim = m.Iletisim });
-        var satislar = Satislar.Select(s =>
-        {
-            var satis = new Satis
-            {
-                Musteri = musteriler[s.Musteri], Tarih = s.Tarih, OlusturanKullanici = admin,
-                OlusturmaZamani = new DateTimeOffset(s.Tarih.ToDateTime(new TimeOnly(17, 0)), Istanbul),
-            };
-            satis.Kalemler = [.. s.Seriler.Select(seri => new SatisKalemi { Satis = satis, Uretim = uretimler[seri] })];
-            return satis;
-        }).ToList();
-
-        db.AddRange(lotlar.Values);
-        db.AddRange(urunler.Values);
-        db.AddRange(uretimler.Values);
-        db.AddRange(satislar);
+        db.Urunler.AddRange(urunler.Values);
+        db.Musteriler.AddRange(Musteriler.Select(m => new Musteri { Ad = m.Ad, Iletisim = m.Iletisim }));
         await db.SaveChangesAsync(ct);
+
+        // Üretim ve satış gerçek iş kurallarıyla
+        var uretimSayisi = 0;
+        foreach (var (urunKod, adet, tarih) in Uretimler)
+            uretimSayisi += (await uretimServisi.UretAsync(urunler[urunKod].Id, adet, admin.Id, tarih, ct)).SeriNolar.Count;
+        foreach (var (musteri, tarih, seriler) in Satislar)
+            await satisServisi.SatAsync(new SatisIstek(musteri, seriler, tarih), admin.Id, ct);
+
         if (tx is not null)
             await tx.CommitAsync(ct);
 
-        return new Sonuc(parcalar.Count, tedarikciler.Count, lotlar.Count, urunler.Count,
-                         uretimler.Count, musteriler.Count, satislar.Count);
+        return new Sonuc(parcalar.Count, tedarikciler.Count, Lotlar.Length, urunler.Count,
+                         uretimSayisi, Musteriler.Length, Satislar.Length);
     }
 
-    private static async Task SifirlaAsync(AppDbContext db, CancellationToken ct)
+    private async Task SifirlaAsync(CancellationToken ct)
     {
         // Restrict ilişkileri nedeniyle bağımlı kayıtlardan başlayarak sil
         await db.SatisKalemleri.ExecuteDeleteAsync(ct);
@@ -203,5 +170,6 @@ public static class OrnekVeri
         await db.StokLotlari.ExecuteDeleteAsync(ct);
         await db.Tedarikciler.ExecuteDeleteAsync(ct);
         await db.Parcalar.ExecuteDeleteAsync(ct);
+        db.ChangeTracker.Clear();
     }
 }

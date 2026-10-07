@@ -1,3 +1,4 @@
+using LotTakip.Business;
 using LotTakip.DataAccess;
 using LotTakip.Entity;
 using Microsoft.Data.SqlClient;
@@ -95,7 +96,7 @@ public class OrnekVeriTestleri(TestVeritabani vt) : VeritabaniTesti(vt)
         await OrnekVeriYukle();
         await Assert.ThrowsAsync<InvalidOperationException>(OrnekVeriYukle);
         Db.ChangeTracker.Clear();
-        var s = await OrnekVeri.YukleAsync(Db, adminSifre: null, sifirla: true);
+        var s = await OrnekVeri.Olustur(Db).YukleAsync(adminSifre: null, sifirla: true);
         Assert.Equal(9, s.Uretim);
         Assert.Equal(10, await Db.StokLotlari.CountAsync());
         Assert.Equal(1, await Db.Kullanicilar.CountAsync());  // kullanıcılar silinmez
@@ -105,7 +106,7 @@ public class OrnekVeriTestleri(TestVeritabani vt) : VeritabaniTesti(vt)
     public async Task Admin_yoksa_sifre_zorunlu()
     {
         var hata = await Assert.ThrowsAsync<InvalidOperationException>(
-            () => OrnekVeri.YukleAsync(Db, adminSifre: " ", sifirla: false));
+            () => OrnekVeri.Olustur(Db).YukleAsync(adminSifre: " ", sifirla: false));
         Assert.Contains("AdminSifre", hata.Message);
         Assert.False(await Db.Parcalar.AnyAsync());
     }

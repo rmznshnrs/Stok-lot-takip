@@ -1,3 +1,4 @@
+using LotTakip.Business;
 using LotTakip.DataAccess;
 using Microsoft.EntityFrameworkCore;
 
@@ -9,6 +10,7 @@ var baglanti = builder.Configuration.GetConnectionString("LotTakip")
         "appsettings.Development.json olarak kopyalayın.");
 
 builder.Services.AddDataAccess(baglanti);
+builder.Services.AddBusiness();
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 
@@ -22,8 +24,8 @@ if (args.Contains("ornek-veri"))
     await db.Database.MigrateAsync();
     try
     {
-        var sonuc = await OrnekVeri.YukleAsync(db, app.Configuration["OrnekVeri:AdminSifre"],
-                                               sifirla: args.Contains("--sifirla"));
+        var sonuc = await kapsam.ServiceProvider.GetRequiredService<OrnekVeri>()
+            .YukleAsync(app.Configuration["OrnekVeri:AdminSifre"], sifirla: args.Contains("--sifirla"));
         Console.WriteLine($"Örnek veri yüklendi: {sonuc.Parca} parça, {sonuc.Lot} lot, {sonuc.Urun} ürün, " +
                           $"{sonuc.Uretim} üretim, {sonuc.Satis} satış.");
     }
