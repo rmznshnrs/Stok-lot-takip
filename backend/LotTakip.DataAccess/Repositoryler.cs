@@ -32,11 +32,12 @@ public class StokLotuRepository(AppDbContext db) : IStokLotuRepository
         if (db.Database.CurrentTransaction is null)
             throw new InvalidOperationException("Lot kilidi yalnızca bir transaction içinde alınabilir.");
 
-        // Id'ler tamsayı olduğu için listeyi metne gömmek güvenli
-        var idler = string.Join(",", parcaIdleri.Distinct());
+        // SQL metninde yalnız kilit ipucu var; koşullar LINQ ile eklenir ve EF onları
+        // parametreli olarak alt sorguya yazar (SQL enjeksiyonuna kapalı).
+        var idler = parcaIdleri.Distinct().ToList();
         return await db.StokLotlari
-            .FromSqlRaw($"SELECT * FROM StokLotu WITH (UPDLOCK, ROWLOCK) " +
-                        $"WHERE ParcaId IN ({idler}) AND GeriCagrildi = 0 AND KalanAdet > 0")
+            .FromSql($"SELECT * FROM StokLotu WITH (UPDLOCK, ROWLOCK)")
+            .Where(l => idler.Contains(l.ParcaId) && !l.GeriCagrildi && l.KalanAdet > 0)
             .OrderBy(l => l.SiparisTarihi).ThenBy(l => l.Id)
             .ToListAsync(ct);
     }
