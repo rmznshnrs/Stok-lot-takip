@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.12" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\LotTakip.Business\LotTakip.Business.csproj" />
+    <ProjectReference Include="..\LotTakip.Shared\LotTakip.Shared.csproj" />
+    <ProjectReference Include="..\LotTakip.DataAccess\LotTakip.DataAccess.csproj" />
+  </ItemGroup>
+
+</Project>

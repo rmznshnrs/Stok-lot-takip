@@ -1,0 +1,9 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\LotTakip.Entity\LotTakip.Entity.csproj" />
+    <ProjectReference Include="..\LotTakip.DataAccess\LotTakip.DataAccess.csproj" />
+    <ProjectReference Include="..\LotTakip.Shared\LotTakip.Shared.csproj" />
+  </ItemGroup>
+
+</Project>

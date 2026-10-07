@@ -1,0 +1,6 @@
+@LotTakip.Api_HostAddress = http://localhost:5291
+
+GET {{LotTakip.Api_HostAddress}}/api/saglik
+Accept: application/json
+
+###

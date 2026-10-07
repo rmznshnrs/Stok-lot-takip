@@ -1,0 +1,41 @@
+# --- .NET (backend) ---
+bin/
+obj/
+*.user
+*.suo
+.vs/
+TestResults/
+*.trx
+# Yerel ayarlar: bağlantı cümlesi ve JWT anahtarı repoya girmez
+appsettings.Development.json
+appsettings.*.local.json
+
+# --- Next.js (frontend) ---
+node_modules/
+.next/
+out/
+next-env.d.ts
+*.tsbuildinfo
+.env*.local
+.env
+
+# --- Flutter (mobile) ---
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+build/
+*.iml
+mobile/android/local.properties
+mobile/android/key.properties
+*.jks
+*.keystore
+
+# --- Genel ---
+.idea/
+.vscode/*
+!.vscode/extensions.json
+*.log
+*.zip
+.DS_Store
+Thumbs.db
