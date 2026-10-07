@@ -1,17 +1,52 @@
+using System.Reflection;
+using LotTakip.Api;
+using LotTakip.Api.Kimlik;
 using LotTakip.Business;
 using LotTakip.DataAccess;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.OpenApi;
 
 var builder = WebApplication.CreateBuilder(args);
 
-var baglanti = builder.Configuration.GetConnectionString("LotTakip")
+builder.Services.AddDataAccess(sp =>
+    sp.GetRequiredService<IConfiguration>().GetConnectionString("LotTakip")
     ?? throw new InvalidOperationException(
         "ConnectionStrings:LotTakip ayarı yok. appsettings.Development.example.json dosyasını " +
-        "appsettings.Development.json olarak kopyalayın.");
-
-builder.Services.AddDataAccess(baglanti);
+        "appsettings.Development.json olarak kopyalayın."));
 builder.Services.AddBusiness();
+builder.Services.AddSingleton(TimeProvider.System);
+builder.Services.AddKimlik();
 builder.Services.AddControllers();
+builder.Services.AddProblemDetails();
+builder.Services.AddExceptionHandler<HataIsleyici>();
+
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(o =>
+{
+    o.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Title = "Lot Takip API",
+        Version = "v1",
+        Description = "Önce POST /api/kimlik/giris ile token alın, sonra sağ üstteki Authorize düğmesine yapıştırın.",
+    });
+    o.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Type = SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT",
+        Description = "Giriş yanıtındaki token (başına \"Bearer\" yazmadan).",
+    });
+    o.AddSecurityRequirement(belge => new OpenApiSecurityRequirement
+    {
+        [new OpenApiSecuritySchemeReference("Bearer", belge)] = [],
+    });
+    foreach (var xml in new[] { Assembly.GetExecutingAssembly().GetName().Name, "LotTakip.Shared" })
+    {
+        var yol = Path.Combine(AppContext.BaseDirectory, $"{xml}.xml");
+        if (File.Exists(yol))
+            o.IncludeXmlComments(yol);
+    }
+});
 
 var app = builder.Build();
 
@@ -36,7 +71,24 @@ if (args.Contains("ornek-veri"))
     return;
 }
 
-app.UseHttpsRedirection();
+app.UseExceptionHandler();
+app.UseStatusCodePages();
+
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI(o =>
+    {
+        o.DocumentTitle = "Lot Takip API";
+        o.EnablePersistAuthorization();  // sayfa yenilense de token hatırlansın
+    });
+}
+else
+{
+    app.UseHttpsRedirection();
+}
+
+app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 

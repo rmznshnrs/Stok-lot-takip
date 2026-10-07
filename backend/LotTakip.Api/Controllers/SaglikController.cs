@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace LotTakip.Api.Controllers;
@@ -5,6 +6,7 @@ namespace LotTakip.Api.Controllers;
 /// <summary>API'nin ayakta olduğunu gösterir (giriş gerektirmez).</summary>
 [ApiController]
 [Route("api/saglik")]
+[AllowAnonymous]
 public class SaglikController : ControllerBase
 {
     [HttpGet]
