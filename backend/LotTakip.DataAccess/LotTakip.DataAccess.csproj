@@ -4,4 +4,9 @@
     <ProjectReference Include="..\LotTakip.Entity\LotTakip.Entity.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="BCrypt.Net-Next" Version="4.2.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.12" />
+  </ItemGroup>
+
 </Project>
