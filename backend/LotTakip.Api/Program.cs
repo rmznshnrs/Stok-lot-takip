@@ -12,7 +12,6 @@ var baglanti = builder.Configuration.GetConnectionString("LotTakip")
 builder.Services.AddDataAccess(baglanti);
 builder.Services.AddBusiness();
 builder.Services.AddControllers();
-builder.Services.AddOpenApi();
 
 var app = builder.Build();
 
@@ -35,11 +34,6 @@ if (args.Contains("ornek-veri"))
         Environment.ExitCode = 1;
     }
     return;
-}
-
-if (app.Environment.IsDevelopment())
-{
-    app.MapOpenApi();
 }
 
 app.UseHttpsRedirection();

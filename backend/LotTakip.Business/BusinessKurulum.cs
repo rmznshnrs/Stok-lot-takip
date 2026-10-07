@@ -12,6 +12,8 @@ public static class BusinessKurulum
         services.AddScoped<IUretimServisi, UretimServisi>();
         services.AddScoped<IIzlemeServisi, IzlemeServisi>();
         services.AddScoped<ISatisServisi, SatisServisi>();
+        services.AddScoped<ITanimServisi, TanimServisi>();
+        services.AddScoped<IKullaniciServisi, KullaniciServisi>();
         services.AddScoped<OrnekVeri>();
         return services;
     }
