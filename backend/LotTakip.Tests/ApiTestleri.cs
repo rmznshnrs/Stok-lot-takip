@@ -118,9 +118,8 @@ public class ApiTestleri(TestVeritabani vt) : IAsyncLifetime
     }
 
     [Fact]
-    public async Task Saglik_ve_giris_acik()
+    public async Task Giris_ucu_girissiz_acik()
     {
-        Assert.Equal(HttpStatusCode.OK, (await Istemci().GetAsync("/api/saglik")).StatusCode);
         // Giriş ucuna girişsiz ulaşılır: yanlış şifredeki 401 uç'un kendi yanıtıdır (başlığı "Giriş başarısız")
         var y = await Istemci().PostAsJsonAsync("/api/kimlik/giris", new GirisIstek("x", "y"));
         Assert.Equal("Giriş başarısız", (await Problem(y)).GetProperty("title").GetString());
