@@ -39,3 +39,10 @@ mobile/android/key.properties
 *.zip
 .DS_Store
 Thumbs.db
+
+# --- Gizli bilgiler (şifre, anahtar, sertifika) ---
+secrets.json
+*.pfx
+*.p12
+*.key
+*.pem
