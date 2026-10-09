@@ -612,7 +612,8 @@ a.akis-oge:hover { border-color: var(--ana-acik-kenar); background: var(--ana-ac
 .giris-logo { font-family: var(--mono); font-size: 15px; font-weight: 500; letter-spacing: 0.06em; }
 
 .kullanici-alan { margin-left: auto; display: flex; align-items: center; gap: 12px; font-size: 13px; }
-.kullanici-ad { color: var(--metin-ikincil); }
+.kullanici-ad { color: var(--metin-ikincil); text-decoration: none; }
+.kullanici-ad:hover { color: var(--ana); }
 .btn-baglanti {
   border: none;
   background: none;
@@ -623,8 +624,6 @@ a.akis-oge:hover { border-color: var(--ana-acik-kenar); background: var(--ana-ac
 }
 .btn-baglanti:hover { color: var(--ana); }
 
-.btn:disabled { opacity: 0.55; cursor: not-allowed; }
-.btn:disabled:hover { background: var(--ana); }
 
 .yukleniyor { color: var(--soluk); font-size: 14px; padding: 8px 0; }
 
@@ -639,3 +638,6 @@ a.akis-oge:hover { border-color: var(--ana-acik-kenar); background: var(--ana-ac
   cursor: pointer;
 }
 .btn-ikon:hover { background: var(--ana-acik); color: var(--ana); }
+
+.kart-alt--form { flex-direction: column; align-items: stretch; justify-content: flex-start; }
+.kart-alt--form .kaydet-grup { justify-content: flex-end; }

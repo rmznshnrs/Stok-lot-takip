@@ -37,7 +37,7 @@ export default function UstMenu() {
         })}
       </nav>
       <div className="kullanici-alan">
-        <span className="kullanici-ad">{k.ad} {k.soyad}</span>
+        <Link href="/sifre" className="kullanici-ad" title="Şifre değiştir">{k.ad} {k.soyad}</Link>
         <button type="button" className="btn-baglanti" onClick={cikisYap}>Çıkış</button>
       </div>
     </header>
