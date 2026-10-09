@@ -38,7 +38,7 @@ export default function UretimEkrani() {
   }, [urunId, aranan, liste, router]);
 
   function adetDegistir(fark: number) {
-    setAdetMetni(String(sinirla(Number(adetMetni) + fark)));
+    setAdetMetni((m) => String(sinirla(Number(m) + fark)));
   }
 
   async function kaydet() {
