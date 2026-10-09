@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { cikisYap, useKullanici } from "./Oturum";
+import HesapMenusu from "./HesapMenusu";
+import { useKullanici } from "./Oturum";
 
 const BAGLANTILAR = [
   { yol: "/", ad: "Ana Sayfa" },
@@ -25,7 +26,7 @@ export default function UstMenu() {
 
   return (
     <header className="ust">
-      <Link className="logo" href="/">LOT TAKİP</Link>
+      <Link className="logo" href="/">MKC BİLİŞİM</Link>
       <nav className="menu" aria-label="Ana menü">
         {baglantilar.map((b) => {
           const aktif = aktifMi(b.yol, simdiki);
@@ -36,10 +37,7 @@ export default function UstMenu() {
           );
         })}
       </nav>
-      <div className="kullanici-alan">
-        <Link href="/sifre" className="kullanici-ad" title="Şifre değiştir">{k.ad} {k.soyad}</Link>
-        <button type="button" className="btn-baglanti" onClick={cikisYap}>Çıkış</button>
-      </div>
+      <HesapMenusu />
     </header>
   );
 }

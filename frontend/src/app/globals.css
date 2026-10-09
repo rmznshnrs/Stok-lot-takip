@@ -1,4 +1,4 @@
-/* Lot Takip – ortak stil (renkler, düzen, bileşenler) */
+/* MKC Bilişim – ortak stil (renkler, düzen, bileşenler) */
 
 :root {
   --zemin: #F6F5F1;
@@ -23,6 +23,41 @@
   --sekme-zemin: #ECEAE4;
   --font: var(--font-plex-sans), system-ui, sans-serif;
   --mono: var(--font-plex-mono), monospace;
+  --baglanti: var(--ana);
+  --baglanti-koyu: var(--ana-koyu);
+  --btn-hover: var(--ana-koyu);
+  --btn-pasif: #C9CDD3;
+  --golge: 0 8px 24px rgba(28, 31, 36, 0.12);
+}
+
+/* Koyu tema: <html data-tema="koyu"> (seçim tarayıcıda saklanır) */
+:root[data-tema="koyu"] {
+  color-scheme: dark;
+  --zemin: #15181D;
+  --kart: #1E2228;
+  --kenar: #343A43;
+  --kenar-ince: #2A2F36;
+  --girdi-kenar: #4A515B;
+  --metin: #E6E8EB;
+  --metin-ikincil: #C3C8CF;
+  --soluk: #9AA2AD;
+  --ana: #3B74C0;
+  --ana-koyu: #A9C8F2;
+  --ana-acik: #1D2E47;
+  --ana-acik-kenar: #2F4A70;
+  --mavi-rozet: #22344F;
+  --uyari-zemin: #3D2614;
+  --uyari-satir: #2A1E15;
+  --uyari: #F0A868;
+  --uyari-koyu: #F5BE8A;
+  --basari-zemin: #1E3320;
+  --basari: #8FCB86;
+  --sekme-zemin: #262B32;
+  --baglanti: #8DB6EE;
+  --baglanti-koyu: #B5D0F5;
+  --btn-hover: #4A84D0;
+  --btn-pasif: #3A4048;
+  --golge: 0 8px 24px rgba(0, 0, 0, 0.45);
 }
 
 *, *::before, *::after { box-sizing: border-box; }
@@ -37,8 +72,8 @@ body {
   font-family: var(--font);
 }
 
-a { color: var(--ana); }
-a:hover { color: var(--ana-koyu); }
+a { color: var(--baglanti); }
+a:hover { color: var(--baglanti-koyu); }
 
 h2, h3 { margin: 0; font-weight: 600; }
 h2 { font-size: 18px; }
@@ -193,7 +228,7 @@ form { margin: 0; }
   justify-content: center;
   text-decoration: none;
 }
-.btn:hover { background: var(--ana-koyu); color: #FFFFFF; }
+.btn:hover { background: var(--btn-hover); color: #FFFFFF; }
 .btn--tam { width: 100%; margin-top: auto; }
 .btn--kucuk { height: 36px; padding: 0 12px; border-radius: 8px; font-size: 13px; }
 .btn--ikincil {
@@ -392,7 +427,7 @@ select.girdi { appearance: auto; padding-right: 8px; }
 .seri-aralik { font-size: 14px; }
 .kaydet-grup { display: flex; align-items: center; gap: 12px; }
 .uyari-not { font-size: 13px; color: var(--uyari); }
-.btn:disabled, .btn:disabled:hover { background: #C9CDD3; color: var(--metin-ikincil); cursor: not-allowed; }
+.btn:disabled, .btn:disabled:hover { background: var(--btn-pasif); color: var(--metin-ikincil); cursor: not-allowed; }
 
 .liste-ekle {
   margin-top: auto;
@@ -611,18 +646,6 @@ a.akis-oge:hover { border-color: var(--ana-acik-kenar); background: var(--ana-ac
 .kart--giris { width: 100%; max-width: 380px; padding: 28px; gap: 18px; }
 .giris-logo { font-family: var(--mono); font-size: 15px; font-weight: 500; letter-spacing: 0.06em; }
 
-.kullanici-alan { margin-left: auto; display: flex; align-items: center; gap: 12px; font-size: 13px; }
-.kullanici-ad { color: var(--metin-ikincil); text-decoration: none; }
-.kullanici-ad:hover { color: var(--ana); }
-.btn-baglanti {
-  border: none;
-  background: none;
-  padding: 0;
-  font: inherit;
-  color: var(--soluk);
-  cursor: pointer;
-}
-.btn-baglanti:hover { color: var(--ana); }
 
 
 .yukleniyor { color: var(--soluk); font-size: 14px; padding: 8px 0; }
@@ -641,3 +664,56 @@ a.akis-oge:hover { border-color: var(--ana-acik-kenar); background: var(--ana-ac
 
 .kart-alt--form { flex-direction: column; align-items: stretch; justify-content: flex-start; }
 .kart-alt--form .kaydet-grup { justify-content: flex-end; }
+
+/* --- Üst menüdeki hesap menüsü (☰) --------------------------------------- */
+
+.hesap { margin-left: auto; position: relative; }
+.hesap-dugme {
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--kenar);
+  border-radius: 8px;
+  background: var(--kart);
+  color: var(--metin);
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.hesap-dugme:hover, .hesap-dugme[aria-expanded="true"] { background: var(--zemin); }
+.hesap-menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 8px);
+  z-index: 20;
+  min-width: 230px;
+  background: var(--kart);
+  border: 1px solid var(--kenar);
+  border-radius: 12px;
+  box-shadow: var(--golge);
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+}
+.hesap-kim { padding: 10px 12px 12px; border-bottom: 1px solid var(--kenar-ince); margin-bottom: 4px; display: flex; flex-direction: column; gap: 2px; }
+.hesap-ad { font-size: 14px; font-weight: 600; }
+.hesap-rol { font-size: 12px; color: var(--soluk); }
+.hesap-oge {
+  display: block;
+  width: 100%;
+  padding: 10px 12px;
+  border: none;
+  border-radius: 8px;
+  background: none;
+  color: var(--metin);
+  font: inherit;
+  font-size: 14px;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+.hesap-oge:hover { background: var(--zemin); color: var(--metin); }
+.hesap-oge--cikis { color: var(--uyari); }
+.hesap-oge--cikis:hover { background: var(--uyari-zemin); color: var(--uyari); }
