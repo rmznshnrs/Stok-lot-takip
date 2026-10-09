@@ -627,3 +627,15 @@ a.akis-oge:hover { border-color: var(--ana-acik-kenar); background: var(--ana-ac
 .btn:disabled:hover { background: var(--ana); }
 
 .yukleniyor { color: var(--soluk); font-size: 14px; padding: 8px 0; }
+
+.btn-ikon {
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--soluk);
+  font-size: 16px;
+  cursor: pointer;
+}
+.btn-ikon:hover { background: var(--ana-acik); color: var(--ana); }
