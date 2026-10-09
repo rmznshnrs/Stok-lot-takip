@@ -15,9 +15,9 @@ function izAdresi(tur: NumaraTuru, deger: string) {
 }
 
 const HIZLI = [
-  { yol: "/stok", baslik: "Mal girişi yap", aciklama: "Gelen parçayı lot numarası, tedarikçi ve tarihiyle stoğa ekle" },
-  { yol: "/uretim", baslik: "Ürün üret", aciklama: "Ürün seç, adet gir; parçalar ilk gelen lottan düşülür, seri no verilir" },
-  { yol: "/satis", baslik: "Satış kaydet", aciklama: "Satılan seri numaralarını müşteriye ve tarihe bağla" },
+  { yol: "/stok", baslik: "Mal girişi yap" },
+  { yol: "/uretim", baslik: "Ürün üret" },
+  { yol: "/satis", baslik: "Satış kaydet" },
 ];
 
 const HAREKET_ROZETI = {
@@ -82,9 +82,7 @@ export default function AnaSayfaEkrani() {
           </div>
         ) : sonuc ? (
           <div className="mesaj mesaj--warning">“{sonuc.q}” ile eşleşen lot, seri no veya parça kodu bulunamadı.</div>
-        ) : (
-          <div className="not">Sistem numaranın lot mu seri no mu olduğunu kendisi anlar ve ilgili zinciri gösterir.</div>
-        )}
+        ) : null}
       </section>
 
       <section className="hizli-kartlar">
@@ -92,7 +90,6 @@ export default function AnaSayfaEkrani() {
           <Link key={h.yol} href={h.yol} className="hizli-kart">
             <div className="hizli-no">{i + 1}</div>
             <div className="hizli-baslik">{h.baslik}</div>
-            <div className="not not--buyuk">{h.aciklama}</div>
           </Link>
         ))}
       </section>
@@ -113,7 +110,7 @@ export default function AnaSayfaEkrani() {
           );
         })}
         {hareketler?.length === 0 && (
-          <p className="not">Henüz hareket yok. Parça tanımlayıp mal girişi yaparak başlayın.</p>
+          <p className="not">Henüz hareket yok.</p>
         )}
       </section>
     </main>

@@ -108,7 +108,6 @@ export default function StokDuzeltme() {
             </div>
           </>
         )}
-        <div className="not">Kalan adet sıfırın altına düşemez. Her düzeltme açıklamasıyla ve yapan kullanıcıyla kaydedilir.</div>
         <button type="submit" className="btn btn--tam" disabled={!lot || bekliyor}>Düzeltmeyi kaydet</button>
       </form>
     </section>

@@ -131,7 +131,6 @@ export default function SatisFormu({ kaydedildi }: { kaydedildi: () => void }) {
             />
             <button type="button" className="btn btn--ikincil" onClick={ekle} disabled={ekleniyor}>Ekle</button>
           </div>
-          <span className="yardim">Birden fazla seri no&apos;yu boşluk veya virgülle ayırarak ekleyebilirsiniz.</span>
           {seriHatalari.map((h) => <span key={h} className="hata">{h}</span>)}
         </div>
 

@@ -66,7 +66,6 @@ export default function SatisEkrani() {
             </tbody>
           </table>
         </div>
-        <div className="not alt-not">Seri numarasına tıklayınca o ürünün içindeki parçalar ve lotları açılır.</div>
       </section>
     </main>
   );

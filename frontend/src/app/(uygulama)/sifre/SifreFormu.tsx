@@ -41,7 +41,6 @@ export default function SifreFormu() {
         <div className="alan">
           <label htmlFor="yeni">Yeni şifre</label>
           <input id="yeni" type="password" className="girdi" required minLength={8} autoComplete="new-password" value={yeni} onChange={(e) => setYeni(e.target.value)} />
-          <span className="yardim">En az 8 karakter.</span>
         </div>
         <div className="alan">
           <label htmlFor="tekrar">Yeni şifre (tekrar)</label>

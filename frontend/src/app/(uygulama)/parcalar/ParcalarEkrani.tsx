@@ -79,9 +79,6 @@ export default function ParcalarEkrani() {
               <input id="minStok" type="number" min={0} className="girdi" {...alan("minStok")} />
             </div>
           </div>
-          <div className="not">
-            Lot numarası burada girilmez; parça her geldiğinde Stok ekranından yeni lot olarak eklenir.
-          </div>
           <button type="submit" className="btn btn--tam" disabled={bekliyor}>
             {duzenlenen ? "Değişiklikleri kaydet" : "Parçayı kaydet"}
           </button>

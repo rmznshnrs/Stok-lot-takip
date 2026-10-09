@@ -132,7 +132,7 @@ export default function UretimEkrani() {
             </div>
 
             <div className="adim-baslik">
-              3 · Parça kontrolü <span className="adim-aciklama">(lotlar otomatik seçilir: önce gelen önce kullanılır)</span>
+              3 · Parça kontrolü
             </div>
 
             {onizlemeHatasi ? (
@@ -177,19 +177,15 @@ export default function UretimEkrani() {
                     </tbody>
                   </table>
                 </div>
-                <div className="not">
-                  {guncel.atlananLotlar.length ? (
-                    <>
-                      Geri çağrılan lotlar (
-                      {guncel.atlananLotlar.map((l, i) => (
-                        <span key={l}>{i > 0 && ", "}<span className="mono">{l}</span></span>
-                      ))}
-                      ) otomatik olarak atlanır.
-                    </>
-                  ) : (
-                    "Geri çağrılan lotlar otomatik olarak atlanır."
-                  )}
-                </div>
+                {guncel.atlananLotlar.length > 0 && (
+                  <div className="not">
+                    Geri çağrılan lotlar (
+                    {guncel.atlananLotlar.map((l, i) => (
+                      <span key={l}>{i > 0 && ", "}<span className="mono">{l}</span></span>
+                    ))}
+                    ) atlandı.
+                  </div>
+                )}
 
                 {kayitHatasi && <div className="mesaj mesaj--error" role="alert">{kayitHatasi}</div>}
 

@@ -97,15 +97,7 @@ export default function IzlenebilirlikEkrani() {
 
       {hata && <div className="mesaj mesaj--error">{hata}</div>}
 
-      {!aranan ? (
-        <section className="kart kart--genis">
-          <p className="not not--buyuk">
-            {sekme === "lot"
-              ? "Bir lot numarası girin: lottaki parçanın hangi ürünlerde (seri no) kullanıldığı ve o ürünlerin kime satıldığı gösterilir."
-              : "Bir seri numarası girin: o ürünün içindeki parçalar, lotları ve adetleri gösterilir."}
-          </p>
-        </section>
-      ) : !yuklendi ? (
+      {!aranan ? null : !yuklendi ? (
         !hata && <p className="yukleniyor">Yükleniyor…</p>
       ) : sekme === "lot" ? (
         lotIz ? (

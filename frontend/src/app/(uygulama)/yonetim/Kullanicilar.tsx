@@ -115,7 +115,6 @@ export default function Kullanicilar() {
             <input type="password" className="girdi" required={!duzenlenen} minLength={8} autoComplete="new-password" {...alan("sifre")} />
           </div>
         </div>
-        <span className="yardim">Şifre en az 8 karakter. Yönetici kullanıcıları yönetir, lot geri çağırır ve stok düzeltir.</span>
         <div className="kaydet-grup">
           {duzenlenen && <button type="button" className="btn btn--ikincil" onClick={vazgec}>Vazgeç</button>}
           <button type="submit" className="btn" disabled={bekliyor}>{duzenlenen ? "Kaydet" : "Kullanıcı ekle"}</button>

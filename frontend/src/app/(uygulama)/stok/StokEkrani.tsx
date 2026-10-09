@@ -102,10 +102,6 @@ export default function StokEkrani() {
             <ParcaTablosu gruplar={gruplar} aranan={aranan} lotAdresi={(kod) => adres({ parca: kod, gorunum: "lot" })} />
           )}
         </div>
-        <div className="not alt-not">
-          Toplam = tüm lotların kalanı. Kullanılabilir = geri çağrılan lotlar hariç. &quot;Sıradaki&quot; etiketi üretimde ilk
-          kullanılacak lotu gösterir.
-        </div>
       </section>
     </main>
   );

@@ -92,7 +92,6 @@ export default function MalGirisiFormu({ parcalar, kaydedildi }: { parcalar: Par
         <datalist id="tedarikci-listesi">
           {tedarikciListesi?.map((t) => <option key={t.id} value={t.ad} />)}
         </datalist>
-        <div className="not">Listede olmayan bir tedarikçi yazarsanız yeni tedarikçi olarak tanımlanır.</div>
         <button type="submit" className="btn btn--tam" disabled={bekliyor}>Stoğa ekle</button>
       </form>
     </section>

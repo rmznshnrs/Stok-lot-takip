@@ -64,7 +64,6 @@ export default function SeriIzi({ iz }: { iz: SeriIz }) {
             </tbody>
           </table>
         </div>
-        <div className="not alt-not">Bir lot numarasına tıklayınca o lotun kullanıldığı diğer ürünler ve müşteriler açılır.</div>
       </section>
     </div>
   );

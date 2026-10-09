@@ -89,16 +89,11 @@ export default function UrunFormu({ urun, parcalar, kaydedildi }: Props) {
             disabled={urun ? !urun.seriOnekiDegistirilebilir : false}
             onChange={(e) => setSeriOneki(e.target.value)}
           />
-          <span className="yardim">
-            {urun && !urun.seriOnekiDegistirilebilir ? "Üretim yapıldığı için değiştirilemez." : "Seri no: önek + 4 hane (SN-IP-0001)"}
-          </span>
+          {urun && !urun.seriOnekiDegistirilebilir && <span className="yardim">Üretim yapıldığı için değiştirilemez.</span>}
         </div>
       </div>
 
-      <div className="baslik-grup">
-        <h3>Ürün ağacı</h3>
-        <span className="not">1 adet ürün için hangi parçadan kaç adet kullanılır</span>
-      </div>
+      <h3>Ürün ağacı</h3>
 
       <div className="tablo-kap">
         <table className="tablo tablo--sik">
