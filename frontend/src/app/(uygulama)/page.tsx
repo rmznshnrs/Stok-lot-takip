@@ -1,15 +1,8 @@
-"use client";
+import type { Metadata } from "next";
+import AnaSayfaEkrani from "./AnaSayfaEkrani";
 
-import { useKullanici } from "@/components/Oturum";
+export const metadata: Metadata = { title: "Ana Sayfa" };
 
-export default function AnaSayfa() {
-  const k = useKullanici();
-  return (
-    <main className="icerik icerik--dikey">
-      <section className="kart">
-        <h2>Hoş geldiniz, {k.ad}</h2>
-        <p className="not">Üst menüden bir ekran seçin.</p>
-      </section>
-    </main>
-  );
+export default function Sayfa() {
+  return <AnaSayfaEkrani />;
 }
