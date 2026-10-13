@@ -14,7 +14,9 @@ class UrunlerEkrani extends StatefulWidget {
 class _UrunlerEkraniState extends State<UrunlerEkrani> {
   late Future<List<UrunListe>> _urunler = context.api.urunler();
 
-  void _yenile() => setState(() => _urunler = context.api.urunler());
+  void _yenile() => setState(() {
+    _urunler = context.api.urunler();
+  });
 
   Future<void> _ac(int? id) async {
     await Navigator.of(context).push(MaterialPageRoute(builder: (_) => UrunSayfasi(urunId: id)));
@@ -23,38 +25,46 @@ class _UrunlerEkraniState extends State<UrunlerEkrani> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-        appBar: const GecisliBar(baslik: 'Ürünler'),
-        floatingActionButton: FloatingActionButton.extended(
-          icon: const Icon(Icons.add),
-          label: const Text('Yeni ürün'),
-          onPressed: () => _ac(null),
-        ),
-        body: Yukleyici<List<UrunListe>>(
-          future: _urunler,
-          yenile: _yenile,
-          builder: (context, liste) => liste.isEmpty
-              ? const BosDurum('Henüz ürün yok.')
-              : ListView(padding: const EdgeInsets.fromLTRB(16, 16, 16, 96), children: [
-                  for (final u in liste)
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 8),
-                      child: Kart(
-                        onTap: () => _ac(u.id),
-                        child: Row(children: [
+    appBar: const GecisliBar(baslik: 'Ürünler'),
+    floatingActionButton: FloatingActionButton.extended(
+      icon: const Icon(Icons.add),
+      label: const Text('Yeni ürün'),
+      onPressed: () => _ac(null),
+    ),
+    body: Yukleyici<List<UrunListe>>(
+      future: _urunler,
+      yenile: _yenile,
+      builder: (context, liste) => liste.isEmpty
+          ? const BosDurum('Henüz ürün yok.')
+          : ListView(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 96),
+              children: [
+                for (final u in liste)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: Kart(
+                      onTap: () => _ac(u.id),
+                      child: Row(
+                        children: [
                           Expanded(
-                            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                              Text(u.ad, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16)),
-                              Row(children: [Mono(u.kod, boyut: 12), Soluk(' · önek '), Mono(u.seriOneki, boyut: 12)]),
-                              Soluk('${u.parcaCesidi} parça çeşidi · ${u.uretimSayisi} üretim'),
-                            ]),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(u.ad, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16)),
+                                Row(children: [Mono(u.kod, boyut: 12), Soluk(' · önek '), Mono(u.seriOneki, boyut: 12)]),
+                                Soluk('${u.parcaCesidi} parça çeşidi · ${u.uretimSayisi} üretim'),
+                              ],
+                            ),
                           ),
                           const Icon(Icons.chevron_right),
-                        ]),
+                        ],
                       ),
                     ),
-                ]),
-        ),
-      );
+                  ),
+              ],
+            ),
+    ),
+  );
 }
 
 /// Ürün bilgileri ve ürün ağacı (1 ürün için hangi parçadan kaç adet). urunId null ise yeni ürün.
@@ -105,7 +115,11 @@ class _UrunSayfasiState extends State<UrunSayfasi> {
         _hata = null;
       });
     } catch (e) {
-      if (mounted) setState(() => _hata = hataMetni(e));
+      if (mounted) {
+        setState(() {
+          _hata = hataMetni(e);
+        });
+      }
     }
   }
 
@@ -127,22 +141,26 @@ class _UrunSayfasiState extends State<UrunSayfasi> {
         height: MediaQuery.of(c).size.height * 0.7,
         child: kalan.isEmpty
             ? const BosDurum('Eklenecek parça kalmadı.')
-            : ListView(children: [
-                for (final p in kalan)
-                  ListTile(title: Text(p.ad), subtitle: Mono(p.kod, boyut: 12), onTap: () => Navigator.pop(c, p)),
-              ]),
+            : ListView(
+                children: [
+                  for (final p in kalan)
+                    ListTile(title: Text(p.ad), subtitle: Mono(p.kod, boyut: 12), onTap: () => Navigator.pop(c, p)),
+                ],
+              ),
       ),
     );
     if (secilen == null) return;
     setState(() {
-      _agac.add(AgacSatiri(
-        parcaId: secilen.id,
-        parcaKod: secilen.kod,
-        parcaAd: secilen.ad,
-        adet: 1,
-        kullanilabilirStok: secilen.kullanilabilirStok,
-        minAltinda: secilen.minAltinda,
-      ));
+      _agac.add(
+        AgacSatiri(
+          parcaId: secilen.id,
+          parcaKod: secilen.kod,
+          parcaAd: secilen.ad,
+          adet: 1,
+          kullanilabilirStok: secilen.kullanilabilirStok,
+          minAltinda: secilen.minAltinda,
+        ),
+      );
       _agac.sort((a, b) => a.parcaKod.compareTo(b.parcaKod));
     });
   }
@@ -151,7 +169,9 @@ class _UrunSayfasiState extends State<UrunSayfasi> {
     if (_ad.text.trim().isEmpty || _kod.text.trim().isEmpty || _onek.text.trim().isEmpty) {
       return bildir(context, 'Ürün adı, kodu ve seri no öneki girin.', hata: true);
     }
-    setState(() => _bekliyor = true);
+    setState(() {
+      _bekliyor = true;
+    });
     try {
       final api = context.api;
       final u = _urun == null
@@ -159,12 +179,18 @@ class _UrunSayfasiState extends State<UrunSayfasi> {
           : await api.urunGuncelle(_urun!.id, _kod.text.trim(), _ad.text.trim(), _onek.text.trim());
       final kayitli = await api.agacKaydet(u.id, [for (final s in _agac) (parcaId: s.parcaId, adet: s.adet)]);
       if (!mounted) return;
-      setState(() => _urunuGoster(kayitli));
+      setState(() {
+        _urunuGoster(kayitli);
+      });
       bildir(context, '${kayitli.kod} – ${kayitli.ad} kaydedildi.');
     } catch (e) {
       if (mounted) bildir(context, hataMetni(e), hata: true);
     } finally {
-      if (mounted) setState(() => _bekliyor = false);
+      if (mounted) {
+        setState(() {
+          _bekliyor = false;
+        });
+      }
     }
   }
 
@@ -176,11 +202,17 @@ class _UrunSayfasiState extends State<UrunSayfasi> {
       body: _hata != null
           ? HataGorunumu(metin: _hata!, yenile: _yukle)
           : !_yuklendi
-              ? const Center(child: CircularProgressIndicator())
-              : ListView(padding: const EdgeInsets.all(16), children: [
-                  TextField(controller: _ad, decoration: const InputDecoration(labelText: 'Ürün adı')),
-                  const SizedBox(height: 14),
-                  Row(children: [
+          ? const Center(child: CircularProgressIndicator())
+          : ListView(
+              padding: const EdgeInsets.all(16),
+              children: [
+                TextField(
+                  controller: _ad,
+                  decoration: const InputDecoration(labelText: 'Ürün adı'),
+                ),
+                const SizedBox(height: 14),
+                Row(
+                  children: [
                     Expanded(
                       child: TextField(
                         controller: _kod,
@@ -201,39 +233,57 @@ class _UrunSayfasiState extends State<UrunSayfasi> {
                         ),
                       ),
                     ),
-                  ]),
-                  const BolumBasligi('Ürün ağacı (1 ürün için)'),
-                  if (_agac.isEmpty) const BosDurum('Ürün ağacı boş.'),
-                  for (final s in _agac)
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 8),
-                      child: Kart(
-                        padding: const EdgeInsets.fromLTRB(14, 8, 4, 8),
-                        child: Row(children: [
+                  ],
+                ),
+                const BolumBasligi('Ürün ağacı (1 ürün için)'),
+                if (_agac.isEmpty) const BosDurum('Ürün ağacı boş.'),
+                for (final s in _agac)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: Kart(
+                      padding: const EdgeInsets.fromLTRB(14, 8, 4, 8),
+                      child: Row(
+                        children: [
                           Expanded(
-                            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                              Text(s.parcaAd),
-                              Row(children: [Mono(s.parcaKod, boyut: 12), Soluk(' · stok ${s.kullanilabilirStok}', boyut: 12)]),
-                            ]),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(s.parcaAd),
+                                Row(children: [Mono(s.parcaKod, boyut: 12), Soluk(' · stok ${s.kullanilabilirStok}', boyut: 12)]),
+                              ],
+                            ),
                           ),
                           IconButton(
-                            onPressed: s.adet > 1 ? () => setState(() => s.adet--) : null,
+                            onPressed: s.adet > 1
+                                ? () => setState(() {
+                                    s.adet--;
+                                  })
+                                : null,
                             icon: const Icon(Icons.remove_circle_outline),
                           ),
                           Text('${s.adet}', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
-                          IconButton(onPressed: () => setState(() => s.adet++), icon: const Icon(Icons.add_circle_outline)),
+                          IconButton(
+                            onPressed: () => setState(() {
+                              s.adet++;
+                            }),
+                            icon: const Icon(Icons.add_circle_outline),
+                          ),
                           IconButton(
                             tooltip: 'Kaldır',
-                            onPressed: () => setState(() => _agac.remove(s)),
+                            onPressed: () => setState(() {
+                              _agac.remove(s);
+                            }),
                             icon: Icon(Icons.delete_outline, color: Theme.of(context).colorScheme.error),
                           ),
-                        ]),
+                        ],
                       ),
                     ),
-                  OutlinedButton.icon(onPressed: _parcaEkle, icon: const Icon(Icons.add), label: const Text('Parça ekle')),
-                  const SizedBox(height: 24),
-                  AnaDugme(metin: 'Kaydet', bekliyor: _bekliyor, onPressed: _kaydet),
-                ]),
+                  ),
+                OutlinedButton.icon(onPressed: _parcaEkle, icon: const Icon(Icons.add), label: const Text('Parça ekle')),
+                const SizedBox(height: 24),
+                AnaDugme(metin: 'Kaydet', bekliyor: _bekliyor, onPressed: _kaydet),
+              ],
+            ),
     );
   }
 }

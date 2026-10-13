@@ -10,42 +10,33 @@ String tarihMetni(DateTime t) =>
     '${t.year.toString().padLeft(4, '0')}-${t.month.toString().padLeft(2, '0')}-${t.day.toString().padLeft(2, '0')}';
 
 class Kullanici {
-  Kullanici.json(J j)
-      : id = j['id'],
-        ad = j['ad'],
-        soyad = j['soyad'],
-        kullaniciAdi = j['kullaniciAdi'],
-        rol = j['rol'];
+  Kullanici.json(J j) : id = j['id'], ad = j['ad'], soyad = j['soyad'], kullaniciAdi = j['kullaniciAdi'], rol = j['rol'];
   final int id;
   final String ad, soyad, kullaniciAdi, rol;
   bool get admin => rol == 'Admin';
 }
 
 class ParcaOzet {
-  ParcaOzet.json(J j)
-      : id = j['id'],
-        kod = j['kod'],
-        ad = j['ad'],
-        birim = j['birim'];
+  ParcaOzet.json(J j) : id = j['id'], kod = j['kod'], ad = j['ad'], birim = j['birim'];
   final int id;
   final String kod, ad, birim;
 }
 
 class Lot {
   Lot.json(J j)
-      : id = j['id'],
-        lotNo = j['lotNo'],
-        parcaId = j['parcaId'],
-        parcaKod = j['parcaKod'],
-        parcaAd = j['parcaAd'],
-        tedarikciAd = j['tedarikciAd'],
-        siparisTarihi = _tarih(j['siparisTarihi']),
-        siparisNo = j['siparisNo'] ?? '',
-        girisAdet = j['girisAdet'],
-        kalanAdet = j['kalanAdet'],
-        geriCagrildi = j['geriCagrildi'],
-        girisZamani = _tarih(j['girisZamani']),
-        sirada = j['sirada'] ?? false;
+    : id = j['id'],
+      lotNo = j['lotNo'],
+      parcaId = j['parcaId'],
+      parcaKod = j['parcaKod'],
+      parcaAd = j['parcaAd'],
+      tedarikciAd = j['tedarikciAd'],
+      siparisTarihi = _tarih(j['siparisTarihi']),
+      siparisNo = j['siparisNo'] ?? '',
+      girisAdet = j['girisAdet'],
+      kalanAdet = j['kalanAdet'],
+      geriCagrildi = j['geriCagrildi'],
+      girisZamani = _tarih(j['girisZamani']),
+      sirada = j['sirada'] ?? false;
   final int id, parcaId, girisAdet, kalanAdet;
   final String lotNo, parcaKod, parcaAd, tedarikciAd, siparisNo;
   final DateTime siparisTarihi, girisZamani;
@@ -53,26 +44,23 @@ class Lot {
 }
 
 class SatisBilgisi {
-  SatisBilgisi.json(J j)
-      : tarih = _tarih(j['tarih']),
-        musteriAd = j['musteriAd'],
-        musteriIletisim = j['musteriIletisim'] ?? '';
+  SatisBilgisi.json(J j) : tarih = _tarih(j['tarih']), musteriAd = j['musteriAd'], musteriIletisim = j['musteriIletisim'] ?? '';
   final DateTime tarih;
   final String musteriAd, musteriIletisim;
 }
 
 class ParcaStok {
   ParcaStok.json(J j)
-      : id = j['id'],
-        kod = j['kod'],
-        ad = j['ad'],
-        birim = j['birim'],
-        minStok = j['minStok'],
-        toplamStok = j['toplamStok'],
-        kullanilabilirStok = j['kullanilabilirStok'],
-        lotSayisi = j['lotSayisi'],
-        kullanildigiUrunler = _metinler(j['kullanildigiUrunler']),
-        minAltinda = j['minAltinda'];
+    : id = j['id'],
+      kod = j['kod'],
+      ad = j['ad'],
+      birim = j['birim'],
+      minStok = j['minStok'],
+      toplamStok = j['toplamStok'],
+      kullanilabilirStok = j['kullanilabilirStok'],
+      lotSayisi = j['lotSayisi'],
+      kullanildigiUrunler = _metinler(j['kullanildigiUrunler']),
+      minAltinda = j['minAltinda'];
   final int id, minStok, toplamStok, kullanilabilirStok, lotSayisi;
   final String kod, ad, birim;
   final List<String> kullanildigiUrunler;
@@ -81,9 +69,9 @@ class ParcaStok {
 
 class StokGrubu {
   StokGrubu.json(J j)
-      : parca = ParcaStok.json(j['parca']),
-        lotlar = [for (final l in j['lotlar'] as List) Lot.json(l)],
-        siradaki = j['siradaki'] == null ? null : Lot.json(j['siradaki']);
+    : parca = ParcaStok.json(j['parca']),
+      lotlar = [for (final l in j['lotlar'] as List) Lot.json(l)],
+      siradaki = j['siradaki'] == null ? null : Lot.json(j['siradaki']);
   final ParcaStok parca;
   final List<Lot> lotlar;
   final Lot? siradaki;
@@ -91,11 +79,11 @@ class StokGrubu {
 
 class ParcaIhtiyaci {
   ParcaIhtiyaci.json(J j)
-      : parca = ParcaOzet.json(j['parca']),
-        gereken = j['gereken'],
-        kullanilabilir = j['kullanilabilir'],
-        eksik = j['eksik'],
-        lotlar = [for (final l in j['lotlar'] as List) (lotNo: l['lotNo'] as String, adet: l['adet'] as int)];
+    : parca = ParcaOzet.json(j['parca']),
+      gereken = j['gereken'],
+      kullanilabilir = j['kullanilabilir'],
+      eksik = j['eksik'],
+      lotlar = [for (final l in j['lotlar'] as List) (lotNo: l['lotNo'] as String, adet: l['adet'] as int)];
   final ParcaOzet parca;
   final int gereken, kullanilabilir, eksik;
   final List<({String lotNo, int adet})> lotlar;
@@ -103,13 +91,13 @@ class ParcaIhtiyaci {
 
 class UretimOnizleme {
   UretimOnizleme.json(J j)
-      : urunId = j['urunId'],
-        urunAd = j['urunAd'],
-        adet = j['adet'],
-        parcalar = [for (final p in j['parcalar'] as List) ParcaIhtiyaci.json(p)],
-        seriNolar = _metinler(j['seriNolar']),
-        yeterli = j['yeterli'],
-        atlananLotlar = _metinler(j['atlananLotlar']);
+    : urunId = j['urunId'],
+      urunAd = j['urunAd'],
+      adet = j['adet'],
+      parcalar = [for (final p in j['parcalar'] as List) ParcaIhtiyaci.json(p)],
+      seriNolar = _metinler(j['seriNolar']),
+      yeterli = j['yeterli'],
+      atlananLotlar = _metinler(j['atlananLotlar']);
   final int urunId, adet;
   final String urunAd;
   final List<ParcaIhtiyaci> parcalar;
@@ -119,10 +107,10 @@ class UretimOnizleme {
 
 class LotIzUretim {
   LotIzUretim.json(J j)
-      : seriNo = j['seriNo'],
-        urunAd = j['urunAd'],
-        adet = j['adet'],
-        satis = j['satis'] == null ? null : SatisBilgisi.json(j['satis']);
+    : seriNo = j['seriNo'],
+      urunAd = j['urunAd'],
+      adet = j['adet'],
+      satis = j['satis'] == null ? null : SatisBilgisi.json(j['satis']);
   final String seriNo, urunAd;
   final int adet;
   final SatisBilgisi? satis;
@@ -130,36 +118,40 @@ class LotIzUretim {
 
 class LotIzMusteri {
   LotIzMusteri.json(J j)
-      : ad = j['ad'],
-        iletisim = j['iletisim'] ?? '',
-        satislar = [for (final s in j['satislar'] as List) (seriNo: s['seriNo'] as String, tarih: _tarih(s['tarih']))];
+    : ad = j['ad'],
+      iletisim = j['iletisim'] ?? '',
+      satislar = [for (final s in j['satislar'] as List) (seriNo: s['seriNo'] as String, tarih: _tarih(s['tarih']))];
   final String ad, iletisim;
   final List<({String seriNo, DateTime tarih})> satislar;
 }
 
 class LotIz {
   LotIz.json(J j)
-      : lot = Lot.json(j['lot']),
-        kullanilanAdet = j['kullanilanAdet'],
-        uretimler = [for (final u in j['uretimler'] as List) LotIzUretim.json(u)],
-        musteriler = [for (final m in j['musteriler'] as List) LotIzMusteri.json(m)];
+    : lot = Lot.json(j['lot']),
+      kullanilanAdet = j['kullanilanAdet'],
+      uretimler = [for (final u in j['uretimler'] as List) LotIzUretim.json(u)],
+      musteriler = [for (final m in j['musteriler'] as List) LotIzMusteri.json(m)];
   final Lot lot;
   final int kullanilanAdet;
   final List<LotIzUretim> uretimler;
   final List<LotIzMusteri> musteriler;
-  List<LotIzUretim> get depodakiler => [for (final u in uretimler) if (u.satis == null) u];
+  List<LotIzUretim> get depodakiler => [
+    for (final u in uretimler)
+      if (u.satis == null) u,
+  ];
 }
 
 class SeriIz {
   SeriIz.json(J j)
-      : seriNo = j['seriNo'],
-        tarih = _tarih(j['tarih']),
-        urunAd = j['urunAd'],
-        parcalar = [
-          for (final p in j['parcalar'] as List) (parca: ParcaOzet.json(p['parca']), lot: Lot.json(p['lot']), adet: p['adet'] as int)
-        ],
-        satis = j['satis'] == null ? null : SatisBilgisi.json(j['satis']),
-        geriCagrilanLotlar = _metinler(j['geriCagrilanLotlar']);
+    : seriNo = j['seriNo'],
+      tarih = _tarih(j['tarih']),
+      urunAd = j['urunAd'],
+      parcalar = [
+        for (final p in j['parcalar'] as List)
+          (parca: ParcaOzet.json(p['parca']), lot: Lot.json(p['lot']), adet: p['adet'] as int),
+      ],
+      satis = j['satis'] == null ? null : SatisBilgisi.json(j['satis']),
+      geriCagrilanLotlar = _metinler(j['geriCagrilanLotlar']);
   final String seriNo, urunAd;
   final DateTime tarih;
   final List<({ParcaOzet parca, Lot lot, int adet})> parcalar;
@@ -169,48 +161,43 @@ class SeriIz {
 
 class NumaraArama {
   NumaraArama.json(J j)
-      : tur = j['tur'],
-        deger = j['deger'],
-        adaylar = [for (final a in j['adaylar'] as List) (tur: a['tur'] as String, deger: a['deger'] as String)];
+    : tur = j['tur'],
+      deger = j['deger'],
+      adaylar = [for (final a in j['adaylar'] as List) (tur: a['tur'] as String, deger: a['deger'] as String)];
   final String? tur, deger;
   final List<({String tur, String deger})> adaylar;
 }
 
 class Hareket {
   Hareket.json(J j)
-      : tur = j['tur'],
-        tarih = _tarih(j['tarih']),
-        aciklama = j['aciklama'],
-        numara = j['numara'],
-        numaraIlk = j['numaraIlk'],
-        numaraTuru = j['numaraTuru'];
+    : tur = j['tur'],
+      tarih = _tarih(j['tarih']),
+      aciklama = j['aciklama'],
+      numara = j['numara'],
+      numaraIlk = j['numaraIlk'],
+      numaraTuru = j['numaraTuru'];
   final String tur, aciklama, numara, numaraIlk, numaraTuru;
   final DateTime tarih;
 }
 
 class Satilabilir {
-  Satilabilir.json(J j)
-      : seriNo = j['seriNo'],
-        urunAd = j['urunAd'],
-        geriCagrilanLotlar = _metinler(j['geriCagrilanLotlar']);
+  Satilabilir.json(J j) : seriNo = j['seriNo'], urunAd = j['urunAd'], geriCagrilanLotlar = _metinler(j['geriCagrilanLotlar']);
   final String seriNo, urunAd;
   List<String> geriCagrilanLotlar;
 }
 
 class SatisUyarisi {
-  SatisUyarisi.json(J j)
-      : seriNo = j['seriNo'],
-        lotlar = _metinler(j['lotlar']);
+  SatisUyarisi.json(J j) : seriNo = j['seriNo'], lotlar = _metinler(j['lotlar']);
   final String seriNo;
   final List<String> lotlar;
 }
 
 class SatisGecmisi {
   SatisGecmisi.json(J j)
-      : tarih = _tarih(j['tarih']),
-        musteriAd = j['musteriAd'],
-        urunAd = j['urunAd'],
-        seriNolar = _metinler(j['seriNolar']);
+    : tarih = _tarih(j['tarih']),
+      musteriAd = j['musteriAd'],
+      urunAd = j['urunAd'],
+      seriNolar = _metinler(j['seriNolar']);
   final DateTime tarih;
   final String musteriAd, urunAd;
   final List<String> seriNolar;
@@ -218,12 +205,12 @@ class SatisGecmisi {
 
 class UrunListe {
   UrunListe.json(J j)
-      : id = j['id'],
-        kod = j['kod'],
-        ad = j['ad'],
-        seriOneki = j['seriOneki'],
-        parcaCesidi = j['parcaCesidi'],
-        uretimSayisi = j['uretimSayisi'];
+    : id = j['id'],
+      kod = j['kod'],
+      ad = j['ad'],
+      seriOneki = j['seriOneki'],
+      parcaCesidi = j['parcaCesidi'],
+      uretimSayisi = j['uretimSayisi'];
   final int id, parcaCesidi, uretimSayisi;
   final String kod, ad, seriOneki;
 }
@@ -238,12 +225,12 @@ class AgacSatiri {
     required this.minAltinda,
   });
   AgacSatiri.json(J j)
-      : parcaId = j['parcaId'],
-        parcaKod = j['parcaKod'],
-        parcaAd = j['parcaAd'],
-        adet = j['adet'],
-        kullanilabilirStok = j['kullanilabilirStok'],
-        minAltinda = j['minAltinda'];
+    : parcaId = j['parcaId'],
+      parcaKod = j['parcaKod'],
+      parcaAd = j['parcaAd'],
+      adet = j['adet'],
+      kullanilabilirStok = j['kullanilabilirStok'],
+      minAltinda = j['minAltinda'];
   final int parcaId, kullanilabilirStok;
   final String parcaKod, parcaAd;
   final bool minAltinda;
@@ -252,12 +239,12 @@ class AgacSatiri {
 
 class UrunDetay {
   UrunDetay.json(J j)
-      : id = j['id'],
-        kod = j['kod'],
-        ad = j['ad'],
-        seriOneki = j['seriOneki'],
-        seriOnekiDegistirilebilir = j['seriOnekiDegistirilebilir'],
-        agac = [for (final s in j['agac'] as List) AgacSatiri.json(s)];
+    : id = j['id'],
+      kod = j['kod'],
+      ad = j['ad'],
+      seriOneki = j['seriOneki'],
+      seriOnekiDegistirilebilir = j['seriOnekiDegistirilebilir'],
+      agac = [for (final s in j['agac'] as List) AgacSatiri.json(s)];
   final int id;
   final String kod, ad, seriOneki;
   final bool seriOnekiDegistirilebilir;

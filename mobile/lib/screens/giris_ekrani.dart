@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../main.dart';
 import '../tema.dart';
@@ -27,7 +28,9 @@ class _GirisEkraniState extends State<GirisEkrani> {
 
   Future<void> _giris() async {
     if (_kullaniciAdi.text.trim().isEmpty || _sifre.text.isEmpty) {
-      setState(() => _hata = 'Kullanıcı adı ve şifre girin.');
+      setState(() {
+        _hata = 'Kullanıcı adı ve şifre girin.';
+      });
       return;
     }
     setState(() {
@@ -38,27 +41,41 @@ class _GirisEkraniState extends State<GirisEkrani> {
       // Başarılı girişte token kaydedilir, uygulama ana ekrana geçer
       await context.api.giris(_kullaniciAdi.text.trim(), _sifre.text);
     } catch (e) {
-      if (mounted) setState(() => _hata = hataMetni(e));
+      if (mounted) {
+        setState(() {
+          _hata = hataMetni(e);
+        });
+      }
     } finally {
-      if (mounted) setState(() => _bekliyor = false);
+      if (mounted) {
+        setState(() {
+          _bekliyor = false;
+        });
+      }
     }
   }
 
   @override
-  Widget build(BuildContext context) => Scaffold(
-        body: DecoratedBox(
-          decoration: const BoxDecoration(gradient: Renk.gecis),
-          child: SafeArea(
-            child: Center(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(24),
-                child: Card(
-                  child: Padding(
-                    padding: const EdgeInsets.all(24),
-                    child: AutofillGroup(
-                      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-                        const Text('MKC BİLİŞİM',
-                            style: TextStyle(fontFamily: monoAile, fontSize: 18, fontWeight: FontWeight.w600, letterSpacing: 1)),
+  Widget build(BuildContext context) => AnnotatedRegion<SystemUiOverlayStyle>(
+    value: SystemUiOverlayStyle.light,
+    child: Scaffold(
+      body: DecoratedBox(
+        decoration: const BoxDecoration(gradient: Renk.gecis),
+        child: SafeArea(
+          child: Center(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(24),
+              child: Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: AutofillGroup(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        const Text(
+                          'MKC BİLİŞİM',
+                          style: TextStyle(fontFamily: monoAile, fontSize: 18, fontWeight: FontWeight.w600, letterSpacing: 1),
+                        ),
                         const SizedBox(height: 24),
                         TextField(
                           controller: _kullaniciAdi,
@@ -86,7 +103,7 @@ class _GirisEkraniState extends State<GirisEkrani> {
                           icon: const Icon(Icons.dns_outlined, size: 18),
                           label: Text('Sunucu: ${context.ayarlar.apiAdresi}', overflow: TextOverflow.ellipsis),
                         ),
-                      ]),
+                      ],
                     ),
                   ),
                 ),
@@ -94,5 +111,7 @@ class _GirisEkraniState extends State<GirisEkrani> {
             ),
           ),
         ),
-      );
+      ),
+    ),
+  );
 }

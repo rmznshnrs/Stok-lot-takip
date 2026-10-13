@@ -26,7 +26,9 @@ class _SifreEkraniState extends State<SifreEkrani> {
 
   Future<void> _kaydet() async {
     if (_yeni.text != _tekrar.text) return bildir(context, 'Yeni şifreler aynı değil.', hata: true);
-    setState(() => _bekliyor = true);
+    setState(() {
+      _bekliyor = true;
+    });
     try {
       await context.api.sifreDegistir(_eski.text, _yeni.text);
       if (!mounted) return;
@@ -35,21 +37,40 @@ class _SifreEkraniState extends State<SifreEkrani> {
     } catch (e) {
       if (mounted) bildir(context, hataMetni(e), hata: true);
     } finally {
-      if (mounted) setState(() => _bekliyor = false);
+      if (mounted) {
+        setState(() {
+          _bekliyor = false;
+        });
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) => Scaffold(
-        appBar: const GecisliBar(baslik: 'Şifre değiştir'),
-        body: ListView(padding: const EdgeInsets.all(16), children: [
-          TextField(controller: _eski, obscureText: true, decoration: const InputDecoration(labelText: 'Mevcut şifre')),
-          const SizedBox(height: 14),
-          TextField(controller: _yeni, obscureText: true, decoration: const InputDecoration(labelText: 'Yeni şifre')),
-          const SizedBox(height: 14),
-          TextField(controller: _tekrar, obscureText: true, decoration: const InputDecoration(labelText: 'Yeni şifre (tekrar)')),
-          const SizedBox(height: 24),
-          AnaDugme(metin: 'Şifreyi değiştir', bekliyor: _bekliyor, onPressed: _kaydet),
-        ]),
-      );
+    appBar: const GecisliBar(baslik: 'Şifre değiştir'),
+    body: ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        TextField(
+          controller: _eski,
+          obscureText: true,
+          decoration: const InputDecoration(labelText: 'Mevcut şifre'),
+        ),
+        const SizedBox(height: 14),
+        TextField(
+          controller: _yeni,
+          obscureText: true,
+          decoration: const InputDecoration(labelText: 'Yeni şifre'),
+        ),
+        const SizedBox(height: 14),
+        TextField(
+          controller: _tekrar,
+          obscureText: true,
+          decoration: const InputDecoration(labelText: 'Yeni şifre (tekrar)'),
+        ),
+        const SizedBox(height: 24),
+        AnaDugme(metin: 'Şifreyi değiştir', bekliyor: _bekliyor, onPressed: _kaydet),
+      ],
+    ),
+  );
 }

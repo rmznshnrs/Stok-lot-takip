@@ -29,7 +29,16 @@ class _MalGirisiEkraniState extends State<MalGirisiEkrani> {
   @override
   void initState() {
     super.initState();
-    context.api.tedarikciler().then((t) => mounted ? setState(() => _tedarikciler = t) : null).catchError((_) => null);
+    context.api
+        .tedarikciler()
+        .then(
+          (t) => mounted
+              ? setState(() {
+                  _tedarikciler = t;
+                })
+              : null,
+        )
+        .catchError((_) => null);
   }
 
   @override
@@ -64,7 +73,11 @@ class _MalGirisiEkraniState extends State<MalGirisiEkrani> {
       firstDate: DateTime(2000),
       lastDate: DateTime.now().add(const Duration(days: 365)),
     );
-    if (t != null) setState(() => _siparisTarihi = t);
+    if (t != null) {
+      setState(() {
+        _siparisTarihi = t;
+      });
+    }
   }
 
   Future<void> _kaydet() async {
@@ -77,7 +90,9 @@ class _MalGirisiEkraniState extends State<MalGirisiEkrani> {
     ];
     if (eksik.isNotEmpty) return bildir(context, 'Eksik: ${eksik.join(', ')}', hata: true);
 
-    setState(() => _bekliyor = true);
+    setState(() {
+      _bekliyor = true;
+    });
     try {
       final s = await context.api.malGirisi(
         parcaId: _parca!.id,
@@ -89,8 +104,11 @@ class _MalGirisiEkraniState extends State<MalGirisiEkrani> {
       );
       if (!mounted) return;
       _eklendi = true;
-      bildir(context, '${s.lot.lotNo} · ${s.lot.parcaKod} · ${s.lot.girisAdet} ${_parca!.birim} stoğa eklendi.'
-          '${s.yeniTedarikci ? ' ${s.lot.tedarikciAd} yeni tedarikçi.' : ''}');
+      bildir(
+        context,
+        '${s.lot.lotNo} · ${s.lot.parcaKod} · ${s.lot.girisAdet} ${_parca!.birim} stoğa eklendi.'
+        '${s.yeniTedarikci ? ' ${s.lot.tedarikciAd} yeni tedarikçi.' : ''}',
+      );
       // Aynı parça ve tedarikçiden bir sonraki lot için form hazır kalır
       _lotNo.clear();
       _adet.clear();
@@ -98,67 +116,90 @@ class _MalGirisiEkraniState extends State<MalGirisiEkrani> {
     } catch (e) {
       if (mounted) bildir(context, hataMetni(e), hata: true);
     } finally {
-      if (mounted) setState(() => _bekliyor = false);
+      if (mounted) {
+        setState(() {
+          _bekliyor = false;
+        });
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) => PopScope(
-        canPop: false,
-        onPopInvokedWithResult: (bitti, _) {
-          if (!bitti) Navigator.of(context).pop(_eklendi);
-        },
-        child: Scaffold(
-          appBar: const GecisliBar(baslik: 'Mal girişi'),
-          body: ListView(padding: const EdgeInsets.all(16), children: [
-            TextField(
-              controller: _parcaMetni,
-              decoration: InputDecoration(
-                labelText: 'Parça (kod veya ad)',
-                errorText: _parcaHatasi,
-                suffixIcon: IconButton(icon: const Icon(Icons.search), onPressed: _parcaBul),
-              ),
-              textInputAction: TextInputAction.search,
-              onSubmitted: _parcaBul,
-              onChanged: (_) => setState(() => _parca = null),
+    canPop: false,
+    onPopInvokedWithResult: (bitti, _) {
+      if (!bitti) Navigator.of(context).pop(_eklendi);
+    },
+    child: Scaffold(
+      appBar: const GecisliBar(baslik: 'Mal girişi'),
+      body: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          TextField(
+            controller: _parcaMetni,
+            decoration: InputDecoration(
+              labelText: 'Parça (kod veya ad)',
+              errorText: _parcaHatasi,
+              suffixIcon: IconButton(icon: const Icon(Icons.search), onPressed: _parcaBul),
             ),
-            if (_parca != null)
-              Padding(
-                padding: const EdgeInsets.only(top: 8),
-                child: Kart(
-                  child: Row(children: [
+            textInputAction: TextInputAction.search,
+            onSubmitted: _parcaBul,
+            onChanged: (_) => setState(() {
+              _parca = null;
+            }),
+          ),
+          if (_parca != null)
+            Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: Kart(
+                child: Row(
+                  children: [
                     const Icon(Icons.check_circle, color: Colors.green),
                     const SizedBox(width: 10),
                     Expanded(child: Text(_parca!.ad)),
                     Mono(_parca!.kod, boyut: 12),
-                  ]),
+                  ],
                 ),
               ),
-            const SizedBox(height: 14),
-            ListedenSecilebilirAlan(denetleyici: _tedarikci, etiket: 'Tedarikçi', secenekler: _tedarikciler),
-            const SizedBox(height: 14),
-            OkutulabilirAlan(denetleyici: _lotNo, etiket: 'Lot numarası', ipucu: 'L-…'),
-            const SizedBox(height: 14),
-            Row(children: [
+            ),
+          const SizedBox(height: 14),
+          ListedenSecilebilirAlan(denetleyici: _tedarikci, etiket: 'Tedarikçi', secenekler: _tedarikciler),
+          const SizedBox(height: 14),
+          OkutulabilirAlan(denetleyici: _lotNo, etiket: 'Lot numarası', ipucu: 'L-…'),
+          const SizedBox(height: 14),
+          Row(
+            children: [
               Expanded(
-                child: TextField(controller: _adet, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Adet')),
+                child: TextField(
+                  controller: _adet,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(labelText: 'Adet'),
+                ),
               ),
               const SizedBox(width: 12),
               Expanded(
                 child: InkWell(
                   onTap: _tarihSec,
                   child: InputDecorator(
-                    decoration: const InputDecoration(labelText: 'Sipariş tarihi', suffixIcon: Icon(Icons.calendar_today, size: 18)),
+                    decoration: const InputDecoration(
+                      labelText: 'Sipariş tarihi',
+                      suffixIcon: Icon(Icons.calendar_today, size: 18),
+                    ),
                     child: Text(tarih(_siparisTarihi)),
                   ),
                 ),
               ),
-            ]),
-            const SizedBox(height: 14),
-            TextField(controller: _siparisNo, decoration: const InputDecoration(labelText: 'Sipariş / irsaliye no')),
-            const SizedBox(height: 24),
-            AnaDugme(metin: 'Stoğa ekle', ikon: Icons.add, bekliyor: _bekliyor, onPressed: _kaydet),
-          ]),
-        ),
-      );
+            ],
+          ),
+          const SizedBox(height: 14),
+          TextField(
+            controller: _siparisNo,
+            decoration: const InputDecoration(labelText: 'Sipariş / irsaliye no'),
+          ),
+          const SizedBox(height: 24),
+          AnaDugme(metin: 'Stoğa ekle', ikon: Icons.add, bekliyor: _bekliyor, onPressed: _kaydet),
+        ],
+      ),
+    ),
+  );
 }

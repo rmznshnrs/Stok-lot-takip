@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 /// Web arayüzüyle aynı renkler (mor-turkuaz).
 class Renk {
@@ -43,6 +44,7 @@ ThemeData tema(Brightness parlaklik) {
     fontFamily: 'IBMPlexSans',
     scaffoldBackgroundColor: koyu ? Renk.koyuZemin : Renk.zemin,
     appBarTheme: const AppBarTheme(
+      systemOverlayStyle: SystemUiOverlayStyle.light, // durum çubuğu simgeleri beyaz
       foregroundColor: Colors.white,
       backgroundColor: Colors.transparent,
       elevation: 0,
@@ -52,15 +54,27 @@ ThemeData tema(Brightness parlaklik) {
       color: renkler.surface,
       elevation: 0,
       margin: EdgeInsets.zero,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14), side: BorderSide(color: kenar)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(14),
+        side: BorderSide(color: kenar),
+      ),
     ),
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
       fillColor: renkler.surface,
       contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide(color: kenar)),
-      enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide(color: kenar)),
-      focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide(color: renkler.primary, width: 2)),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(10),
+        borderSide: BorderSide(color: kenar),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(10),
+        borderSide: BorderSide(color: kenar),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(10),
+        borderSide: BorderSide(color: renkler.primary, width: 2),
+      ),
     ),
     filledButtonTheme: FilledButtonThemeData(
       style: FilledButton.styleFrom(

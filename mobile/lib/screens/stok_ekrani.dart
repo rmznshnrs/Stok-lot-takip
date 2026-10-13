@@ -32,7 +32,9 @@ class _StokEkraniState extends State<StokEkrani> {
 
   Future<void> _yenile() async {
     final f = context.api.stok(arama: _arama);
-    setState(() => _gruplar = f);
+    setState(() {
+      _gruplar = f;
+    });
     await f.catchError((_) => <StokGrubu>[]);
   }
 
@@ -46,35 +48,43 @@ class _StokEkraniState extends State<StokEkrani> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-        appBar: const GecisliBar(baslik: 'Stok'),
-        floatingActionButton: FloatingActionButton.extended(
-          onPressed: () async {
-            if (await malGirisiAc(context) == true) _yenile();
-          },
-          icon: const Icon(Icons.add),
-          label: const Text('Mal girişi'),
-        ),
-        body: RefreshIndicator(
-          onRefresh: _yenile,
-          child: ListView(padding: const EdgeInsets.fromLTRB(16, 16, 16, 96), children: [
-            TextField(
-              decoration: const InputDecoration(prefixIcon: Icon(Icons.search), hintText: 'Parça veya lot ara'),
-              onChanged: _aramaDegisti,
-            ),
-            const SizedBox(height: 12),
-            Yukleyici<List<StokGrubu>>(
-              future: _gruplar,
-              yenile: _yenile,
-              builder: (context, gruplar) => gruplar.isEmpty
-                  ? BosDurum(_arama.isEmpty ? 'Henüz parça tanımlanmadı.' : '“$_arama” için sonuç yok.')
-                  : Column(children: [
+    appBar: const GecisliBar(baslik: 'Stok'),
+    floatingActionButton: FloatingActionButton.extended(
+      onPressed: () async {
+        if (await malGirisiAc(context) == true) _yenile();
+      },
+      icon: const Icon(Icons.add),
+      label: const Text('Mal girişi'),
+    ),
+    body: RefreshIndicator(
+      onRefresh: _yenile,
+      child: ListView(
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 96),
+        children: [
+          TextField(
+            decoration: const InputDecoration(prefixIcon: Icon(Icons.search), hintText: 'Parça veya lot ara'),
+            onChanged: _aramaDegisti,
+          ),
+          const SizedBox(height: 12),
+          Yukleyici<List<StokGrubu>>(
+            future: _gruplar,
+            yenile: _yenile,
+            builder: (context, gruplar) => gruplar.isEmpty
+                ? BosDurum(_arama.isEmpty ? 'Henüz parça tanımlanmadı.' : '“$_arama” için sonuç yok.')
+                : Column(
+                    children: [
                       for (final g in gruplar)
-                        Padding(padding: const EdgeInsets.only(bottom: 10), child: _ParcaKarti(grup: g, yenile: _yenile)),
-                    ]),
-            ),
-          ]),
-        ),
-      );
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 10),
+                          child: _ParcaKarti(grup: g, yenile: _yenile),
+                        ),
+                    ],
+                  ),
+          ),
+        ],
+      ),
+    ),
+  );
 }
 
 class _ParcaKarti extends StatelessWidget {
@@ -93,26 +103,46 @@ class _ParcaKarti extends StatelessWidget {
         await Navigator.of(context).push(MaterialPageRoute(builder: (_) => ParcaLotlariSayfasi(parcaKod: p.kod)));
         yenile();
       },
-      child: Row(children: [
-        Expanded(
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(p.ad, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
-            Mono(p.kod, boyut: 12),
-            const SizedBox(height: 6),
-            if (grup.siradaki != null)
-              Row(children: [const Soluk('Sıradaki: '), Flexible(child: Mono(grup.siradaki!.lotNo, boyut: 12))])
-            else
-              const Soluk('Kullanılabilir lot yok'),
-            if (p.minAltinda) Padding(padding: const EdgeInsets.only(top: 4), child: Rozet('Min ${p.minStok} altında', tur: RozetTuru.uyari)),
-          ]),
-        ),
-        Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
-          Text('${p.kullanilabilirStok}', style: TextStyle(fontSize: 24, fontWeight: FontWeight.w700, color: renk)),
-          Soluk(p.birim, boyut: 12),
-          if (p.toplamStok != p.kullanilabilirStok) Soluk('toplam ${p.toplamStok}', boyut: 11),
-        ]),
-        const Icon(Icons.chevron_right),
-      ]),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(p.ad, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                Mono(p.kod, boyut: 12),
+                const SizedBox(height: 6),
+                if (grup.siradaki != null)
+                  Row(
+                    children: [
+                      const Soluk('Sıradaki: '),
+                      Flexible(child: Mono(grup.siradaki!.lotNo, boyut: 12)),
+                    ],
+                  )
+                else
+                  const Soluk('Kullanılabilir lot yok'),
+                if (p.minAltinda)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4),
+                    child: Rozet('Min ${p.minStok} altında', tur: RozetTuru.uyari),
+                  ),
+              ],
+            ),
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                '${p.kullanilabilirStok}',
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.w700, color: renk),
+              ),
+              Soluk(p.birim, boyut: 12),
+              if (p.toplamStok != p.kullanilabilirStok) Soluk('toplam ${p.toplamStok}', boyut: 11),
+            ],
+          ),
+          const Icon(Icons.chevron_right),
+        ],
+      ),
     );
   }
 }
@@ -133,59 +163,78 @@ class _ParcaLotlariSayfasiState extends State<ParcaLotlariSayfasi> {
 
   Future<List<StokGrubu>> _yukle() => context.api.stok(parca: widget.parcaKod, bitenler: _bitenler);
 
-  void _yenile() => setState(() => _gruplar = _yukle());
+  void _yenile() => setState(() {
+    _gruplar = _yukle();
+  });
 
   @override
   Widget build(BuildContext context) => Scaffold(
-        appBar: GecisliBar(baslik: widget.parcaKod),
-        body: Yukleyici<List<StokGrubu>>(
-          future: _gruplar,
-          yenile: _yenile,
-          builder: (context, gruplar) {
-            if (gruplar.isEmpty) return const BosDurum('Parça bulunamadı.');
-            final g = gruplar.first;
-            return ListView(padding: const EdgeInsets.all(16), children: [
-              Text(g.parca.ad, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
-              const SizedBox(height: 4),
-              Soluk('Kullanılabilir ${g.parca.kullanilabilirStok} · toplam ${g.parca.toplamStok} · min ${g.parca.minStok} ${g.parca.birim}'),
-              SwitchListTile(
-                contentPadding: EdgeInsets.zero,
-                title: const Text('Biten lotlar da'),
-                value: _bitenler,
-                onChanged: (v) {
-                  _bitenler = v;
-                  _yenile();
-                },
-              ),
-              if (g.lotlar.isEmpty) const BosDurum('Stokta lot yok.'),
-              for (final lot in g.lotlar)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 8),
-                  child: Kart(
-                    uyari: lot.geriCagrildi,
-                    onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => LotIzSayfasi(lotNo: lot.lotNo))),
-                    child: Row(children: [
+    appBar: GecisliBar(baslik: widget.parcaKod),
+    body: Yukleyici<List<StokGrubu>>(
+      future: _gruplar,
+      yenile: _yenile,
+      builder: (context, gruplar) {
+        if (gruplar.isEmpty) return const BosDurum('Parça bulunamadı.');
+        final g = gruplar.first;
+        return ListView(
+          padding: const EdgeInsets.all(16),
+          children: [
+            Text(g.parca.ad, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
+            const SizedBox(height: 4),
+            Soluk(
+              'Kullanılabilir ${g.parca.kullanilabilirStok} · toplam ${g.parca.toplamStok} · min ${g.parca.minStok} ${g.parca.birim}',
+            ),
+            SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              title: const Text('Biten lotlar da'),
+              value: _bitenler,
+              onChanged: (v) {
+                _bitenler = v;
+                _yenile();
+              },
+            ),
+            if (g.lotlar.isEmpty) const BosDurum('Stokta lot yok.'),
+            for (final lot in g.lotlar)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Kart(
+                  uyari: lot.geriCagrildi,
+                  onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => LotIzSayfasi(lotNo: lot.lotNo))),
+                  child: Row(
+                    children: [
                       Expanded(
-                        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                          Wrap(spacing: 8, crossAxisAlignment: WrapCrossAlignment.center, children: [
-                            Mono(lot.lotNo, kalin: true),
-                            if (lot.geriCagrildi) const Rozet('Geri çağrıldı', tur: RozetTuru.uyari),
-                            if (lot.sirada) const Rozet('Sıradaki'),
-                            if (lot.kalanAdet == 0) const Rozet('Bitti', tur: RozetTuru.basari),
-                          ]),
-                          const SizedBox(height: 4),
-                          Soluk('${lot.tedarikciAd} · ${tarih(lot.siparisTarihi)}'),
-                        ]),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Wrap(
+                              spacing: 8,
+                              crossAxisAlignment: WrapCrossAlignment.center,
+                              children: [
+                                Mono(lot.lotNo, kalin: true),
+                                if (lot.geriCagrildi) const Rozet('Geri çağrıldı', tur: RozetTuru.uyari),
+                                if (lot.sirada) const Rozet('Sıradaki'),
+                                if (lot.kalanAdet == 0) const Rozet('Bitti', tur: RozetTuru.basari),
+                              ],
+                            ),
+                            const SizedBox(height: 4),
+                            Soluk('${lot.tedarikciAd} · ${tarih(lot.siparisTarihi)}'),
+                          ],
+                        ),
                       ),
-                      Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
-                        Text('${lot.kalanAdet}', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700)),
-                        Soluk('/ ${lot.girisAdet}', boyut: 12),
-                      ]),
-                    ]),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text('${lot.kalanAdet}', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700)),
+                          Soluk('/ ${lot.girisAdet}', boyut: 12),
+                        ],
+                      ),
+                    ],
                   ),
                 ),
-            ]);
-          },
-        ),
-      );
+              ),
+          ],
+        );
+      },
+    ),
+  );
 }

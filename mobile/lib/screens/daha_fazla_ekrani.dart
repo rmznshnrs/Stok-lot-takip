@@ -20,42 +20,50 @@ class DahaFazlaEkrani extends StatelessWidget {
 
     return Scaffold(
       appBar: const GecisliBar(baslik: 'Daha fazla'),
-      body: ListView(padding: const EdgeInsets.all(16), children: [
-        Kart(
-          child: Row(children: [
-            CircleAvatar(child: Text(k.ad.isEmpty ? '?' : k.ad[0])),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text('${k.ad} ${k.soyad}', style: const TextStyle(fontWeight: FontWeight.w600)),
-                Soluk('${k.admin ? 'Yönetici' : 'Kullanıcı'} · ${k.kullaniciAdi}'),
-              ]),
+      body: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          Kart(
+            child: Row(
+              children: [
+                CircleAvatar(child: Text(k.ad.isEmpty ? '?' : k.ad[0])),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('${k.ad} ${k.soyad}', style: const TextStyle(fontWeight: FontWeight.w600)),
+                      Soluk('${k.admin ? 'Yönetici' : 'Kullanıcı'} · ${k.kullaniciAdi}'),
+                    ],
+                  ),
+                ),
+              ],
             ),
-          ]),
-        ),
-        const BolumBasligi('Ekranlar'),
-        _Oge(ikon: Icons.account_tree_outlined, baslik: 'İzlenebilirlik', onTap: () => ac(const IzlenebilirlikEkrani())),
-        _Oge(ikon: Icons.category_outlined, baslik: 'Ürünler', onTap: () => ac(const UrunlerEkrani())),
-        _Oge(ikon: Icons.memory_outlined, baslik: 'Parçalar', onTap: () => ac(const ParcalarEkrani())),
-        const BolumBasligi('Ayarlar'),
-        Card(
-          child: SwitchListTile(
-            secondary: const Icon(Icons.dark_mode_outlined),
-            title: const Text('Koyu mod'),
-            value: ayarlar.koyuTema,
-            onChanged: ayarlar.koyuTemaKaydet,
           ),
-        ),
-        const SizedBox(height: 8),
-        _Oge(ikon: Icons.lock_outline, baslik: 'Şifre değiştir', onTap: () => ac(const SifreEkrani())),
-        _Oge(ikon: Icons.dns_outlined, baslik: 'Sunucu adresi', alt: ayarlar.apiAdresi, onTap: () => ac(const ApiAdresiEkrani())),
-        _Oge(
-          ikon: Icons.logout,
-          baslik: 'Çıkış yap',
-          tehlikeli: true,
-          onTap: () => ayarlar.tokenKaydet(null),
-        ),
-      ]),
+          const BolumBasligi('Ekranlar'),
+          _Oge(ikon: Icons.account_tree_outlined, baslik: 'İzlenebilirlik', onTap: () => ac(const IzlenebilirlikEkrani())),
+          _Oge(ikon: Icons.category_outlined, baslik: 'Ürünler', onTap: () => ac(const UrunlerEkrani())),
+          _Oge(ikon: Icons.memory_outlined, baslik: 'Parçalar', onTap: () => ac(const ParcalarEkrani())),
+          const BolumBasligi('Ayarlar'),
+          Card(
+            child: SwitchListTile(
+              secondary: const Icon(Icons.dark_mode_outlined),
+              title: const Text('Koyu mod'),
+              value: ayarlar.koyuTema,
+              onChanged: ayarlar.koyuTemaKaydet,
+            ),
+          ),
+          const SizedBox(height: 8),
+          _Oge(ikon: Icons.lock_outline, baslik: 'Şifre değiştir', onTap: () => ac(const SifreEkrani())),
+          _Oge(
+            ikon: Icons.dns_outlined,
+            baslik: 'Sunucu adresi',
+            alt: ayarlar.apiAdresi,
+            onTap: () => ac(const ApiAdresiEkrani()),
+          ),
+          _Oge(ikon: Icons.logout, baslik: 'Çıkış yap', tehlikeli: true, onTap: () => ayarlar.tokenKaydet(null)),
+        ],
+      ),
     );
   }
 }

@@ -35,7 +35,11 @@ class _ApiAdresiEkraniState extends State<ApiAdresiEkrani> {
   Future<void> _dene() async {
     final adres = _adres.text.trim().replaceAll(RegExp(r'/+$'), '');
     final hata = _gecerli(adres);
-    if (hata != null) return setState(() => _sonuc = hata);
+    if (hata != null) {
+      return setState(() {
+        _sonuc = hata;
+      });
+    }
     setState(() {
       _bekliyor = true;
       _sonuc = null;
@@ -45,44 +49,60 @@ class _ApiAdresiEkraniState extends State<ApiAdresiEkrani> {
       final y = await http
           .post(Uri.parse('$adres/api/kimlik/giris'), headers: {'Content-Type': 'application/json'}, body: '{}')
           .timeout(const Duration(seconds: 8));
-      setState(() => _sonuc = y.statusCode < 500 ? 'Sunucuya ulaşıldı.' : 'Sunucu hata verdi (${y.statusCode}).');
+      setState(() {
+        _sonuc = y.statusCode < 500 ? 'Sunucuya ulaşıldı.' : 'Sunucu hata verdi (${y.statusCode}).';
+      });
     } catch (_) {
-      setState(() => _sonuc = 'Sunucuya ulaşılamadı.');
+      setState(() {
+        _sonuc = 'Sunucuya ulaşılamadı.';
+      });
     } finally {
-      if (mounted) setState(() => _bekliyor = false);
+      if (mounted) {
+        setState(() {
+          _bekliyor = false;
+        });
+      }
     }
   }
 
   Future<void> _kaydet() async {
     final adres = _adres.text.trim();
     final hata = _gecerli(adres);
-    if (hata != null) return setState(() => _sonuc = hata);
+    if (hata != null) {
+      return setState(() {
+        _sonuc = hata;
+      });
+    }
     await context.ayarlar.apiAdresiKaydet(adres);
     if (mounted) Navigator.of(context).pop();
   }
 
   @override
   Widget build(BuildContext context) => Scaffold(
-        appBar: const GecisliBar(baslik: 'Sunucu adresi'),
-        body: ListView(padding: const EdgeInsets.all(16), children: [
-          TextField(
-            controller: _adres,
-            keyboardType: TextInputType.url,
-            decoration: const InputDecoration(labelText: 'API adresi', hintText: 'http://192.168.1.20:5291'),
-          ),
-          const SizedBox(height: 8),
-          Wrap(spacing: 8, children: [
-            ActionChip(label: const Text('Emülatör'), onPressed: () => _adres.text = Ayarlar.varsayilanAdres),
-          ]),
-          if (_sonuc != null) Padding(padding: const EdgeInsets.only(top: 12), child: Text(_sonuc!)),
-          const SizedBox(height: 20),
-          OutlinedButton.icon(
-            onPressed: _bekliyor ? null : _dene,
-            icon: const Icon(Icons.wifi_tethering),
-            label: const Text('Bağlantıyı dene'),
-          ),
-          const SizedBox(height: 12),
-          AnaDugme(metin: 'Kaydet', onPressed: _kaydet),
-        ]),
-      );
+    appBar: const GecisliBar(baslik: 'Sunucu adresi'),
+    body: ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        TextField(
+          controller: _adres,
+          keyboardType: TextInputType.url,
+          decoration: const InputDecoration(labelText: 'API adresi', hintText: 'http://192.168.1.20:5291'),
+        ),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 8,
+          children: [ActionChip(label: const Text('Emülatör'), onPressed: () => _adres.text = Ayarlar.varsayilanAdres)],
+        ),
+        if (_sonuc != null) Padding(padding: const EdgeInsets.only(top: 12), child: Text(_sonuc!)),
+        const SizedBox(height: 20),
+        OutlinedButton.icon(
+          onPressed: _bekliyor ? null : _dene,
+          icon: const Icon(Icons.wifi_tethering),
+          label: const Text('Bağlantıyı dene'),
+        ),
+        const SizedBox(height: 12),
+        AnaDugme(metin: 'Kaydet', onPressed: _kaydet),
+      ],
+    ),
+  );
 }

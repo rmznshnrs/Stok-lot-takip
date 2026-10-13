@@ -30,7 +30,9 @@ class _BarkodEkraniState extends State<_BarkodEkrani> {
 
   void _okundu(BarcodeCapture yakalanan) {
     if (_bitti) return;
-    final deger = yakalanan.barcodes.map((b) => b.rawValue?.trim()).firstWhere((v) => v != null && v.isNotEmpty, orElse: () => null);
+    final deger = yakalanan.barcodes
+        .map((b) => b.rawValue?.trim())
+        .firstWhere((v) => v != null && v.isNotEmpty, orElse: () => null);
     if (deger == null) return;
     _bitti = true;
     Navigator.of(context).pop(deger);
@@ -38,42 +40,52 @@ class _BarkodEkraniState extends State<_BarkodEkrani> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-        backgroundColor: Colors.black,
-        appBar: GecisliBar(baslik: widget.baslik, eylemler: [
-          IconButton(tooltip: 'Fener', onPressed: () => _kamera.toggleTorch(), icon: const Icon(Icons.flashlight_on)),
-        ]),
-        body: Stack(children: [
-          MobileScanner(
-            controller: _kamera,
-            onDetect: _okundu,
-            errorBuilder: (context, hata) => Center(
-              child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: Text(
-                  hata.errorCode == MobileScannerErrorCode.permissionDenied
-                      ? 'Kamera izni verilmedi. Numarayı elle girebilirsiniz.'
-                      : 'Kamera açılamadı. Numarayı elle girebilirsiniz.',
-                  style: const TextStyle(color: Colors.white),
-                  textAlign: TextAlign.center,
-                ),
+    backgroundColor: Colors.black,
+    appBar: GecisliBar(
+      baslik: widget.baslik,
+      eylemler: [IconButton(tooltip: 'Fener', onPressed: () => _kamera.toggleTorch(), icon: const Icon(Icons.flashlight_on))],
+    ),
+    body: Stack(
+      children: [
+        MobileScanner(
+          controller: _kamera,
+          onDetect: _okundu,
+          errorBuilder: (context, hata) => Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Text(
+                hata.errorCode == MobileScannerErrorCode.permissionDenied
+                    ? 'Kamera izni verilmedi. Numarayı elle girebilirsiniz.'
+                    : 'Kamera açılamadı. Numarayı elle girebilirsiniz.',
+                style: const TextStyle(color: Colors.white),
+                textAlign: TextAlign.center,
               ),
             ),
           ),
-          Center(
-            child: Container(
-              width: 280,
-              height: 180,
-              decoration: BoxDecoration(border: Border.all(color: Renk.turkuaz, width: 3), borderRadius: BorderRadius.circular(16)),
+        ),
+        Center(
+          child: Container(
+            width: 280,
+            height: 180,
+            decoration: BoxDecoration(
+              border: Border.all(color: Renk.turkuaz, width: 3),
+              borderRadius: BorderRadius.circular(16),
             ),
           ),
-          const Positioned(
-            left: 0,
-            right: 0,
-            bottom: 40,
-            child: Text('Barkodu çerçevenin içine getirin', textAlign: TextAlign.center, style: TextStyle(color: Colors.white, fontSize: 15)),
+        ),
+        const Positioned(
+          left: 0,
+          right: 0,
+          bottom: 40,
+          child: Text(
+            'Barkodu çerçevenin içine getirin',
+            textAlign: TextAlign.center,
+            style: TextStyle(color: Colors.white, fontSize: 15),
           ),
-        ]),
-      );
+        ),
+      ],
+    ),
+  );
 }
 
 /// Metin kutusu + kamera düğmesi: elle yazılabilir ya da okutulabilir.
@@ -95,24 +107,24 @@ class OkutulabilirAlan extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => TextField(
-        controller: denetleyici,
-        autofocus: otomatikOdak,
-        textInputAction: TextInputAction.done,
-        style: const TextStyle(fontFamily: monoAile, fontSize: 16),
-        decoration: InputDecoration(
-          labelText: etiket,
-          hintText: ipucu,
-          suffixIcon: IconButton(
-            tooltip: 'Kamerayla okut',
-            icon: const Icon(Icons.qr_code_scanner),
-            onPressed: () async {
-              final okunan = await barkodOku(context, baslik: etiket);
-              if (okunan == null) return;
-              denetleyici.text = okunan;
-              gonder?.call(okunan);
-            },
-          ),
-        ),
-        onSubmitted: gonder,
-      );
+    controller: denetleyici,
+    autofocus: otomatikOdak,
+    textInputAction: TextInputAction.done,
+    style: const TextStyle(fontFamily: monoAile, fontSize: 16),
+    decoration: InputDecoration(
+      labelText: etiket,
+      hintText: ipucu,
+      suffixIcon: IconButton(
+        tooltip: 'Kamerayla okut',
+        icon: const Icon(Icons.qr_code_scanner),
+        onPressed: () async {
+          final okunan = await barkodOku(context, baslik: etiket);
+          if (okunan == null) return;
+          denetleyici.text = okunan;
+          gonder?.call(okunan);
+        },
+      ),
+    ),
+    onSubmitted: gonder,
+  );
 }

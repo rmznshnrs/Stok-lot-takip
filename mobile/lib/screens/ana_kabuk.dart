@@ -47,64 +47,82 @@ class _AnaKabukState extends State<AnaKabuk> {
     if (sekme == _sekme) {
       _gezginler[sekme].currentState?.popUntil((r) => r.isFirst);
     }
-    setState(() => _sekme = sekme);
+    setState(() {
+      _sekme = sekme;
+    });
   }
 
   @override
   Widget build(BuildContext context) => FutureBuilder<Kullanici>(
-        future: _kullanici,
-        builder: (context, s) {
-          if (s.hasError) {
-            return Scaffold(
-              body: HataGorunumu(
-                metin: hataMetni(s.error!),
-                yenile: () => setState(() => _kullanici = context.api.ben()),
-              ),
-            );
-          }
-          if (!s.hasData) return const Scaffold(body: Center(child: CircularProgressIndicator()));
-          return KullaniciBaglami(
-            kullanici: s.data!,
-            sekmeyeGit: _git,
-            child: PopScope(
-              // Geri tuşu önce sekmenin içindeki sayfayı kapatır
-              canPop: false,
-              onPopInvokedWithResult: (bitti, _) async {
-                if (bitti) return;
-                final gezgin = _gezginler[_sekme].currentState;
-                if (gezgin != null && gezgin.canPop()) {
-                  gezgin.pop();
-                } else if (_sekme != Sekme.ana) {
-                  setState(() => _sekme = Sekme.ana);
-                } else {
-                  Navigator.of(context).maybePop();
-                }
-              },
-              child: Scaffold(
-                body: IndexedStack(
-                  index: _sekme,
-                  children: [
-                    for (var i = 0; i < _ekranlar.length; i++)
-                      Navigator(
-                        key: _gezginler[i],
-                        onGenerateRoute: (_) => MaterialPageRoute(builder: (_) => _ekranlar[i]),
-                      ),
-                  ],
-                ),
-                bottomNavigationBar: NavigationBar(
-                  selectedIndex: _sekme,
-                  onDestinationSelected: _git,
-                  destinations: const [
-                    NavigationDestination(icon: Icon(Icons.home_outlined), selectedIcon: Icon(Icons.home), label: 'Ana'),
-                    NavigationDestination(icon: Icon(Icons.inventory_2_outlined), selectedIcon: Icon(Icons.inventory_2), label: 'Stok'),
-                    NavigationDestination(icon: Icon(Icons.precision_manufacturing_outlined), selectedIcon: Icon(Icons.precision_manufacturing), label: 'Üretim'),
-                    NavigationDestination(icon: Icon(Icons.point_of_sale_outlined), selectedIcon: Icon(Icons.point_of_sale), label: 'Satış'),
-                    NavigationDestination(icon: Icon(Icons.menu), label: 'Daha fazla'),
-                  ],
-                ),
-              ),
+    future: _kullanici,
+    builder: (context, s) {
+      if (s.hasError) {
+        return Scaffold(
+          body: HataGorunumu(
+            metin: hataMetni(s.error!),
+            yenile: () => setState(() {
+              _kullanici = context.api.ben();
+            }),
+          ),
+        );
+      }
+      if (!s.hasData) return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      return KullaniciBaglami(
+        kullanici: s.data!,
+        sekmeyeGit: _git,
+        child: PopScope(
+          // Geri tuşu önce sekmenin içindeki sayfayı kapatır
+          canPop: false,
+          onPopInvokedWithResult: (bitti, _) async {
+            if (bitti) return;
+            final gezgin = _gezginler[_sekme].currentState;
+            if (gezgin != null && gezgin.canPop()) {
+              gezgin.pop();
+            } else if (_sekme != Sekme.ana) {
+              setState(() {
+                _sekme = Sekme.ana;
+              });
+            } else {
+              Navigator.of(context).maybePop();
+            }
+          },
+          child: Scaffold(
+            body: IndexedStack(
+              index: _sekme,
+              children: [
+                for (var i = 0; i < _ekranlar.length; i++)
+                  Navigator(
+                    key: _gezginler[i],
+                    onGenerateRoute: (_) => MaterialPageRoute(builder: (_) => _ekranlar[i]),
+                  ),
+              ],
             ),
-          );
-        },
+            bottomNavigationBar: NavigationBar(
+              selectedIndex: _sekme,
+              onDestinationSelected: _git,
+              destinations: const [
+                NavigationDestination(icon: Icon(Icons.home_outlined), selectedIcon: Icon(Icons.home), label: 'Ana'),
+                NavigationDestination(
+                  icon: Icon(Icons.inventory_2_outlined),
+                  selectedIcon: Icon(Icons.inventory_2),
+                  label: 'Stok',
+                ),
+                NavigationDestination(
+                  icon: Icon(Icons.precision_manufacturing_outlined),
+                  selectedIcon: Icon(Icons.precision_manufacturing),
+                  label: 'Üretim',
+                ),
+                NavigationDestination(
+                  icon: Icon(Icons.point_of_sale_outlined),
+                  selectedIcon: Icon(Icons.point_of_sale),
+                  label: 'Satış',
+                ),
+                NavigationDestination(icon: Icon(Icons.menu), label: 'Daha fazla'),
+              ],
+            ),
+          ),
+        ),
       );
+    },
+  );
 }

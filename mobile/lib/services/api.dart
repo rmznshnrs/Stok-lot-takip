@@ -36,7 +36,13 @@ class Api {
     return Uri.parse('${ayarlar.apiAdresi}/api/$yol').replace(queryParameters: temiz.isEmpty ? null : temiz);
   }
 
-  Future<dynamic> _istek(String yontem, String yol, {Map<String, Object?>? sorgu, Object? govde, bool oturumGerekli = true}) async {
+  Future<dynamic> _istek(
+    String yontem,
+    String yol, {
+    Map<String, Object?>? sorgu,
+    Object? govde,
+    bool oturumGerekli = true,
+  }) async {
     final basliklar = <String, String>{'Accept': 'application/json'};
     if (govde != null) basliklar['Content-Type'] = 'application/json';
     if (oturumGerekli && ayarlar.token != null) basliklar['Authorization'] = 'Bearer ${ayarlar.token}';
@@ -88,8 +94,12 @@ class Api {
   // --- Oturum ----------------------------------------------------------------
 
   Future<Kullanici> giris(String kullaniciAdi, String sifre) async {
-    final j = await _istek('POST', 'kimlik/giris',
-        govde: {'kullaniciAdi': kullaniciAdi, 'sifre': sifre}, oturumGerekli: false) as Map<String, dynamic>;
+    final j = await _istek(
+      'POST',
+      'kimlik/giris',
+      govde: {'kullaniciAdi': kullaniciAdi, 'sifre': sifre},
+      oturumGerekli: false,
+    ) as Map<String, dynamic>;
     await ayarlar.tokenKaydet(j['token'] as String);
     return Kullanici.json(j['kullanici']);
   }
@@ -118,7 +128,10 @@ class Api {
       UrunDetay.json(await _guncelle('urunler/$id', {'kod': kod, 'ad': ad, 'seriOneki': seriOneki}));
 
   Future<UrunDetay> agacKaydet(int id, List<({int parcaId, int adet})> satirlar) async => UrunDetay.json(
-      await _guncelle('urunler/$id/agac', [for (final s in satirlar) {'parcaId': s.parcaId, 'adet': s.adet}]));
+    await _guncelle('urunler/$id/agac', [
+      for (final s in satirlar) {'parcaId': s.parcaId, 'adet': s.adet},
+    ]),
+  );
 
   Future<List<String>> tedarikciler() async => [for (final t in await _al('tedarikciler') as List) t['ad'] as String];
 

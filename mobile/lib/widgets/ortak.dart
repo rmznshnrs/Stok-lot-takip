@@ -8,7 +8,8 @@ final _tarihBicimi = DateFormat('dd.MM.yyyy', 'tr_TR');
 final _tarihSaatBicimi = DateFormat('dd.MM.yyyy HH:mm', 'tr_TR');
 
 String tarih(DateTime t) => _tarihBicimi.format(t);
-String tarihSaat(DateTime t) => _tarihSaatBicimi.format(t.toLocal());
+// Türkiye saati (UTC+3, yaz saati yok); telefonun saat dilimi farklı olsa da aynı görünsün
+String tarihSaat(DateTime t) => _tarihSaatBicimi.format(t.toUtc().add(const Duration(hours: 3)));
 
 /// Hata metni: API hatasıysa onun mesajı.
 String hataMetni(Object e) => e is ApiHatasi ? e.mesaj : 'Beklenmeyen bir hata oluştu.';
@@ -16,11 +17,9 @@ String hataMetni(Object e) => e is ApiHatasi ? e.mesaj : 'Beklenmeyen bir hata o
 void bildir(BuildContext context, String metin, {bool hata = false}) {
   ScaffoldMessenger.of(context)
     ..hideCurrentSnackBar()
-    ..showSnackBar(SnackBar(
-      content: Text(metin),
-      backgroundColor: hata ? Renk.uyari : null,
-      behavior: SnackBarBehavior.floating,
-    ));
+    ..showSnackBar(
+      SnackBar(content: Text(metin), backgroundColor: hata ? Renk.uyari : null, behavior: SnackBarBehavior.floating),
+    );
 }
 
 /// Üstte mor-turkuaz geçişli başlık çubuğu.
@@ -36,11 +35,12 @@ class GecisliBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) => AppBar(
-        title: Text(baslik),
-        actions: eylemler,
-        bottom: alt,
-        flexibleSpace: const DecoratedBox(decoration: BoxDecoration(gradient: Renk.gecis)),
-      );
+    title: Text(baslik),
+    actions: eylemler,
+    bottom: alt,
+    // Container çocuksuz olduğunda alanı doldurur (DecoratedBox sıfır boyutta kalır)
+    flexibleSpace: Container(decoration: const BoxDecoration(gradient: Renk.gecis)),
+  );
 }
 
 /// Liste öğesi kartı.
@@ -58,10 +58,16 @@ class Kart extends StatelessWidget {
     return Card(
       color: uyari ? (koyu ? const Color(0xFF2A1E15) : const Color(0xFFFDF4EC)) : null,
       shape: uyari
-          ? RoundedRectangleBorder(borderRadius: BorderRadius.circular(14), side: const BorderSide(color: Color(0xFFE0A06A)))
+          ? RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(14),
+              side: const BorderSide(color: Color(0xFFE0A06A)),
+            )
           : null,
       clipBehavior: Clip.antiAlias,
-      child: InkWell(onTap: onTap, child: Padding(padding: padding, child: child)),
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(padding: padding, child: child),
+      ),
     );
   }
 }
@@ -82,7 +88,10 @@ class Rozet extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
       decoration: BoxDecoration(color: zemin, borderRadius: BorderRadius.circular(99)),
-      child: Text(metin, style: TextStyle(color: renk, fontSize: 12, fontWeight: FontWeight.w500)),
+      child: Text(
+        metin,
+        style: TextStyle(color: renk, fontSize: 12, fontWeight: FontWeight.w500),
+      ),
     );
   }
 }
@@ -99,8 +108,10 @@ class Mono extends StatelessWidget {
   final Color? renk;
 
   @override
-  Widget build(BuildContext context) => Text(metin,
-      style: TextStyle(fontFamily: monoAile, fontSize: boyut, fontWeight: kalin ? FontWeight.w600 : FontWeight.w400, color: renk));
+  Widget build(BuildContext context) => Text(
+    metin,
+    style: TextStyle(fontFamily: monoAile, fontSize: boyut, fontWeight: kalin ? FontWeight.w600 : FontWeight.w400, color: renk),
+  );
 }
 
 class Soluk extends StatelessWidget {
@@ -110,8 +121,10 @@ class Soluk extends StatelessWidget {
   final double boyut;
 
   @override
-  Widget build(BuildContext context) =>
-      Text(metin, style: TextStyle(fontSize: boyut, color: Theme.of(context).colorScheme.onSurfaceVariant));
+  Widget build(BuildContext context) => Text(
+    metin,
+    style: TextStyle(fontSize: boyut, color: Theme.of(context).colorScheme.onSurfaceVariant),
+  );
 }
 
 class BolumBasligi extends StatelessWidget {
@@ -121,10 +134,12 @@ class BolumBasligi extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Padding(
-        padding: const EdgeInsets.fromLTRB(4, 16, 4, 8),
-        child: Text(metin.toUpperCase(),
-            style: TextStyle(fontSize: 12, letterSpacing: 0.6, color: Theme.of(context).colorScheme.onSurfaceVariant)),
-      );
+    padding: const EdgeInsets.fromLTRB(4, 16, 4, 8),
+    child: Text(
+      metin.toUpperCase(),
+      style: TextStyle(fontSize: 12, letterSpacing: 0.6, color: Theme.of(context).colorScheme.onSurfaceVariant),
+    ),
+  );
 }
 
 /// Mor-turkuaz geçişli ana düğme.
@@ -144,7 +159,11 @@ class AnaDugme extends StatelessWidget {
       child: DecoratedBox(
         decoration: BoxDecoration(gradient: Renk.dugmeGecis, borderRadius: BorderRadius.circular(12)),
         child: FilledButton.icon(
-          style: FilledButton.styleFrom(backgroundColor: Colors.transparent, shadowColor: Colors.transparent, foregroundColor: Colors.white),
+          style: FilledButton.styleFrom(
+            backgroundColor: Colors.transparent,
+            shadowColor: Colors.transparent,
+            foregroundColor: Colors.white,
+          ),
           onPressed: aktif ? onPressed : null,
           icon: bekliyor
               ? const SizedBox.square(dimension: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
@@ -166,13 +185,17 @@ class Yukleyici<T> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => FutureBuilder<T>(
-        future: future,
-        builder: (context, s) {
-          if (s.hasError) return HataGorunumu(metin: hataMetni(s.error!), yenile: yenile);
-          if (!s.hasData) return const Center(child: Padding(padding: EdgeInsets.all(32), child: CircularProgressIndicator()));
-          return builder(context, s.data as T);
-        },
-      );
+    future: future,
+    builder: (context, s) {
+      if (s.hasError) return HataGorunumu(metin: hataMetni(s.error!), yenile: yenile);
+      if (!s.hasData) {
+        return const Center(
+          child: Padding(padding: EdgeInsets.all(32), child: CircularProgressIndicator()),
+        );
+      }
+      return builder(context, s.data as T);
+    },
+  );
 }
 
 class HataGorunumu extends StatelessWidget {
@@ -183,17 +206,20 @@ class HataGorunumu extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(mainAxisSize: MainAxisSize.min, children: [
-            const Icon(Icons.cloud_off, size: 40, color: Renk.uyari),
-            const SizedBox(height: 12),
-            Text(metin, textAlign: TextAlign.center),
-            const SizedBox(height: 12),
-            OutlinedButton.icon(onPressed: yenile, icon: const Icon(Icons.refresh), label: const Text('Tekrar dene')),
-          ]),
-        ),
-      );
+    child: Padding(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.cloud_off, size: 40, color: Renk.uyari),
+          const SizedBox(height: 12),
+          Text(metin, textAlign: TextAlign.center),
+          const SizedBox(height: 12),
+          OutlinedButton.icon(onPressed: yenile, icon: const Icon(Icons.refresh), label: const Text('Tekrar dene')),
+        ],
+      ),
+    ),
+  );
 }
 
 class BosDurum extends StatelessWidget {
@@ -202,8 +228,10 @@ class BosDurum extends StatelessWidget {
   final String metin;
 
   @override
-  Widget build(BuildContext context) =>
-      Padding(padding: const EdgeInsets.all(32), child: Center(child: Soluk(metin, boyut: 14)));
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.all(32),
+    child: Center(child: Soluk(metin, boyut: 14)),
+  );
 }
 
 /// Metin kutusu + listeden seçme düğmesi (müşteri, tedarikçi). Listede olmayan da yazılabilir.
@@ -226,14 +254,14 @@ class ListedenSecilebilirAlan extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => TextField(
-        controller: denetleyici,
-        decoration: InputDecoration(
-          labelText: etiket,
-          suffixIcon: secenekler.isEmpty
-              ? null
-              : IconButton(tooltip: 'Listeden seç', icon: const Icon(Icons.list), onPressed: () => _sec(context)),
-        ),
-      );
+    controller: denetleyici,
+    decoration: InputDecoration(
+      labelText: etiket,
+      suffixIcon: secenekler.isEmpty
+          ? null
+          : IconButton(tooltip: 'Listeden seç', icon: const Icon(Icons.list), onPressed: () => _sec(context)),
+    ),
+  );
 }
 
 class _SecimListesi extends StatefulWidget {
@@ -254,21 +282,25 @@ class _SecimListesiState extends State<_SecimListesi> {
     final liste = widget.secenekler.where((s) => s.toLowerCase().contains(_arama.toLowerCase())).toList();
     return SizedBox(
       height: MediaQuery.of(context).size.height * 0.7,
-      child: Column(children: [
-        Padding(
-          padding: EdgeInsets.fromLTRB(16, 0, 16, 8),
-          child: TextField(
-            autofocus: false,
-            decoration: InputDecoration(prefixIcon: const Icon(Icons.search), hintText: '${widget.baslik} ara'),
-            onChanged: (m) => setState(() => _arama = m),
+      child: Column(
+        children: [
+          Padding(
+            padding: EdgeInsets.fromLTRB(16, 0, 16, 8),
+            child: TextField(
+              autofocus: false,
+              decoration: InputDecoration(prefixIcon: const Icon(Icons.search), hintText: '${widget.baslik} ara'),
+              onChanged: (m) => setState(() {
+                _arama = m;
+              }),
+            ),
           ),
-        ),
-        Expanded(
-          child: ListView(children: [
-            for (final s in liste) ListTile(title: Text(s), onTap: () => Navigator.pop(context, s)),
-          ]),
-        ),
-      ]),
+          Expanded(
+            child: ListView(
+              children: [for (final s in liste) ListTile(title: Text(s), onTap: () => Navigator.pop(context, s))],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

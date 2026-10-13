@@ -22,8 +22,15 @@ void main() {
 
   testWidgets('boş girişte uyarı; yanlış şifrede API mesajı gösterilir', (tester) async {
     final ayarlar = await ayarlarHazirla();
-    final api = Api(ayarlar, istemci: MockClient((_) async => http.Response.bytes(
-        utf8.encode(jsonEncode({'title': 'Giriş başarısız', 'detail': 'Kullanıcı adı veya şifre hatalı.'})), 401)));
+    final api = Api(
+      ayarlar,
+      istemci: MockClient(
+        (_) async => http.Response.bytes(
+          utf8.encode(jsonEncode({'title': 'Giriş başarısız', 'detail': 'Kullanıcı adı veya şifre hatalı.'})),
+          401,
+        ),
+      ),
+    );
     await tester.pumpWidget(Uygulama(ayarlar: ayarlar, api: api));
 
     expect(find.text('MKC BİLİŞİM'), findsOneWidget);
@@ -46,14 +53,17 @@ void main() {
     addTearDown(tester.view.reset);
     final ayarlar = await ayarlarHazirla();
     const kullanici = {'id': 1, 'ad': 'Ali', 'soyad': 'Veli', 'kullaniciAdi': 'ali', 'rol': 'Kullanici'};
-    final api = Api(ayarlar, istemci: MockClient((r) async {
-      final govde = switch (r.url.path) {
-        '/api/kimlik/giris' => {'token': 't', 'gecerlilikSonu': '2026-10-13T20:00:00Z', 'kullanici': kullanici},
-        '/api/kimlik/ben' => kullanici,
-        _ => <Object>[],
-      };
-      return http.Response.bytes(utf8.encode(jsonEncode(govde)), 200);
-    }));
+    final api = Api(
+      ayarlar,
+      istemci: MockClient((r) async {
+        final govde = switch (r.url.path) {
+          '/api/kimlik/giris' => {'token': 't', 'gecerlilikSonu': '2026-10-13T20:00:00Z', 'kullanici': kullanici},
+          '/api/kimlik/ben' => kullanici,
+          _ => <Object>[],
+        };
+        return http.Response.bytes(utf8.encode(jsonEncode(govde)), 200);
+      }),
+    );
     await tester.pumpWidget(Uygulama(ayarlar: ayarlar, api: api));
 
     await tester.enterText(find.widgetWithText(TextField, 'Kullanıcı adı'), 'ali');

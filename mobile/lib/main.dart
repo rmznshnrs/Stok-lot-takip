@@ -42,22 +42,22 @@ class Uygulama extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Baglam(
-        ayarlar: ayarlar,
-        api: api,
-        // Token silinince (çıkış, süre dolması) giriş ekranına, tema değişince yeniden çizilir
-        child: ListenableBuilder(
-          listenable: ayarlar,
-          builder: (context, _) => MaterialApp(
-            title: 'MKC Bilişim',
-            debugShowCheckedModeBanner: false,
-            theme: tema(Brightness.light),
-            darkTheme: tema(Brightness.dark),
-            themeMode: ayarlar.koyuTema ? ThemeMode.dark : ThemeMode.light,
-            locale: const Locale('tr', 'TR'),
-            supportedLocales: const [Locale('tr', 'TR')],
-            localizationsDelegates: GlobalMaterialLocalizations.delegates,
-            home: ayarlar.girisYapildi ? const AnaKabuk() : const GirisEkrani(),
-          ),
-        ),
-      );
+    ayarlar: ayarlar,
+    api: api,
+    // Token silinince (çıkış, süre dolması) giriş ekranına, tema değişince yeniden çizilir
+    child: ListenableBuilder(
+      listenable: ayarlar,
+      builder: (context, _) => MaterialApp(
+        title: 'MKC Bilişim',
+        debugShowCheckedModeBanner: false,
+        theme: tema(Brightness.light),
+        darkTheme: tema(Brightness.dark),
+        themeMode: ayarlar.koyuTema ? ThemeMode.dark : ThemeMode.light,
+        locale: const Locale('tr', 'TR'),
+        supportedLocales: const [Locale('tr', 'TR')],
+        localizationsDelegates: GlobalMaterialLocalizations.delegates,
+        home: ayarlar.girisYapildi ? const AnaKabuk() : const GirisEkrani(),
+      ),
+    ),
+  );
 }
