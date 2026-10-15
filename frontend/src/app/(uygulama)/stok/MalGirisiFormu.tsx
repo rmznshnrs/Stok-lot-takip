@@ -5,6 +5,7 @@ import { useState, type FormEvent } from "react";
 import Mesaj, { type MesajBilgisi } from "@/components/Mesaj";
 import { ApiHatasi, stok, tedarikciler, type ParcaStok } from "@/lib/api";
 import { bugun } from "@/lib/bicim";
+import { numaraAyikla } from "@/lib/gs1";
 import { useVeri } from "@/lib/kancalar";
 
 const bosForm = () => ({ parcaId: "", tedarikci: "", lotNo: "", adet: "", siparisTarihi: bugun(), siparisNo: "" });
@@ -31,7 +32,8 @@ export default function MalGirisiFormu({ parcalar, kaydedildi }: { parcalar: Par
       const s = await stok.giris({
         parcaId: Number(form.parcaId),
         tedarikciAdi: form.tedarikci.trim(),
-        lotNo: form.lotNo.trim(),
+        // Tedarikçinin GS1 karekodu okutulduysa içinden lot numarası alınır
+        lotNo: numaraAyikla(form.lotNo, "lot"),
         adet: Number(form.adet),
         siparisTarihi: form.siparisTarihi,
         siparisNo: form.siparisNo.trim(),

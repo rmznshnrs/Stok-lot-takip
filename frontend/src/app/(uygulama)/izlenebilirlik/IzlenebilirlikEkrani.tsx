@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { ApiHatasi, izleme } from "@/lib/api";
+import { numaraAyikla } from "@/lib/gs1";
 import { useVeri } from "@/lib/kancalar";
 import IzOnerileri from "./IzOnerileri";
 import LotIzi from "./LotIzi";
@@ -46,7 +47,7 @@ export default function IzlenebilirlikEkrani() {
 
   function ara(e: FormEvent) {
     e.preventDefault();
-    const deger = girdi.trim();
+    const deger = numaraAyikla(girdi, sekme);
     router.replace(deger ? `/izlenebilirlik?${sekme}=${encodeURIComponent(deger)}` : `/izlenebilirlik?sekme=${sekme}`);
   }
 

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { ApiHatasi, izleme, type Aday, type NumaraArama, type NumaraTuru } from "@/lib/api";
 import { tarih } from "@/lib/bicim";
+import { numaraAyikla } from "@/lib/gs1";
 import { useVeri } from "@/lib/kancalar";
 
 function izAdresi(tur: NumaraTuru, deger: string) {
@@ -36,7 +37,7 @@ export default function AnaSayfaEkrani() {
 
   async function ara(e: FormEvent) {
     e.preventDefault();
-    const metin = q.trim();
+    const metin = numaraAyikla(q);
     if (!metin) return;
     setHata("");
     setBekliyor(true);

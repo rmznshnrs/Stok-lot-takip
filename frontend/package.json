@@ -9,6 +9,7 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "bwip-js": "^4.11.4",
     "jsbarcode": "^3.12.3",
     "next": "16.4.0",
     "react": "19.3.0",

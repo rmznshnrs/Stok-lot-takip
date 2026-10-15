@@ -4,6 +4,7 @@ import { useState, type FormEvent } from "react";
 import Mesaj, { type MesajBilgisi } from "@/components/Mesaj";
 import { ApiHatasi, musteriler, satis, type Satilabilir } from "@/lib/api";
 import { bugun } from "@/lib/bicim";
+import { numaraAyikla } from "@/lib/gs1";
 import { useVeri } from "@/lib/kancalar";
 
 /** Seri no'ları ekleyip kontrol eder (bulunamayan, satılmış olan eklenmez); satışı kaydeder. */
@@ -22,7 +23,8 @@ export default function SatisFormu({ kaydedildi }: { kaydedildi: () => void }) {
   const uyariVar = sepet.some((k) => k.geriCagrilanLotlar.length > 0);
 
   async function ekle() {
-    const seriler = yeniSeri.split(/[\s,;]+/).map((s) => s.trim()).filter(Boolean);
+    // Karekod okutulduysa içinden seri numarası alınır
+    const seriler = yeniSeri.split(/[\s,;]+/).map((s) => numaraAyikla(s, "seri")).filter(Boolean);
     if (!seriler.length) return;
     setEkleniyor(true);
     const hatalar: string[] = [];

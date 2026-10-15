@@ -835,3 +835,16 @@ a.akis-oge:hover { border-color: var(--ana-acik-kenar); background: var(--ana-ac
 }
 .oneri-oge:hover { background: var(--zemin); color: var(--metin); }
 .oneri-oge .not { margin: 0; }
+
+.izgara-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+@media (max-width: 900px) { .izgara-3 { grid-template-columns: 1fr; } }
+
+/* Karekodlu etiket: solda kare kod, sağda okunabilir bilgiler (ilaç kutusundaki gibi) */
+.etiket--karekod { flex-direction: row; justify-content: flex-start; gap: 2.5mm; text-align: left; }
+.karekod { flex-shrink: 0; width: 20mm; height: 20mm; }
+.etiket-alani--a4 .karekod { width: 22mm; height: 22mm; }
+.karekod svg { width: 100%; height: 100%; display: block; }
+.karekod-hata { font-size: 7pt; color: #8A3B00; width: 20mm; }
+.etiket-yazilar { display: flex; flex-direction: column; gap: 0.6mm; min-width: 0; }
+.etiket--karekod .etiket-firma { font-size: 6.5pt; }
+.etiket-gs1 { font-family: var(--mono); font-size: 7pt; line-height: 1.15; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
