@@ -2,6 +2,7 @@
 
 import { useSearchParams } from "next/navigation";
 import { useState, type FormEvent } from "react";
+import { hatirla } from "@/components/Oturum";
 import { ApiHatasi, oturum } from "@/lib/api";
 
 /** Yalnız uygulama içi yollara dönülür (dış adrese yönlendirme olmasın). */
@@ -21,7 +22,8 @@ export default function GirisFormu() {
     setHata("");
     setBekliyor(true);
     try {
-      await oturum.giris(kullaniciAdi.trim(), sifre);
+      const { kullanici } = await oturum.giris(kullaniciAdi.trim(), sifre);
+      hatirla(kullanici);
       // Tam sayfa geçiş: proxy yeni çerezi görsün
       window.location.href = sonraki;
     } catch (err) {

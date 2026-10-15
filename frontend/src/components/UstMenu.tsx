@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import type { ReactNode } from "react";
 import HesapMenusu from "./HesapMenusu";
 import { useKullanici } from "./Oturum";
 
@@ -19,10 +20,10 @@ function aktifMi(yol: string, simdiki: string) {
   return yol === "/" ? simdiki === "/" : simdiki === yol || simdiki.startsWith(`${yol}/`);
 }
 
-export default function UstMenu() {
+/** Logo + menü; sağ taraf (hesap menüsü) dışarıdan verilir. Kullanıcı gelmeden de çizilebilir. */
+export function UstMenuCercevesi({ admin = false, children }: { admin?: boolean; children?: ReactNode }) {
   const simdiki = usePathname();
-  const k = useKullanici();
-  const baglantilar = k.rol === "Admin" ? [...BAGLANTILAR, { yol: "/yonetim", ad: "Yönetim" }] : BAGLANTILAR;
+  const baglantilar = admin ? [...BAGLANTILAR, { yol: "/yonetim", ad: "Yönetim" }] : BAGLANTILAR;
 
   return (
     <header className="ust">
@@ -37,7 +38,16 @@ export default function UstMenu() {
           );
         })}
       </nav>
-      <HesapMenusu />
+      {children}
     </header>
+  );
+}
+
+export default function UstMenu() {
+  const k = useKullanici();
+  return (
+    <UstMenuCercevesi admin={k.rol === "Admin"}>
+      <HesapMenusu />
+    </UstMenuCercevesi>
   );
 }

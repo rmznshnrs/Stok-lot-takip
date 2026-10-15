@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { ApiHatasi, izleme } from "@/lib/api";
 import { useVeri } from "@/lib/kancalar";
+import IzOnerileri from "./IzOnerileri";
 import LotIzi from "./LotIzi";
 import SeriIzi from "./SeriIzi";
 
@@ -97,7 +98,9 @@ export default function IzlenebilirlikEkrani() {
 
       {hata && <div className="mesaj mesaj--error">{hata}</div>}
 
-      {!aranan ? null : !yuklendi ? (
+      {!aranan ? (
+        <IzOnerileri sekme={sekme} />
+      ) : !yuklendi ? (
         !hata && <p className="yukleniyor">Yükleniyor…</p>
       ) : sekme === "lot" ? (
         lotIz ? (
