@@ -34,6 +34,14 @@ void main() {
     await tester.pumpWidget(Uygulama(ayarlar: ayarlar, api: api));
 
     expect(find.text('MKC BİLİŞİM'), findsOneWidget);
+    // Sunucu adresi girişte görünmez; logoya uzun basınca açılır
+    expect(find.textContaining('Sunucu'), findsNothing);
+    await tester.longPress(find.text('MKC BİLİŞİM'));
+    await tester.pumpAndSettle();
+    expect(find.text('Sunucu adresi'), findsOneWidget);
+    await tester.tap(find.byType(BackButton));
+    await tester.pumpAndSettle();
+
     await tester.tap(find.text('Giriş yap'));
     await tester.pump();
     expect(find.text('Kullanıcı adı ve şifre girin.'), findsOneWidget);
@@ -79,6 +87,8 @@ void main() {
     // Çıkış: Daha fazla → Çıkış yap → giriş ekranı
     await tester.tap(find.text('Daha fazla'));
     await tester.pumpAndSettle();
+    // Yönetici olmayan kullanıcı sunucu adresi ayarını görmez
+    expect(find.text('Sunucu adresi'), findsNothing);
     await tester.tap(find.text('Çıkış yap'));
     await tester.pumpAndSettle();
     expect(find.text('MKC BİLİŞİM'), findsOneWidget);

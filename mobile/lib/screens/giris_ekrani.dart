@@ -72,9 +72,14 @@ class _GirisEkraniState extends State<GirisEkrani> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        const Text(
-                          'MKC BİLİŞİM',
-                          style: TextStyle(fontFamily: monoAile, fontSize: 18, fontWeight: FontWeight.w600, letterSpacing: 1),
+                        // Logoya uzun basınca sunucu adresi açılır (adres yanlışsa giriş yapılamaz)
+                        GestureDetector(
+                          onLongPress: () =>
+                              Navigator.of(context).push(MaterialPageRoute(builder: (_) => const ApiAdresiEkrani())),
+                          child: const Text(
+                            'MKC BİLİŞİM',
+                            style: TextStyle(fontFamily: monoAile, fontSize: 18, fontWeight: FontWeight.w600, letterSpacing: 1),
+                          ),
                         ),
                         const SizedBox(height: 24),
                         TextField(
@@ -97,12 +102,6 @@ class _GirisEkraniState extends State<GirisEkrani> {
                         ],
                         const SizedBox(height: 20),
                         AnaDugme(metin: 'Giriş yap', ikon: Icons.login, bekliyor: _bekliyor, onPressed: _giris),
-                        const SizedBox(height: 8),
-                        TextButton.icon(
-                          onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const ApiAdresiEkrani())),
-                          icon: const Icon(Icons.dns_outlined, size: 18),
-                          label: Text('Sunucu: ${context.ayarlar.apiAdresi}', overflow: TextOverflow.ellipsis),
-                        ),
                       ],
                     ),
                   ),

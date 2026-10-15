@@ -55,12 +55,13 @@ class DahaFazlaEkrani extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           _Oge(ikon: Icons.lock_outline, baslik: 'Şifre değiştir', onTap: () => ac(const SifreEkrani())),
-          _Oge(
-            ikon: Icons.dns_outlined,
-            baslik: 'Sunucu adresi',
-            alt: ayarlar.apiAdresi,
-            onTap: () => ac(const ApiAdresiEkrani()),
-          ),
+          if (k.admin)
+            _Oge(
+              ikon: Icons.dns_outlined,
+              baslik: 'Sunucu adresi',
+              alt: ayarlar.apiAdresi,
+              onTap: () => ac(const ApiAdresiEkrani()),
+            ),
           _Oge(ikon: Icons.logout, baslik: 'Çıkış yap', tehlikeli: true, onTap: () => ayarlar.tokenKaydet(null)),
         ],
       ),

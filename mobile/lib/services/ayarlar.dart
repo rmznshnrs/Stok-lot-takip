@@ -6,7 +6,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 class Ayarlar extends ChangeNotifier {
   Ayarlar._(this._tercihler);
 
-  static const varsayilanAdres = 'http://10.0.2.2:5291'; // emülatörden bilgisayara
+  /// Derlemede verilen sunucu adresi (flutter build apk --dart-define=API_ADRESI=...);
+  /// verilmezse emülatörden bilgisayardaki API.
+  static const varsayilanAdres = String.fromEnvironment('API_ADRESI', defaultValue: 'http://10.0.2.2:5291');
   static const _adresAnahtari = 'api_adresi';
   static const _koyuAnahtari = 'koyu_tema';
   static const _tokenAnahtari = 'token';

@@ -91,7 +91,7 @@ class _ApiAdresiEkraniState extends State<ApiAdresiEkrani> {
         const SizedBox(height: 8),
         Wrap(
           spacing: 8,
-          children: [ActionChip(label: const Text('Emülatör'), onPressed: () => _adres.text = Ayarlar.varsayilanAdres)],
+          children: [ActionChip(label: const Text('Varsayılan'), onPressed: () => _adres.text = Ayarlar.varsayilanAdres)],
         ),
         if (_sonuc != null) Padding(padding: const EdgeInsets.only(top: 12), child: Text(_sonuc!)),
         const SizedBox(height: 20),
