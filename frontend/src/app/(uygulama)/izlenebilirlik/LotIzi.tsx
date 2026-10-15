@@ -49,6 +49,7 @@ export default function LotIzi({ iz, degisti }: { iz: LotIz; degisti: () => void
           <Bilgi ad="Kullanılan">{iz.kullanilanAdet}</Bilgi>
         </div>
         {hata && <div className="mesaj mesaj--error" role="alert">{hata}</div>}
+        <Link href={`/etiket?lot=${encodeURIComponent(lot.lotNo)}`} className="btn btn--ikincil btn--tam">Etiket yazdır</Link>
         {admin && (
           <div className="geri-cagir-formu">
             <button

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState, type FormEvent } from "react";
 import Mesaj, { type MesajBilgisi } from "@/components/Mesaj";
 import { ApiHatasi, stok, tedarikciler, type ParcaStok } from "@/lib/api";
@@ -12,6 +13,7 @@ export default function MalGirisiFormu({ parcalar, kaydedildi }: { parcalar: Par
   const { veri: tedarikciListesi, yenile: tedarikcileriYenile } = useVeri(() => tedarikciler(), []);
   const [form, setForm] = useState(bosForm);
   const [mesaj, setMesaj] = useState<MesajBilgisi | null>(null);
+  const [sonLot, setSonLot] = useState<string | null>(null);
   const [bekliyor, setBekliyor] = useState(false);
 
   const alan = (ad: keyof ReturnType<typeof bosForm>) => ({
@@ -23,6 +25,7 @@ export default function MalGirisiFormu({ parcalar, kaydedildi }: { parcalar: Par
   async function kaydet(e: FormEvent) {
     e.preventDefault();
     setMesaj(null);
+    setSonLot(null);
     setBekliyor(true);
     try {
       const s = await stok.giris({
@@ -35,6 +38,7 @@ export default function MalGirisiFormu({ parcalar, kaydedildi }: { parcalar: Par
       });
       const ek = s.yeniTedarikci ? ` ${s.lot.tedarikciAd} yeni tedarikçi olarak eklendi.` : "";
       setMesaj({ tur: "success", metin: `${s.lot.lotNo} · ${s.lot.parcaKod} · ${s.lot.girisAdet} ${parcaBirimi(parcalar, s.lot.parcaId)} stoğa eklendi.${ek}` });
+      setSonLot(s.lot.lotNo);
       setForm({ ...bosForm(), parcaId: form.parcaId, tedarikci: form.tedarikci, siparisTarihi: form.siparisTarihi });
       if (s.yeniTedarikci) tedarikcileriYenile();
       kaydedildi();
@@ -50,6 +54,11 @@ export default function MalGirisiFormu({ parcalar, kaydedildi }: { parcalar: Par
       <h2>Mal girişi</h2>
       <form className="form-dikey" onSubmit={kaydet}>
         <Mesaj mesaj={mesaj} />
+        {sonLot && (
+          <Link href={`/etiket?lot=${encodeURIComponent(sonLot)}`} className="btn btn--ikincil">
+            {sonLot} için etiket yazdır
+          </Link>
+        )}
         <div className="alan">
           <label htmlFor="parcaId">Parça</label>
           <select className="girdi" required {...alan("parcaId")}>

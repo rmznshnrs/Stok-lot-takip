@@ -765,3 +765,40 @@ a.akis-oge:hover { border-color: var(--ana-acik-kenar); background: var(--ana-ac
 .hizli-kart:nth-child(1) .hizli-no { background: var(--vurgu-1); color: #FFFFFF; }
 .hizli-kart:nth-child(2) .hizli-no { background: var(--vurgu-2); color: #FFFFFF; }
 .hizli-kart:nth-child(3) .hizli-no { background: var(--vurgu-3); color: #FFFFFF; }
+
+/* --- Etiket yazdırma (seri no / lot barkodu) ------------------------------ */
+
+.etiket-alani { display: flex; flex-wrap: wrap; gap: 12px; }
+.etiket {
+  background: #FFFFFF;
+  color: #000000;
+  border: 1px dashed var(--kenar);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1mm;
+  padding: 2mm;
+  overflow: hidden;
+  text-align: center;
+  break-inside: avoid;
+}
+.etiket-alani--kucuk .etiket { width: 50mm; height: 30mm; page: etiket-kucuk; }
+.etiket-alani--a4 .etiket { width: 63.5mm; height: 33.9mm; page: etiket-a4; }
+.etiket-firma { font-family: var(--mono); font-size: 7pt; letter-spacing: 0.08em; }
+.etiket-baslik { font-size: 8pt; font-weight: 600; line-height: 1.15; max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.etiket-alt { font-size: 6.5pt; line-height: 1.1; }
+.etiket .barkod { max-width: 100%; height: auto; flex-shrink: 0; }
+
+@page etiket-kucuk { size: 50mm 30mm; margin: 0; }
+@page etiket-a4 { size: A4; margin: 13mm 7mm; }
+
+@media print {
+  body { background: #FFFFFF; }
+  .ust, .etiket-ayar, .yukleniyor { display: none !important; }
+  .icerik { padding: 0; gap: 0; }
+  .etiket-alani { gap: 0; }
+  .etiket { border: none; }
+  .etiket-alani--kucuk .etiket { break-after: page; }
+  .etiket-alani--a4 { display: grid; grid-template-columns: repeat(3, 63.5mm); column-gap: 2.5mm; }
+}

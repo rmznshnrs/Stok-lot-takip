@@ -100,6 +100,9 @@ export default function UretimEkrani() {
                 <Link key={s} href={`/izlenebilirlik?seri=${encodeURIComponent(s)}`} className="seri-cip">{s}</Link>
               ))}
             </div>
+            <Link href={`/etiket?seri=${sonuc.seriNolar.map(encodeURIComponent).join(",")}`} className="btn btn--kucuk">
+              Etiket yazdır
+            </Link>
           </div>
         )}
 

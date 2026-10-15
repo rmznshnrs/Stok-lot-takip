@@ -28,6 +28,7 @@ export default function SeriIzi({ iz }: { iz: SeriIz }) {
         {iz.geriCagrilanLotlar.length > 0 && (
           <div className="uyari-kutu alt-not">Bu üründe geri çağrılan {iz.geriCagrilanLotlar.length} lot var.</div>
         )}
+        <Link href={`/etiket?seri=${encodeURIComponent(iz.seriNo)}`} className="btn btn--ikincil btn--tam">Etiket yazdır</Link>
       </section>
 
       <section className="kart kart--genis kart--iz-sutun">
