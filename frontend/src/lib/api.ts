@@ -47,6 +47,7 @@ export interface UretimSonucu { urunId: number; urunAd: string; seriNolar: strin
 
 export interface LotIzUretim {
   uretimId: number; seriNo: string; tarih: string; urunKod: string; urunAd: string; adet: number; satis: SatisBilgisi | null;
+  hurdaTuru: HurdaTuru | null;
 }
 export interface LotIzMusteri { id: number; ad: string; iletisim: string; satislar: { seriNo: string; tarih: string }[]; seriNolar: string[] }
 export interface LotIz {
@@ -55,7 +56,7 @@ export interface LotIz {
 export interface SeriIzParca { parca: ParcaOzet; lot: Lot; adet: number }
 export interface SeriIz {
   uretimId: number; seriNo: string; tarih: string; urunKod: string; urunAd: string;
-  parcalar: SeriIzParca[]; satis: SatisBilgisi | null; geriCagrilanLotlar: string[];
+  parcalar: SeriIzParca[]; satis: SatisBilgisi | null; geriCagrilanLotlar: string[]; hurda: HurdaBilgisi | null;
 }
 
 export type NumaraTuru = "lot" | "seri" | "parca";
@@ -66,6 +67,16 @@ export interface Hareket {
   tur: "giris" | "uretim" | "satis"; tarih: string; aciklama: string; numara: string; numaraIlk: string; numaraTuru: "lot" | "seri";
 }
 
+export interface UretimGecmisi {
+  uretimId: number; seriNo: string; urunId: number; urunAd: string; tarih: string;
+  musteriAd: string | null; satisTarihi: string | null; geriCagrilanLotlar: string[]; hurda: HurdaBilgisi | null;
+}
+export type HurdaTuru = "Hurda" | "Kayip";
+export interface HurdaBilgisi { tur: HurdaTuru; aciklama: string; zaman: string; kullaniciAd: string }
+export interface UretimHurdaIstek { seriNolar: string[]; tur: HurdaTuru; aciklama: string }
+export interface UretimHurdaSonucu { seriNolar: string[]; tur: HurdaTuru; aciklama: string }
+/** "Kayip" → "Kayıp" */
+export const hurdaAdi = (t: HurdaTuru) => (t === "Kayip" ? "Kayıp" : "Hurda");
 export interface Satilabilir { uretimId: number; seriNo: string; urunAd: string; geriCagrilanLotlar: string[] }
 export interface SatisUyarisi { seriNo: string; lotlar: string[] }
 export interface SatisIstek { musteriAdi: string; seriNolar: string[]; tarih?: string; geriCagrilanOnayi?: boolean }
@@ -207,6 +218,8 @@ export const stok = {
 export const uretim = {
   onizle: (urunId: number, adet: number) => al<UretimOnizleme>("uretim/onizleme", { urunId, adet }),
   uret: (urunId: number, adet: number) => gonder<UretimSonucu>("uretim", { urunId, adet }),
+  gecmis: (arama?: string, urunId?: number) => al<UretimGecmisi[]>("uretim/gecmis", { arama, urunId }),
+  hurda: (h: UretimHurdaIstek) => gonder<UretimHurdaSonucu>("uretim/hurda", h),
 };
 
 export const satis = {

@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { parcalar, urunler } from "@/lib/api";
 import { useGecikmeli, useVeri } from "@/lib/kancalar";
+import UrunBilgisi from "./UrunBilgisi";
 import UrunFormu from "./UrunFormu";
 
 export default function UrunlerEkrani() {
@@ -12,6 +13,7 @@ export default function UrunlerEkrani() {
   const params = useSearchParams();
   const yeni = params.get("yeni") === "1";
   const seciliId = Number(params.get("urun")) || null;
+  const duzenle = params.get("duzenle") === "1";
 
   const [arama, setArama] = useState("");
   const aranan = useGecikmeli(arama.trim());
@@ -33,7 +35,7 @@ export default function UrunlerEkrani() {
     setBasari({ id, metin });
     yenile();
     if (id === seciliId) detayYenile();
-    else router.replace(`/urunler?urun=${id}`);
+    router.replace(`/urunler?urun=${id}`);
   }
 
   return (
@@ -80,7 +82,11 @@ export default function UrunlerEkrani() {
         {yeni ? (
           <UrunFormu key="yeni" urun={null} parcalar={tumParcalar ?? []} kaydedildi={kaydedildi} />
         ) : detay && detay.id === seciliId ? (
-          <UrunFormu key={JSON.stringify(detay)} urun={detay} parcalar={tumParcalar ?? []} kaydedildi={kaydedildi} />
+          duzenle ? (
+            <UrunFormu key={JSON.stringify(detay)} urun={detay} parcalar={tumParcalar ?? []} kaydedildi={kaydedildi} />
+          ) : (
+            <UrunBilgisi urun={detay} uretimSayisi={liste?.find((u) => u.id === seciliId)?.uretimSayisi} />
+          )
         ) : (
           !detayHatasi && <p className="yukleniyor">Yükleniyor…</p>
         )}

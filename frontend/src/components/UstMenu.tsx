@@ -8,7 +8,6 @@ import { useKullanici } from "./Oturum";
 
 const BAGLANTILAR = [
   { yol: "/", ad: "Ana Sayfa" },
-  { yol: "/izlenebilirlik", ad: "İzlenebilirlik" },
   { yol: "/uretim", ad: "Üretim" },
   { yol: "/stok", ad: "Stok" },
   { yol: "/satis", ad: "Satış" },

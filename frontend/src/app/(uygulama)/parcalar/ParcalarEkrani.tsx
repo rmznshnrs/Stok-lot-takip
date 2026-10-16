@@ -3,8 +3,10 @@
 import Link from "next/link";
 import { useState, type FormEvent } from "react";
 import Mesaj, { type MesajBilgisi } from "@/components/Mesaj";
+import { useAdminMi } from "@/components/Oturum";
 import { ApiHatasi, parcalar, type ParcaStok } from "@/lib/api";
 import { useGecikmeli, useVeri } from "@/lib/kancalar";
+import ParcaAdetDuzeltme from "./ParcaAdetDuzeltme";
 
 const BOS_FORM = { kod: "", ad: "", birim: "adet", minStok: "0" };
 
@@ -18,8 +20,11 @@ export default function ParcalarEkrani() {
   const [mesaj, setMesaj] = useState<MesajBilgisi | null>(null);
   const [yeniId, setYeniId] = useState<number | null>(null);
   const [bekliyor, setBekliyor] = useState(false);
+  const admin = useAdminMi();
+  const [duzeltilen, setDuzeltilen] = useState<ParcaStok | null>(null);
 
   function duzenle(p: ParcaStok) {
+    setDuzeltilen(null);
     setDuzenlenen(p);
     setForm({ kod: p.kod, ad: p.ad, birim: p.birim, minStok: String(p.minStok) });
     setMesaj(null);
@@ -58,34 +63,40 @@ export default function ParcalarEkrani() {
   return (
     <main className="icerik">
       <section className="kart kart--form">
-        <h2>{duzenlenen ? "Parçayı düzenle" : "Yeni parça tanımla"}</h2>
-        <form className="form-dikey" onSubmit={kaydet}>
-          <Mesaj mesaj={mesaj} />
-          <div className="alan">
-            <label htmlFor="kod">Parça kodu</label>
-            <input id="kod" className="girdi girdi--mono" required maxLength={50} placeholder="ör. LED-K-5MM" {...alan("kod")} />
-          </div>
-          <div className="alan">
-            <label htmlFor="ad">Parça adı</label>
-            <input id="ad" className="girdi" required maxLength={200} placeholder="ör. Kırmızı LED 5mm" {...alan("ad")} />
-          </div>
-          <div className="izgara-2">
-            <div className="alan">
-              <label htmlFor="birim">Birim</label>
-              <input id="birim" className="girdi" maxLength={20} {...alan("birim")} />
-            </div>
-            <div className="alan">
-              <label htmlFor="minStok">Minimum stok</label>
-              <input id="minStok" type="number" min={0} className="girdi" {...alan("minStok")} />
-            </div>
-          </div>
-          <button type="submit" className="btn btn--tam" disabled={bekliyor}>
-            {duzenlenen ? "Değişiklikleri kaydet" : "Parçayı kaydet"}
-          </button>
-          {duzenlenen && (
-            <button type="button" className="btn btn--ikincil" onClick={vazgec}>Vazgeç</button>
-          )}
-        </form>
+        {duzeltilen ? (
+          <ParcaAdetDuzeltme key={duzeltilen.id} parca={duzeltilen} kapat={() => setDuzeltilen(null)} kaydedildi={yenile} />
+        ) : (
+            <>
+            <h2>{duzenlenen ? "Parçayı düzenle" : "Yeni parça tanımla"}</h2>
+            <form className="form-dikey" onSubmit={kaydet}>
+              <Mesaj mesaj={mesaj} />
+              <div className="alan">
+                <label htmlFor="kod">Parça kodu</label>
+                <input id="kod" className="girdi girdi--mono" required maxLength={50} placeholder="ör. LED-K-5MM" {...alan("kod")} />
+              </div>
+              <div className="alan">
+                <label htmlFor="ad">Parça adı</label>
+                <input id="ad" className="girdi" required maxLength={200} placeholder="ör. Kırmızı LED 5mm" {...alan("ad")} />
+              </div>
+              <div className="izgara-2">
+                <div className="alan">
+                  <label htmlFor="birim">Birim</label>
+                  <input id="birim" className="girdi" maxLength={20} {...alan("birim")} />
+                </div>
+                <div className="alan">
+                  <label htmlFor="minStok">Minimum stok</label>
+                  <input id="minStok" type="number" min={0} className="girdi" {...alan("minStok")} />
+                </div>
+              </div>
+              <button type="submit" className="btn btn--tam" disabled={bekliyor}>
+                {duzenlenen ? "Değişiklikleri kaydet" : "Parçayı kaydet"}
+              </button>
+              {duzenlenen && (
+                <button type="button" className="btn btn--ikincil" onClick={vazgec}>Vazgeç</button>
+              )}
+            </form>
+            </>
+        )}
       </section>
 
       <section className="kart kart--genis">
@@ -124,7 +135,13 @@ export default function ParcalarEkrani() {
                 </tr>
               )}
               {liste?.map((p) => (
-                <ParcaSatiri key={p.id} p={p} yeni={p.id === yeniId} duzenle={() => duzenle(p)} />
+                <ParcaSatiri
+                  key={p.id}
+                  p={p}
+                  yeni={p.id === yeniId}
+                  duzenle={() => duzenle(p)}
+                  adetDuzelt={admin ? () => { vazgec(); setDuzeltilen(p); } : undefined}
+                />
               ))}
             </tbody>
           </table>
@@ -134,7 +151,9 @@ export default function ParcalarEkrani() {
   );
 }
 
-function ParcaSatiri({ p, yeni, duzenle }: { p: ParcaStok; yeni: boolean; duzenle: () => void }) {
+function ParcaSatiri({ p, yeni, duzenle, adetDuzelt }: {
+  p: ParcaStok; yeni: boolean; duzenle: () => void; adetDuzelt?: () => void;
+}) {
   const ipucu = `Kullanılabilir ${p.kullanilabilirStok} · toplam ${p.toplamStok} · minimum ${p.minStok}`;
   const stokAdresi = `/stok?parca=${encodeURIComponent(p.kod)}`;
   return (
@@ -159,7 +178,12 @@ function ParcaSatiri({ p, yeni, duzenle }: { p: ParcaStok; yeni: boolean; duzenl
       ) : (
         <td className="soluk">Henüz hiçbir ürün ağacında yok</td>
       )}
-      <td>
+      <td className="ikon-hucre">
+        {adetDuzelt && (
+          <button type="button" className="btn-ikon" title="Adet düzelt" aria-label={`${p.kod} adet düzelt`} onClick={adetDuzelt}>
+            ±
+          </button>
+        )}
         <button type="button" className="btn-ikon" title="Düzenle" aria-label={`${p.kod} düzenle`} onClick={duzenle}>
           ✎
         </button>

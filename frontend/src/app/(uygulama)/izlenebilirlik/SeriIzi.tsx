@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { SeriIz } from "@/lib/api";
+import { hurdaAdi, type SeriIz } from "@/lib/api";
 import { tarih, tarihSaat } from "@/lib/bicim";
 
 /** Seri no → içindeki parçalar ve lotları. */
@@ -12,7 +12,13 @@ export default function SeriIzi({ iz }: { iz: SeriIz }) {
         <div className="iz-ad">{iz.urunAd}</div>
         <div className="bilgi-liste">
           <div className="bilgi"><span>Üretim tarihi</span><span>{tarihSaat(iz.tarih)}</span></div>
-          <div className="bilgi"><span>Durum</span><span>{iz.satis ? "Satıldı" : "Depoda"}</span></div>
+          <div className="bilgi"><span>Durum</span><span>{iz.satis ? "Satıldı" : iz.hurda ? hurdaAdi(iz.hurda.tur) : "Depoda"}</span></div>
+          {iz.hurda && (
+            <div className="bilgi">
+              <span>{hurdaAdi(iz.hurda.tur)} nedeni</span>
+              <span>{iz.hurda.aciklama} · {iz.hurda.kullaniciAd}, {tarihSaat(iz.hurda.zaman)}</span>
+            </div>
+          )}
           <div className="bilgi">
             <span>Satış</span>
             {iz.satis ? (

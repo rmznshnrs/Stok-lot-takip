@@ -185,6 +185,40 @@ h3 { font-size: 16px; }
 .not { font-size: 13px; color: var(--soluk); line-height: 1.5; }
 .not--buyuk { font-size: 14px; }
 
+.dugme-grup { display: flex; gap: 8px; }
+.ust-sekme-satiri { padding: 24px 40px 0; }
+.etiket-metni { font-size: 13px; color: var(--soluk); }
+.lot-secim { display: flex; flex-direction: column; gap: 6px; max-height: 280px; overflow-y: auto; }
+.alan .lot-secenek {
+  display: grid; grid-template-columns: auto 1fr auto; grid-template-rows: auto auto; column-gap: 10px;
+  align-items: center; padding: 8px 10px; border: 1px solid var(--kenar); border-radius: 8px;
+  cursor: pointer; color: var(--metin); font-size: 14px;
+}
+.lot-secenek input { grid-row: span 2; margin: 0; }
+.lot-secenek .not { grid-column: 2; font-size: 12px; }
+.lot-secenek-adet { grid-row: 1 / span 2; grid-column: 3; font-weight: 600; }
+.alan .lot-secenek--secili { border-color: var(--ana); background: var(--ana-acik); }
+.ikon-hucre { white-space: nowrap; }
+.seri-secim { display: flex; flex-wrap: wrap; gap: 8px; }
+.seri-secenek {
+  display: flex; align-items: center; gap: 8px; padding: 6px 10px; border: 1px solid var(--kenar);
+  border-radius: 8px; cursor: pointer; color: var(--metin); text-decoration: none; font-size: 14px;
+}
+.seri-secenek input { margin: 0; }
+.seri-secenek .not { font-size: 12px; }
+.seri-secenek--secili { border-color: var(--uyari); background: var(--uyari-zemin); }
+.hurda-form { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.hurda-form select.girdi { width: auto; flex: 0 0 130px; }
+.hurda-form .girdi--esnek { flex: 1 1 240px; width: auto; }
+.ust-sekme-satiri + .icerik { padding-top: 16px; }
+@media (max-width: 900px) { .ust-sekme-satiri { padding: 16px 16px 0; } }
+.alan-grubu { border: 0; padding: 0; margin: 0; min-width: 0; display: flex; flex-direction: column; gap: 14px; }
+.alan-grubu:disabled { opacity: 0.55; }
+
+.urun-bilgi { display: flex; flex-wrap: wrap; gap: 12px 40px; margin: 0; }
+.urun-bilgi dt { font-size: 12px; color: var(--soluk); margin-bottom: 2px; }
+.urun-bilgi dd { margin: 0; font-size: 15px; font-weight: 600; }
+
 /* --- Form ---------------------------------------------------------------- */
 
 form { margin: 0; }

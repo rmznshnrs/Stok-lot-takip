@@ -1,13 +1,13 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import UretimEkrani from "./UretimEkrani";
+import UretimSayfasi from "./UretimSayfasi";
 
 export const metadata: Metadata = { title: "Üretim" };
 
 export default function Sayfa() {
   return (
     <Suspense>
-      <UretimEkrani />
+      <UretimSayfasi />
     </Suspense>
   );
 }

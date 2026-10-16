@@ -131,7 +131,7 @@ export default function UretimEkrani() {
                   <span className="adet-urun">{secili?.ad ?? guncel?.urunAd}</span>
                 </div>
               </div>
-              <Link href={`/urunler?urun=${urunId}`} className="not--buyuk">Ürün ağacını düzenle</Link>
+              <Link href={`/urunler?urun=${urunId}&duzenle=1`} className="not--buyuk">Parça listesini değiştir</Link>
             </div>
 
             <div className="adim-baslik">
@@ -140,7 +140,7 @@ export default function UretimEkrani() {
 
             {onizlemeHatasi ? (
               <div className="mesaj mesaj--warning">
-                {onizlemeHatasi} <Link href={`/urunler?urun=${urunId}`}>Ürün ağacına parça ekleyin.</Link>
+                {onizlemeHatasi} <Link href={`/urunler?urun=${urunId}&duzenle=1`}>Ürün ağacına parça ekleyin.</Link>
               </div>
             ) : !guncel ? (
               <p className="yukleniyor">Kontrol ediliyor…</p>

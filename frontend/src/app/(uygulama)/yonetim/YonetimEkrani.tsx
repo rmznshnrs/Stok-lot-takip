@@ -2,9 +2,8 @@
 
 import { useAdminMi } from "@/components/Oturum";
 import Kullanicilar from "./Kullanicilar";
-import StokDuzeltme from "./StokDuzeltme";
 
-/** Yalnız Admin: kullanıcı yönetimi ve stok düzeltme. API de rolü ayrıca denetler. */
+/** Yalnız Admin: kullanıcı yönetimi. API de rolü ayrıca denetler. Stok düzeltme Parçalar ekranında. */
 export default function YonetimEkrani() {
   const admin = useAdminMi();
   if (!admin) {
@@ -18,7 +17,6 @@ export default function YonetimEkrani() {
   }
   return (
     <main className="icerik">
-      <StokDuzeltme />
       <Kullanicilar />
     </main>
   );

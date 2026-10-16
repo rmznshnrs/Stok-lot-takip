@@ -66,7 +66,7 @@ export default function UrunFormu({ urun, parcalar, kaydedildi }: Props) {
 
   return (
     <form className="form-dikey" onSubmit={kaydet}>
-      {!urun && <h2>Yeni ürün</h2>}
+      <h2>{urun ? `${urun.ad} – düzenle` : "Yeni ürün"}</h2>
       <Mesaj mesaj={mesaj} />
       <div className="izgara-urun">
         <div className="alan">
@@ -84,7 +84,6 @@ export default function UrunFormu({ urun, parcalar, kaydedildi }: Props) {
             className="girdi girdi--mono"
             required
             maxLength={20}
-            placeholder="ör. SN-IP-"
             value={seriOneki}
             disabled={urun ? !urun.seriOnekiDegistirilebilir : false}
             onChange={(e) => setSeriOneki(e.target.value)}
@@ -187,8 +186,11 @@ export default function UrunFormu({ urun, parcalar, kaydedildi }: Props) {
       </datalist>
 
       <div className="kart-alt">
-        {urun ? <Link href={`/uretim?urun=${urun.id}`} className="not--buyuk">Bu üründen üret →</Link> : <span />}
-        <button type="submit" className="btn" disabled={bekliyor}>Kaydet</button>
+        <span />
+        <div className="dugme-grup">
+          {urun && <Link href={`/urunler?urun=${urun.id}`} className="btn btn--ikincil">Vazgeç</Link>}
+          <button type="submit" className="btn" disabled={bekliyor}>Kaydet</button>
+        </div>
       </div>
     </form>
   );

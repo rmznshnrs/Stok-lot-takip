@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { useAdminMi } from "@/components/Oturum";
-import { ApiHatasi, izleme, type LotIz } from "@/lib/api";
+import { ApiHatasi, hurdaAdi, izleme, type LotIz } from "@/lib/api";
 import { tarih, tarihSaat } from "@/lib/bicim";
 
 const seriAdresi = (s: string) => `/izlenebilirlik?sekme=seri&seri=${encodeURIComponent(s)}`;
@@ -74,7 +74,13 @@ export default function LotIzi({ iz, degisti }: { iz: LotIz; degisti: () => void
               <span className="mono akis-numara">{u.seriNo}</span>
               <span className="not">{u.urunAd} · {u.adet} adet kullanıldı</span>
             </div>
-            {u.satis ? <span className="rozet rozet--uyari">Satıldı</span> : <span className="rozet rozet--basari">Depoda</span>}
+            {u.satis ? (
+              <span className="rozet rozet--uyari">Satıldı</span>
+            ) : u.hurdaTuru ? (
+              <span className="rozet">{hurdaAdi(u.hurdaTuru)}</span>
+            ) : (
+              <span className="rozet rozet--basari">Depoda</span>
+            )}
           </Link>
         ))}
         {!iz.uretimler.length && <p className="not">Bu lot henüz hiçbir üretimde kullanılmadı.</p>}

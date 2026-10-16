@@ -120,7 +120,6 @@ export default function SatisFormu({ kaydedildi }: { kaydedildi: () => void }) {
             <input
               id="yeni-seri"
               className="girdi girdi--esnek girdi--mono"
-              placeholder="SN-…"
               autoComplete="off"
               value={yeniSeri}
               onChange={(e) => setYeniSeri(e.target.value)}
