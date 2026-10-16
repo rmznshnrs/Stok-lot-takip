@@ -23,7 +23,7 @@ export default function SatisEkrani() {
             type="search"
             className="girdi girdi--ara"
             aria-label="Satışlarda ara"
-            placeholder="Müşteri veya seri no ara…"
+           
             value={arama}
             onChange={(e) => setArama(e.target.value)}
           />

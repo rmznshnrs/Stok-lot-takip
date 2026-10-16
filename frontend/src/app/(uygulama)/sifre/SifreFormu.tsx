@@ -43,7 +43,7 @@ export default function SifreFormu() {
           <input id="yeni" type="password" className="girdi" required minLength={8} autoComplete="new-password" value={yeni} onChange={(e) => setYeni(e.target.value)} />
         </div>
         <div className="alan">
-          <label htmlFor="tekrar">Yeni şifre (tekrar)</label>
+          <label htmlFor="tekrar">Yeni şifre tekrar</label>
           <input id="tekrar" type="password" className="girdi" required minLength={8} autoComplete="new-password" value={tekrar} onChange={(e) => setTekrar(e.target.value)} />
         </div>
         <button type="submit" className="btn btn--tam" disabled={bekliyor}>Şifreyi değiştir</button>

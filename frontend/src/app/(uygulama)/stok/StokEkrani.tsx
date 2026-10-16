@@ -80,7 +80,7 @@ export default function StokEkrani() {
               type="search"
               className="girdi girdi--ara"
               aria-label="Stokta ara"
-              placeholder="Parça veya lot ara…"
+             
               value={arama}
               onChange={(e) => setArama(e.target.value)}
             />

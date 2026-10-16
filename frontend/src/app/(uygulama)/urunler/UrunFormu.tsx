@@ -128,7 +128,7 @@ export default function UrunFormu({ urun, parcalar, kaydedildi }: Props) {
                   <button
                     type="button"
                     className="btn-kaldir"
-                    title="Kaldır (Kaydet ile uygulanır)"
+                    title="Kaldır"
                     aria-label={`${s.parcaKod} satırını kaldır`}
                     onClick={() => setAgac(agac.filter((x) => x.parcaId !== s.parcaId))}
                   >
@@ -141,13 +141,14 @@ export default function UrunFormu({ urun, parcalar, kaydedildi }: Props) {
         </table>
       </div>
 
-      <div className="satir-ekle">
+      <div className="satir-ekle satir-ekle--alt">
         <div className="alan girdi--esnek">
+          <label htmlFor="parca-ekle">Parça ekle</label>
           <input
+            id="parca-ekle"
             list="parca-listesi"
             className="girdi girdi--kesikli"
-            aria-label="Parça ekle"
-            placeholder="Parça adı veya kodu ile ekle…"
+           
             autoComplete="off"
             value={yeniParca}
             onChange={(e) => setYeniParca(e.target.value)}
@@ -161,12 +162,13 @@ export default function UrunFormu({ urun, parcalar, kaydedildi }: Props) {
           {satirHatasi && <span className="hata">{satirHatasi}</span>}
         </div>
         <div className="alan girdi--kisa">
+          <label htmlFor="parca-adet">Adet</label>
           <input
+            id="parca-adet"
             type="number"
             min={1}
             className="girdi girdi--kesikli"
-            aria-label="Adet"
-            placeholder="Adet"
+           
             value={yeniAdet}
             onChange={(e) => setYeniAdet(e.target.value)}
             onKeyDown={(e) => {

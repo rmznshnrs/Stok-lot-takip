@@ -71,11 +71,11 @@ export default function MalGirisiFormu({ parcalar, kaydedildi }: { parcalar: Par
           </select>
         </div>
         <div className="alan">
-          <label htmlFor="tedarikci">Tedarikçi (nereden)</label>
+          <label htmlFor="tedarikci">Tedarikçi</label>
           <input
             className="girdi"
             list="tedarikci-listesi"
-            placeholder="Tedarikçi seçin veya yazın"
+           
             autoComplete="off"
             required
             maxLength={200}
@@ -84,7 +84,7 @@ export default function MalGirisiFormu({ parcalar, kaydedildi }: { parcalar: Par
         </div>
         <div className="alan">
           <label htmlFor="lotNo">Lot numarası</label>
-          <input className="girdi girdi--mono" placeholder="L-…" required maxLength={100} {...alan("lotNo")} />
+          <input className="girdi girdi--mono" required maxLength={100} {...alan("lotNo")} />
         </div>
         <div className="izgara-2">
           <div className="alan">
@@ -98,7 +98,7 @@ export default function MalGirisiFormu({ parcalar, kaydedildi }: { parcalar: Par
         </div>
         <div className="alan">
           <label htmlFor="siparisNo">Sipariş / irsaliye no</label>
-          <input className="girdi" placeholder="örn. SP-1050" maxLength={100} {...alan("siparisNo")} />
+          <input className="girdi" maxLength={100} {...alan("siparisNo")} />
         </div>
         <datalist id="tedarikci-listesi">
           {tedarikciListesi?.map((t) => <option key={t.id} value={t.ad} />)}

@@ -72,11 +72,11 @@ export default function ParcalarEkrani() {
               <Mesaj mesaj={mesaj} />
               <div className="alan">
                 <label htmlFor="kod">Parça kodu</label>
-                <input id="kod" className="girdi girdi--mono" required maxLength={50} placeholder="ör. LED-K-5MM" {...alan("kod")} />
+                <input id="kod" className="girdi girdi--mono" required maxLength={50} {...alan("kod")} />
               </div>
               <div className="alan">
                 <label htmlFor="ad">Parça adı</label>
-                <input id="ad" className="girdi" required maxLength={200} placeholder="ör. Kırmızı LED 5mm" {...alan("ad")} />
+                <input id="ad" className="girdi" required maxLength={200} {...alan("ad")} />
               </div>
               <div className="izgara-2">
                 <div className="alan">
@@ -106,7 +106,7 @@ export default function ParcalarEkrani() {
             type="search"
             className="girdi girdi--ara"
             aria-label="Parça ara"
-            placeholder="Kod veya ad ara…"
+           
             value={arama}
             onChange={(e) => setArama(e.target.value)}
           />

@@ -18,7 +18,7 @@ export default function UrunBilgisi({ urun, uretimSayisi }: { urun: UrunDetay; u
         <div><dt>Parça çeşidi</dt><dd>{urun.agac.length}</dd></div>
       </dl>
 
-      <h3>Ürün ağacı (1 ürün için)</h3>
+      <h3>Ürün ağacı</h3>
 
       <div className="tablo-kap">
         <table className="tablo tablo--sik">

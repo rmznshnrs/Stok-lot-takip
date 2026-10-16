@@ -90,7 +90,7 @@ export default function IzlenebilirlikEkrani() {
             type="search"
             className="girdi girdi--ara girdi--mono"
             aria-label={sekme === "lot" ? "Lot no" : "Seri no"}
-            placeholder={sekme === "lot" ? "Lot no girin…" : "Seri no girin…"}
+           
             value={girdi}
             onChange={(e) => setGirdi(e.target.value)}
           />

@@ -5,6 +5,7 @@ import { useState } from "react";
 import Barkod, { Karekod } from "@/components/Barkod";
 import { izleme } from "@/lib/api";
 import { tarihSaat } from "@/lib/bicim";
+import { ETIKET_TURLERI, etiketTuruKaydet, etiketTuruMu, kayitliEtiketTuru, type EtiketTuru } from "@/lib/etiket";
 import { gs1Tarih, type Gs1Alan } from "@/lib/gs1";
 import { useVeri } from "@/lib/kancalar";
 
@@ -16,52 +17,32 @@ interface Etiket {
   gs1: Gs1Alan[];
 }
 
-type Tur = "cizgili" | "karekod";
-
-const TURLER: { deger: Tur; ad: string }[] = [
-  { deger: "cizgili", ad: "Çizgili barkod" },
-  { deger: "karekod", ad: "Karekod (ilaç kutularındaki gibi)" },
-];
-
-// Barkod türü tarayıcıda hatırlanır
-const TUR_ANAHTARI = "etiket-turu";
-
-function kayitliTur(): Tur {
-  try {
-    return localStorage.getItem(TUR_ANAHTARI) === "karekod" ? "karekod" : "cizgili";
-  } catch {
-    return "cizgili";
-  }
-}
-
 type Boyut = "kucuk" | "a4";
 
 const BOYUTLAR: { deger: Boyut; ad: string }[] = [
-  { deger: "kucuk", ad: "Etiket yazıcı (50 × 30 mm)" },
-  { deger: "a4", ad: "A4 etiket kağıdı (3 × 8)" },
+  { deger: "kucuk", ad: "Etiket yazıcı" },
+  { deger: "a4", ad: "A4 etiket kağıdı" },
 ];
 
 function liste(deger: string | null) {
   return (deger ?? "").split(",").map((s) => s.trim()).filter(Boolean);
 }
 
-/** Adres: /etiket?seri=SN-IP-0001,SN-IP-0002 veya /etiket?lot=L-D-2601 */
+/** Adres: /etiket?seri=SN-IP-0001,SN-IP-0002 veya /etiket?lot=L-D-2601; &tur=yok|cizgili|karekod */
 export default function EtiketEkrani() {
   const params = useSearchParams();
   const seriler = liste(params.get("seri"));
   const lotlar = liste(params.get("lot"));
   const [kopya, setKopya] = useState(1);
   const [boyut, setBoyut] = useState<Boyut>("kucuk");
+  // Adreste tür verildiyse o (üretimde seçilen), yoksa son seçilen.
   // Bu ekran yalnız tarayıcıda çizilir (oturum gelince), localStorage burada okunabilir
-  const [tur, setTur] = useState<Tur>(kayitliTur);
+  const adrestekiTur = params.get("tur");
+  const [tur, setTur] = useState<EtiketTuru>(() => (etiketTuruMu(adrestekiTur) ? adrestekiTur : kayitliEtiketTuru()));
 
-  function turSec(t: Tur) {
+  function turSec(t: EtiketTuru) {
     setTur(t);
-    try {
-      localStorage.setItem(TUR_ANAHTARI, t);
-    } catch {
-      // hatırlanmazsa sorun değil
-    }
+    etiketTuruKaydet(t);
   }
 
   const anahtar = `${seriler.join(",")}|${lotlar.join(",")}`;
@@ -112,9 +93,9 @@ export default function EtiketEkrani() {
         {!seriler.length && !lotlar.length && <p className="not">Yazdırılacak seri veya lot numarası seçilmedi.</p>}
         <div className="izgara-3">
           <div className="alan">
-            <label htmlFor="tur">Barkod türü</label>
-            <select id="tur" className="girdi" value={tur} onChange={(e) => turSec(e.target.value as Tur)}>
-              {TURLER.map((b) => <option key={b.deger} value={b.deger}>{b.ad}</option>)}
+            <label htmlFor="tur">Barkod</label>
+            <select id="tur" className="girdi" value={tur} onChange={(e) => turSec(e.target.value as EtiketTuru)}>
+              {ETIKET_TURLERI.map((b) => <option key={b.deger} value={b.deger}>{b.ad}</option>)}
             </select>
           </div>
           <div className="alan">
@@ -143,7 +124,14 @@ export default function EtiketEkrani() {
 
       <div className={`etiket-alani etiket-alani--${boyut}`}>
         {basilacak.map((e, i) => (
-          tur === "karekod" ? (
+          tur === "yok" ? (
+            <div key={`${e.numara}-${i}`} className="etiket">
+              <div className="etiket-firma">MKC BİLİŞİM</div>
+              <div className="etiket-baslik">{e.baslik}</div>
+              <div className="etiket-numara">{e.numara}</div>
+              <div className="etiket-alt">{e.alt}</div>
+            </div>
+          ) : tur === "karekod" ? (
             <div key={`${e.numara}-${i}`} className="etiket etiket--karekod">
               <Karekod alanlar={e.gs1} />
               <div className="etiket-yazilar">

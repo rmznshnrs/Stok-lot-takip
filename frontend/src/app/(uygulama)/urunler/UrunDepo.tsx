@@ -15,7 +15,11 @@ export default function UrunDepo({ urunId, degisti }: { urunId: number; degisti?
   const depoda = liste?.filter((u) => !u.musteriAd && !u.hurda) ?? [];
   const ayrilan = liste?.filter((u) => u.hurda).length ?? 0;
 
+  const [ara, setAra] = useState("");
+  const aranan = ara.trim().toLocaleUpperCase("tr");
+  const gorunen = depoda.filter((u) => u.seriNo.toLocaleUpperCase("tr").includes(aranan));
   const [secili, setSecili] = useState<string[]>([]);
+  const hepsiSecili = gorunen.length > 0 && gorunen.every((u) => secili.includes(u.seriNo));
   const [tur, setTur] = useState<HurdaTuru>("Hurda");
   const [aciklama, setAciklama] = useState("");
   const [mesaj, setMesaj] = useState<MesajBilgisi | null>(null);
@@ -23,6 +27,11 @@ export default function UrunDepo({ urunId, degisti }: { urunId: number; degisti?
 
   function degistir(seriNo: string) {
     setSecili((s) => (s.includes(seriNo) ? s.filter((x) => x !== seriNo) : [...s, seriNo]));
+  }
+
+  function hepsiniDegistir() {
+    const numaralar = gorunen.map((u) => u.seriNo);
+    setSecili((s) => (hepsiSecili ? s.filter((x) => !numaralar.includes(x)) : [...new Set([...s, ...numaralar])]));
   }
 
   async function ayir(e: FormEvent) {
@@ -49,7 +58,7 @@ export default function UrunDepo({ urunId, degisti }: { urunId: number; degisti?
   return (
     <div className="form-dikey">
       <div className="bas-satir">
-        <h3>Depodaki ürünler ({depoda.length})</h3>
+        <h3>Depodaki ürünler <span className="rozet rozet--kucuk rozet--mavi">{depoda.length}</span></h3>
         {ayrilan > 0 && (
           <Link href="/uretim?sekme=gecmis" className="not">{ayrilan} hurda / kayıp</Link>
         )}
@@ -58,38 +67,59 @@ export default function UrunDepo({ urunId, degisti }: { urunId: number; degisti?
       {hata && <div className="mesaj mesaj--error">{hata}</div>}
       {liste && depoda.length === 0 && <p className="not">Depoda bu üründen seri no yok.</p>}
       {depoda.length > 0 && (
-        <div className="seri-secim">
-          {depoda.map((u) =>
-            admin ? (
-              <label key={u.uretimId} className={`seri-secenek${secili.includes(u.seriNo) ? " seri-secenek--secili" : ""}`}>
-                <input type="checkbox" checked={secili.includes(u.seriNo)} onChange={() => degistir(u.seriNo)} />
-                <span className="mono">{u.seriNo}</span>
-                <span className="not">{tarihSaat(u.tarih)}</span>
+        <>
+          <input
+            type="search"
+            className="girdi girdi--mono"
+            aria-label="Depoda seri no ara"
+            value={ara}
+            onChange={(e) => setAra(e.target.value)}
+          />
+          <div className="depo-liste">
+            {admin && gorunen.length > 1 && (
+              <label className="depo-oge depo-oge--hepsi">
+                <input type="checkbox" checked={hepsiSecili} onChange={hepsiniDegistir} />
+                <span>Görünenlerin hepsi · {gorunen.length}</span>
               </label>
-            ) : (
-              <Link key={u.uretimId} href={`/izlenebilirlik?seri=${encodeURIComponent(u.seriNo)}`} className="seri-secenek">
-                <span className="mono">{u.seriNo}</span>
-                <span className="not">{tarihSaat(u.tarih)}</span>
-              </Link>
-            ),
-          )}
-        </div>
+            )}
+            {gorunen.map((u) =>
+              admin ? (
+                <label key={u.uretimId} className={`depo-oge${secili.includes(u.seriNo) ? " depo-oge--secili" : ""}`}>
+                  <input type="checkbox" checked={secili.includes(u.seriNo)} onChange={() => degistir(u.seriNo)} />
+                  <span className="mono">{u.seriNo}</span>
+                  <span className="not">{tarihSaat(u.tarih)}</span>
+                </label>
+              ) : (
+                <Link key={u.uretimId} href={`/izlenebilirlik?seri=${encodeURIComponent(u.seriNo)}`} className="depo-oge">
+                  <span className="mono">{u.seriNo}</span>
+                  <span className="not">{tarihSaat(u.tarih)}</span>
+                </Link>
+              ),
+            )}
+            {gorunen.length === 0 && <p className="not">Aramaya uyan seri no yok.</p>}
+          </div>
+        </>
       )}
       {admin && depoda.length > 0 && (
         <form className="hurda-form" onSubmit={ayir}>
-          <select className="girdi" aria-label="Tür" value={tur} onChange={(e) => setTur(e.target.value as HurdaTuru)}>
-            <option value="Hurda">Hurda</option>
-            <option value="Kayip">Kayıp</option>
-          </select>
-          <input
-            className="girdi girdi--esnek"
-            aria-label="Açıklama"
-            placeholder="Açıklama (zorunlu)"
-            required
-            maxLength={500}
-            value={aciklama}
-            onChange={(e) => setAciklama(e.target.value)}
-          />
+          <div className="alan hurda-tur">
+            <label htmlFor="hurda-tur">Tür</label>
+            <select id="hurda-tur" className="girdi" value={tur} onChange={(e) => setTur(e.target.value as HurdaTuru)}>
+              <option value="Hurda">Hurda</option>
+              <option value="Kayip">Kayıp</option>
+            </select>
+          </div>
+          <div className="alan girdi--esnek">
+            <label htmlFor="hurda-aciklama">Açıklama</label>
+            <input
+              id="hurda-aciklama"
+              className="girdi"
+              required
+              maxLength={500}
+              value={aciklama}
+              onChange={(e) => setAciklama(e.target.value)}
+            />
+          </div>
           <button type="submit" className="btn btn--ikincil" disabled={!secili.length || bekliyor}>
             {secili.length ? `${secili.length} ürünü ayır` : "Seri no seçin"}
           </button>

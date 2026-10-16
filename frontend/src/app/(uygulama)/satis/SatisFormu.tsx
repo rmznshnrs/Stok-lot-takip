@@ -100,7 +100,7 @@ export default function SatisFormu({ kaydedildi }: { kaydedildi: () => void }) {
             id="musteri"
             className="girdi"
             list="musteri-listesi"
-            placeholder="Müşteri seçin veya yazın"
+           
             autoComplete="off"
             maxLength={200}
             value={musteri}
@@ -143,7 +143,7 @@ export default function SatisFormu({ kaydedildi }: { kaydedildi: () => void }) {
                   <span className="mono akis-numara">{k.seriNo}</span>
                   {k.geriCagrilanLotlar.length ? (
                     <span className="yardim uyari-metin">
-                      Geri çağrılan lot içeriyor ({k.geriCagrilanLotlar.join(", ")}) — satışa uygun değil
+                      Geri çağrılan lot içeriyor: {k.geriCagrilanLotlar.join(", ")} — satışa uygun değil
                     </span>
                   ) : (
                     <span className="yardim">{k.urunAd}</span>

@@ -73,7 +73,7 @@ export default function Kullanicilar() {
             {liste === null && !hata && <tr className="bos"><td colSpan={4}>Yükleniyor…</td></tr>}
             {liste?.map((k) => (
               <tr key={k.id}>
-                <td>{k.ad} {k.soyad}{k.id === ben.id && <span className="soluk"> (siz)</span>}</td>
+                <td>{k.ad} {k.soyad}{k.id === ben.id && <span className="soluk"> · siz</span>}</td>
                 <td className="mono">{k.kullaniciAdi}</td>
                 <td>{k.rol === "Admin" ? <span className="rozet rozet--mavi">Yönetici</span> : "Kullanıcı"}</td>
                 <td>

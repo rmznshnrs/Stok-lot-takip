@@ -33,7 +33,7 @@ export default function UretimGecmisi() {
               type="search"
               className="girdi girdi--ara"
               aria-label="Üretimlerde ara"
-              placeholder="Seri no, ürün veya müşteri ara…"
+             
               value={arama}
               onChange={(e) => setArama(e.target.value)}
             />

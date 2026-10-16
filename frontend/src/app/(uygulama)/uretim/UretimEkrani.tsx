@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { ApiHatasi, uretim, urunler, type UretimSonucu } from "@/lib/api";
+import { ETIKET_TURLERI, etiketTuruKaydet, kayitliEtiketTuru, type EtiketTuru } from "@/lib/etiket";
 import { useGecikmeli, useVeri } from "@/lib/kancalar";
 
 const EN_COK = 999;
@@ -29,6 +30,8 @@ export default function UretimEkrani() {
   );
 
   const [sonuc, setSonuc] = useState<UretimSonucu | null>(null);
+  // Etiket isteğe bağlı; son seçilen barkod türü hatırlanır
+  const [etiketTuru, setEtiketTuru] = useState<EtiketTuru>(kayitliEtiketTuru);
   const [kayitHatasi, setKayitHatasi] = useState("");
   const [bekliyor, setBekliyor] = useState(false);
 
@@ -67,7 +70,7 @@ export default function UretimEkrani() {
           type="search"
           className="girdi girdi--liste-ara"
           aria-label="Ürün ara"
-          placeholder="Ürün ara…"
+         
           value={arama}
           onChange={(e) => setArama(e.target.value)}
         />
@@ -100,9 +103,32 @@ export default function UretimEkrani() {
                 <Link key={s} href={`/izlenebilirlik?seri=${encodeURIComponent(s)}`} className="seri-cip">{s}</Link>
               ))}
             </div>
-            <Link href={`/etiket?seri=${sonuc.seriNolar.map(encodeURIComponent).join(",")}`} className="btn btn--kucuk">
-              Etiket yazdır
-            </Link>
+            <div className="etiket-tercih">
+              <span className="etiket-metni">Etiket</span>
+              <div className="sekmeler" role="radiogroup" aria-label="Etikette barkod">
+                {ETIKET_TURLERI.map((t) => (
+                  <button
+                    key={t.deger}
+                    type="button"
+                    role="radio"
+                    aria-checked={etiketTuru === t.deger}
+                    className={`sekme${etiketTuru === t.deger ? " sekme--aktif" : ""}`}
+                    onClick={() => {
+                      setEtiketTuru(t.deger);
+                      etiketTuruKaydet(t.deger);
+                    }}
+                  >
+                    {t.ad}
+                  </button>
+                ))}
+              </div>
+              <Link
+                href={`/etiket?seri=${sonuc.seriNolar.map(encodeURIComponent).join(",")}&tur=${etiketTuru}`}
+                className="btn btn--kucuk"
+              >
+                Etiket yazdır
+              </Link>
+            </div>
           </div>
         )}
 
@@ -153,7 +179,7 @@ export default function UretimEkrani() {
                         <th>Parça</th>
                         <th className="sag">Gereken</th>
                         <th className="sag">Kullanılabilir</th>
-                        <th>Kullanılacak lot(lar)</th>
+                        <th>Kullanılacak lotlar</th>
                         <th>Durum</th>
                       </tr>
                     </thead>

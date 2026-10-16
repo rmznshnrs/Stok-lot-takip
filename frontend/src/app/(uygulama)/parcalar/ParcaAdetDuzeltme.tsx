@@ -39,7 +39,7 @@ export default function ParcaAdetDuzeltme({ parca, kapat, kaydedildi }: {
     setMesaj(null);
     try {
       const s = await stok.duzelt({ stokLotuId: lot.id, miktar: m, tur, aciklama: aciklama.trim() });
-      setMesaj({ tur: "success", metin: `${s.lotNo} düzeltildi (${s.miktar > 0 ? "+" : ""}${s.miktar}). Yeni kalan: ${s.yeniKalanAdet}.` });
+      setMesaj({ tur: "success", metin: `${s.lotNo} düzeltildi: ${s.miktar > 0 ? "+" : ""}${s.miktar}. Yeni kalan: ${s.yeniKalanAdet}.` });
       setMiktar("");
       setAciklama("");
       yenile();
@@ -55,7 +55,7 @@ export default function ParcaAdetDuzeltme({ parca, kapat, kaydedildi }: {
     <>
       <h2>Adet düzelt</h2>
       <p className="not">
-        <strong>{parca.ad}</strong> <span className="mono">{parca.kod}</span>. Sayımda farklı çıkan ya da bozulan (fire)
+        <strong>{parca.ad}</strong> <span className="mono">{parca.kod}</span>. Sayımda farklı çıkan ya da bozulan
         parçalar için lotu seçin; azaltmak için eksi, artırmak için artı adet girin.
       </p>
       <form className="form-dikey" onSubmit={kaydet}>
@@ -79,7 +79,7 @@ export default function ParcaAdetDuzeltme({ parca, kapat, kaydedildi }: {
         <fieldset className="alan-grubu" disabled={!lot}>
           <div className="izgara-2">
             <div className="alan">
-              <label htmlFor="miktar">Miktar (+/−)</label>
+              <label htmlFor="miktar">Miktar</label>
               <input id="miktar" type="number" className="girdi" required value={miktar} onChange={(e) => setMiktar(e.target.value)} />
             </div>
             <div className="alan">
