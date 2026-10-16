@@ -180,8 +180,7 @@ class _SatisEkraniState extends State<SatisEkrani> {
           controller: _seri,
           style: const TextStyle(fontFamily: 'IBMPlexMono'),
           decoration: InputDecoration(
-            labelText: 'veya elle yazın',
-            hintText: 'SN-…',
+            labelText: 'Seri no',
             suffixIcon: _ekleniyor
                 ? const Padding(
                     padding: EdgeInsets.all(14),
@@ -276,7 +275,7 @@ class _SatisGecmisiSayfasiState extends State<SatisGecmisiSayfasi> {
       padding: const EdgeInsets.all(16),
       children: [
         TextField(
-          decoration: const InputDecoration(prefixIcon: Icon(Icons.search), hintText: 'Müşteri veya seri no ara'),
+          decoration: const InputDecoration(prefixIcon: Icon(Icons.search)),
           onChanged: (m) {
             _gecikme?.cancel();
             _gecikme = Timer(const Duration(milliseconds: 300), () {

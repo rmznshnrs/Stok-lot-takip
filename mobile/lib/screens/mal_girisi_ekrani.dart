@@ -138,7 +138,7 @@ class _MalGirisiEkraniState extends State<MalGirisiEkrani> {
           TextField(
             controller: _parcaMetni,
             decoration: InputDecoration(
-              labelText: 'Parça (kod veya ad)',
+              labelText: 'Parça',
               errorText: _parcaHatasi,
               suffixIcon: IconButton(icon: const Icon(Icons.search), onPressed: _parcaBul),
             ),
@@ -165,7 +165,7 @@ class _MalGirisiEkraniState extends State<MalGirisiEkrani> {
           const SizedBox(height: 14),
           ListedenSecilebilirAlan(denetleyici: _tedarikci, etiket: 'Tedarikçi', secenekler: _tedarikciler),
           const SizedBox(height: 14),
-          OkutulabilirAlan(denetleyici: _lotNo, etiket: 'Lot numarası', ipucu: 'L-…'),
+          OkutulabilirAlan(denetleyici: _lotNo, etiket: 'Lot numarası'),
           const SizedBox(height: 14),
           Row(
             children: [

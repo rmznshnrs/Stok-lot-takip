@@ -66,7 +66,7 @@ class _SifreEkraniState extends State<SifreEkrani> {
         TextField(
           controller: _tekrar,
           obscureText: true,
-          decoration: const InputDecoration(labelText: 'Yeni şifre (tekrar)'),
+          decoration: const InputDecoration(labelText: 'Yeni şifre tekrar'),
         ),
         const SizedBox(height: 24),
         AnaDugme(metin: 'Şifreyi değiştir', bekliyor: _bekliyor, onPressed: _kaydet),

@@ -228,7 +228,6 @@ class _UrunSayfasiState extends State<UrunSayfasi> {
                         style: const TextStyle(fontFamily: 'IBMPlexMono'),
                         decoration: InputDecoration(
                           labelText: 'Seri no öneki',
-                          hintText: 'SN-IP-',
                           helperText: onekKilitli ? 'Üretim yapıldı, değişmez' : null,
                         ),
                       ),

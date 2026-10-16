@@ -89,7 +89,6 @@ class _AnaSayfaState extends State<AnaSayfa> {
             OkutulabilirAlan(
               denetleyici: _arama,
               etiket: 'Lot, seri no veya parça kodu',
-              ipucu: 'L-D-2601, SN-IP-0001…',
               gonder: _ara,
             ),
             const SizedBox(height: 10),

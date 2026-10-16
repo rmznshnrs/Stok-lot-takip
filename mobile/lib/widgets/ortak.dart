@@ -288,7 +288,7 @@ class _SecimListesiState extends State<_SecimListesi> {
             padding: EdgeInsets.fromLTRB(16, 0, 16, 8),
             child: TextField(
               autofocus: false,
-              decoration: InputDecoration(prefixIcon: const Icon(Icons.search), hintText: '${widget.baslik} ara'),
+              decoration: const InputDecoration(prefixIcon: Icon(Icons.search)),
               onChanged: (m) => setState(() {
                 _arama = m;
               }),

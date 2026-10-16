@@ -62,7 +62,7 @@ class _StokEkraniState extends State<StokEkrani> {
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 96),
         children: [
           TextField(
-            decoration: const InputDecoration(prefixIcon: Icon(Icons.search), hintText: 'Parça veya lot ara'),
+            decoration: const InputDecoration(prefixIcon: Icon(Icons.search)),
             onChanged: _aramaDegisti,
           ),
           const SizedBox(height: 12),

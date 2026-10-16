@@ -27,7 +27,7 @@ class _ApiAdresiEkraniState extends State<ApiAdresiEkrani> {
   String? _gecerli(String a) {
     final u = Uri.tryParse(a);
     if (u == null || !(u.isScheme('http') || u.isScheme('https')) || u.host.isEmpty) {
-      return 'Adres http:// veya https:// ile başlamalı (ör. http://192.168.1.20:5291).';
+      return 'Adres http:// veya https:// ile başlamalı.';
     }
     return null;
   }
@@ -86,7 +86,7 @@ class _ApiAdresiEkraniState extends State<ApiAdresiEkrani> {
         TextField(
           controller: _adres,
           keyboardType: TextInputType.url,
-          decoration: const InputDecoration(labelText: 'API adresi', hintText: 'http://192.168.1.20:5291'),
+          decoration: const InputDecoration(labelText: 'API adresi'),
         ),
         const SizedBox(height: 8),
         Wrap(

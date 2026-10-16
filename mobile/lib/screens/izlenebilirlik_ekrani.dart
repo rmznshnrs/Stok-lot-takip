@@ -51,7 +51,6 @@ class _IzlenebilirlikEkraniState extends State<IzlenebilirlikEkrani> {
               OkutulabilirAlan(
                 denetleyici: _lot,
                 etiket: 'Lot numarası',
-                ipucu: 'L-…',
                 gonder: (v) => v.trim().isEmpty ? null : _ac(LotIzSayfasi(lotNo: v.trim())),
               ),
               const SizedBox(height: 12),
@@ -68,7 +67,6 @@ class _IzlenebilirlikEkraniState extends State<IzlenebilirlikEkrani> {
               OkutulabilirAlan(
                 denetleyici: _seri,
                 etiket: 'Seri numarası',
-                ipucu: 'SN-…',
                 gonder: (v) => v.trim().isEmpty ? null : _ac(SeriIzSayfasi(seriNo: v.trim())),
               ),
               const SizedBox(height: 12),

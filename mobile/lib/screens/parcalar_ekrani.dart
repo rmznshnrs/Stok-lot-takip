@@ -44,7 +44,7 @@ class _ParcalarEkraniState extends State<ParcalarEkrani> {
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 96),
       children: [
         TextField(
-          decoration: const InputDecoration(prefixIcon: Icon(Icons.search), hintText: 'Kod veya ad ara'),
+          decoration: const InputDecoration(prefixIcon: Icon(Icons.search)),
           onChanged: (m) {
             _gecikme?.cancel();
             _gecikme = Timer(const Duration(milliseconds: 300), () {
