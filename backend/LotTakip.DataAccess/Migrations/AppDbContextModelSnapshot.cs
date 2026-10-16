@@ -349,6 +349,46 @@ namespace LotTakip.DataAccess.Migrations
                     b.ToTable("Uretim", (string)null);
                 });
 
+            modelBuilder.Entity("LotTakip.Entity.UretimHurda", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Aciklama")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<int>("OlusturanKullaniciId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("OlusturmaZamani")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("Tur")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<int>("UretimId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OlusturanKullaniciId");
+
+                    b.HasIndex("UretimId")
+                        .IsUnique();
+
+                    b.ToTable("UretimHurda", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_UretimHurda_Aciklama", "LEN([Aciklama]) > 0");
+                        });
+                });
+
             modelBuilder.Entity("LotTakip.Entity.UretimTuketim", b =>
                 {
                     b.Property<int>("UretimId")
@@ -528,6 +568,25 @@ namespace LotTakip.DataAccess.Migrations
                     b.Navigation("Urun");
                 });
 
+            modelBuilder.Entity("LotTakip.Entity.UretimHurda", b =>
+                {
+                    b.HasOne("LotTakip.Entity.Kullanici", "OlusturanKullanici")
+                        .WithMany()
+                        .HasForeignKey("OlusturanKullaniciId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("LotTakip.Entity.Uretim", "Uretim")
+                        .WithOne("Hurda")
+                        .HasForeignKey("LotTakip.Entity.UretimHurda", "UretimId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("OlusturanKullanici");
+
+                    b.Navigation("Uretim");
+                });
+
             modelBuilder.Entity("LotTakip.Entity.UretimTuketim", b =>
                 {
                     b.HasOne("LotTakip.Entity.StokLotu", "StokLotu")
@@ -597,6 +656,8 @@ namespace LotTakip.DataAccess.Migrations
 
             modelBuilder.Entity("LotTakip.Entity.Uretim", b =>
                 {
+                    b.Navigation("Hurda");
+
                     b.Navigation("SatisKalemi");
 
                     b.Navigation("Tuketimler");

@@ -23,12 +23,14 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<SatisKalemi> SatisKalemleri => Set<SatisKalemi>();
     public DbSet<Kullanici> Kullanicilar => Set<Kullanici>();
     public DbSet<StokDuzeltme> StokDuzeltmeleri => Set<StokDuzeltme>();
+    public DbSet<UretimHurda> UretimHurdalari => Set<UretimHurda>();
 
     protected override void ConfigureConventions(ModelConfigurationBuilder c)
     {
         // Enum'lar sayı değil ad olarak saklanır (veritabanında okunabilir)
         c.Properties<KullaniciRolu>().HaveConversion<string>().HaveMaxLength(20);
         c.Properties<StokDuzeltmeTuru>().HaveConversion<string>().HaveMaxLength(20);
+        c.Properties<UretimHurdaTuru>().HaveConversion<string>().HaveMaxLength(20);
     }
 
     protected override void OnModelCreating(ModelBuilder m)
@@ -152,6 +154,15 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             });
             e.Property(x => x.Aciklama).HasMaxLength(500);
             e.HasOne(x => x.StokLotu).WithMany(l => l.Duzeltmeler).HasForeignKey(x => x.StokLotuId);
+            e.HasOne(x => x.OlusturanKullanici).WithMany().HasForeignKey(x => x.OlusturanKullaniciId);
+        });
+
+        m.Entity<UretimHurda>(e =>
+        {
+            e.ToTable("UretimHurda", t => t.HasCheckConstraint("CK_UretimHurda_Aciklama", "LEN([Aciklama]) > 0"));
+            e.Property(x => x.Aciklama).HasMaxLength(500);
+            e.HasIndex(x => x.UretimId).IsUnique();  // bir seri no yalnızca bir kez ayrılır
+            e.HasOne(x => x.Uretim).WithOne(u => u.Hurda).HasForeignKey<UretimHurda>(x => x.UretimId);
             e.HasOne(x => x.OlusturanKullanici).WithMany().HasForeignKey(x => x.OlusturanKullaniciId);
         });
 

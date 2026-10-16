@@ -100,7 +100,7 @@ public class ApiTestleri(TestVeritabani vt) : IAsyncLifetime
         { "GET", "/api/urunler" }, { "GET", "/api/urunler/1" }, { "POST", "/api/urunler" }, { "PUT", "/api/urunler/1" }, { "PUT", "/api/urunler/1/agac" },
         { "GET", "/api/tedarikciler" }, { "GET", "/api/musteriler" },
         { "GET", "/api/stok" }, { "POST", "/api/stok/giris" }, { "POST", "/api/stok/duzeltme" },
-        { "GET", "/api/uretim/onizleme?urunId=1&adet=1" }, { "POST", "/api/uretim" },
+        { "GET", "/api/uretim/onizleme?urunId=1&adet=1" }, { "POST", "/api/uretim" }, { "GET", "/api/uretim/gecmis" }, { "POST", "/api/uretim/hurda" },
         { "GET", "/api/satis/kontrol?seriNo=SN-IP-0003" }, { "POST", "/api/satis/uyarilar" }, { "POST", "/api/satis" }, { "GET", "/api/satis/gecmis" },
         { "GET", "/api/izleme/lot/L-D-2601" }, { "GET", "/api/izleme/seri/SN-IP-0001" }, { "GET", "/api/izleme/ara?q=L" },
         { "GET", "/api/izleme/hareketler" }, { "POST", "/api/izleme/lot/L-D-2601/geri-cagir" },

@@ -61,11 +61,25 @@ public record EksikParcaDto(ParcaOzetDto Parca, int Gereken, int Kullanilabilir,
 
 public record UretimSonucuDto(int UrunId, string UrunAd, IReadOnlyList<string> SeriNolar);
 
+/// <summary>Üretim geçmişinde bir seri no. MusteriAd/SatisTarihi satılmadıysa, Hurda ayrılmadıysa null.</summary>
+public record UretimGecmisiDto(
+    int UretimId, string SeriNo, int UrunId, string UrunAd, DateTimeOffset Tarih,
+    string? MusteriAd, DateOnly? SatisTarihi, IReadOnlyList<string> GeriCagrilanLotlar, HurdaBilgisiDto? Hurda);
+
+/// <summary>Tur: "Hurda" veya "Kayip".</summary>
+public record HurdaBilgisiDto(string Tur, string Aciklama, DateTimeOffset Zaman, string KullaniciAd);
+
+/// <summary>Depodaki seri numaralarını hurdaya / kayba ayırma. Tur: "Hurda" veya "Kayip"; açıklama zorunlu.</summary>
+public record UretimHurdaIstek(IReadOnlyList<string> SeriNolar, string Tur, string Aciklama);
+
+public record UretimHurdaSonucuDto(IReadOnlyList<string> SeriNolar, string Tur, string Aciklama);
+
 // --- İzlenebilirlik -----------------------------------------------------------
 
+/// <summary>HurdaTuru: "Hurda", "Kayip" veya null (ayrılmadı).</summary>
 public record LotIzUretimDto(
     int UretimId, string SeriNo, DateTimeOffset Tarih, string UrunKod, string UrunAd, int Adet,
-    SatisBilgisiDto? Satis);
+    SatisBilgisiDto? Satis, string? HurdaTuru = null);
 
 public record MusteriSatisiDto(string SeriNo, DateOnly Tarih);
 
@@ -78,14 +92,14 @@ public record LotIzDto(
     LotDto Lot, int KullanilanAdet, IReadOnlyList<LotIzUretimDto> Uretimler,
     IReadOnlyList<LotIzMusteriDto> Musteriler)
 {
-    public IReadOnlyList<LotIzUretimDto> StoktakiUretimler => [.. Uretimler.Where(u => u.Satis is null)];
+    public IReadOnlyList<LotIzUretimDto> StoktakiUretimler => [.. Uretimler.Where(u => u.Satis is null && u.HurdaTuru is null)];
 }
 
 public record SeriIzParcaDto(ParcaOzetDto Parca, LotDto Lot, int Adet);
 
 public record SeriIzDto(
     int UretimId, string SeriNo, DateTimeOffset Tarih, string UrunKod, string UrunAd,
-    IReadOnlyList<SeriIzParcaDto> Parcalar, SatisBilgisiDto? Satis)
+    IReadOnlyList<SeriIzParcaDto> Parcalar, SatisBilgisiDto? Satis, HurdaBilgisiDto? Hurda = null)
 {
     public IReadOnlyList<string> GeriCagrilanLotlar =>
         [.. Parcalar.Where(p => p.Lot.GeriCagrildi).Select(p => p.Lot.LotNo).Distinct().Order()];

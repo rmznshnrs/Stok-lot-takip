@@ -46,6 +46,17 @@ public class UretimController(IUretimServisi uretim) : ControllerBase
     [HttpPost]
     public Task<UretimSonucuDto> Uret(UretimIstek istek, CancellationToken ct) =>
         uretim.UretAsync(istek.UrunId, istek.Adet, User.KullaniciId(), ct: ct);
+
+    /// <summary>Üretilen seri numaraları (yeniden eskiye): satış durumu, geri çağrılan lotlar.</summary>
+    [HttpGet("gecmis")]
+    public Task<List<UretimGecmisiDto>> Gecmis([FromQuery] string? arama, [FromQuery] int? urunId, CancellationToken ct) =>
+        uretim.UretimGecmisiAsync(arama, urunId, ct: ct);
+
+    /// <summary>Depodaki seri numaralarını hurdaya / kayba ayırır (yalnız Admin, açıklama zorunlu).</summary>
+    [HttpPost("hurda")]
+    [Authorize(Policy = Politikalar.Admin)]
+    public Task<UretimHurdaSonucuDto> Hurda(UretimHurdaIstek istek, CancellationToken ct) =>
+        uretim.HurdayaAyirAsync(istek, User.KullaniciId(), ct);
 }
 
 /// <summary>Satış.</summary>

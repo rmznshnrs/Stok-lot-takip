@@ -23,7 +23,7 @@ public class SemaTestleri(TestVeritabani vt) : VeritabaniTesti(vt)
             "SELECT name AS Value FROM sys.tables WHERE name <> '__EFMigrationsHistory'").ToListAsync();
         Assert.Equal(
             ["Kullanici", "Musteri", "Parca", "Satis", "SatisKalemi", "StokDuzeltme", "StokLotu",
-             "Tedarikci", "Uretim", "UretimTuketim", "Urun", "UrunAgaci"],
+             "Tedarikci", "Uretim", "UretimHurda", "UretimTuketim", "Urun", "UrunAgaci"],
             tablolar.Order());
     }
 

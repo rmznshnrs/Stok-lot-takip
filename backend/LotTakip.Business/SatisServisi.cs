@@ -29,9 +29,11 @@ public class SatisServisi(AppDbContext db) : ISatisServisi
     public async Task<SatilabilirDto> SatilabilirAsync(string seriNo, CancellationToken ct = default)
     {
         var no = (seriNo ?? "").Trim();
-        var uretim = await db.Uretimler.AsNoTracking().Include(u => u.Urun)
+        var uretim = await db.Uretimler.AsNoTracking().Include(u => u.Urun).Include(u => u.Hurda)
                          .SingleOrDefaultAsync(u => u.SeriNo == no, ct)
                      ?? throw new SatisHatasi($"{no} seri numarası bulunamadı.");
+        if (uretim.Hurda is not null)
+            throw new SatisHatasi(HurdaMesaji([uretim]));
         var satis = await SatildigiSatisAsync([uretim.Id], ct);
         if (satis.Count > 0)
             throw new SatisHatasi(SatilmisMesaji(satis));
@@ -71,12 +73,16 @@ public class SatisServisi(AppDbContext db) : ISatisServisi
         return Islem.CalistirAsync(db, async () =>
         {
             var kullanici = await Kullanicilar.GetirAsync(db, kullaniciId, ct);
-            var uretimler = await db.Uretimler.Where(u => seriler.Contains(u.SeriNo)).ToListAsync(ct);
+            var uretimler = await db.Uretimler.Include(u => u.Hurda).Where(u => seriler.Contains(u.SeriNo)).ToListAsync(ct);
             var bulunamayan = seriler
                 .Where(s => !uretimler.Any(u => string.Equals(u.SeriNo, s, StringComparison.OrdinalIgnoreCase)))
                 .ToList();
             if (bulunamayan.Count > 0)
                 throw new SatisHatasi($"Bulunamayan seri no: {string.Join(", ", bulunamayan)}");
+
+            var hurdalar = uretimler.Where(u => u.Hurda is not null).ToList();
+            if (hurdalar.Count > 0)
+                throw new SatisHatasi(HurdaMesaji(hurdalar));
 
             // Açık kontrol: bire bir ilişkide EF eski kalemi sessizce silebilir
             var satilmis = await SatildigiSatisAsync([.. uretimler.Select(u => u.Id)], ct);
@@ -126,6 +132,9 @@ public class SatisServisi(AppDbContext db) : ISatisServisi
     }
 
     // --- iç ------------------------------------------------------------------
+
+    private static string HurdaMesaji(IEnumerable<Uretim> uretimler) =>
+        $"Hurdaya / kayba ayrılmış ürün satılamaz: {string.Join(", ", uretimler.Select(u => u.SeriNo).Order())}";
 
     private sealed record SatilmisKayit(string SeriNo, string MusteriAd, DateOnly Tarih);
 

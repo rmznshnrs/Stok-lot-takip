@@ -1,5 +1,6 @@
 using LotTakip.Business;
 using LotTakip.Entity;
+using LotTakip.Shared;
 using Microsoft.EntityFrameworkCore;
 
 namespace LotTakip.Tests;
@@ -173,5 +174,88 @@ public class UretimYapTestleri(TestVeritabani vt) : IsKuraliTesti(vt)
         var kayitlar = await Db.Uretimler.AsNoTracking().ToListAsync();
         Assert.All(kayitlar, u => Assert.Equal((Kullanici.Id, tarih), (u.OlusturanKullaniciId, u.Tarih)));
         await Assert.ThrowsAsync<YetkiHatasi>(() => Uretim.UretAsync(Urun.Id, 1, kullaniciId: -5));
+    }
+}
+
+public class UretimGecmisiTestleri(TestVeritabani vt) : IsKuraliTesti(vt)
+{
+    [Fact]
+    public async Task Yeniden_eskiye_satis_durumu_ve_geri_cagrilan_lot()
+    {
+        await Uretim.UretAsync(Urun.Id, 3, Kullanici.Id, new DateTimeOffset(2026, 4, 1, 9, 0, 0, TimeSpan.FromHours(3)));  // ESKI lottan
+        await Uretim.UretAsync(Urun.Id, 1, Kullanici.Id, new DateTimeOffset(2026, 4, 2, 9, 0, 0, TimeSpan.FromHours(3)));  // YENI lottan
+        await Satis.SatAsync(new SatisIstek("Atlas", ["SN-IP-0002"], new(2026, 5, 1)), Kullanici.Id);
+        await GeriCagir(DiyotEski);
+
+        var g = await Uretim.UretimGecmisiAsync();
+        Assert.Equal(["SN-IP-0004", "SN-IP-0003", "SN-IP-0002", "SN-IP-0001"], g.Select(x => x.SeriNo));
+        var satilan = g.Single(x => x.SeriNo == "SN-IP-0002");
+        Assert.Equal(("Atlas", new DateOnly(2026, 5, 1)), (satilan.MusteriAd, satilan.SatisTarihi));
+        Assert.Equal(["L-D-ESKI"], satilan.GeriCagrilanLotlar);
+        var depoda = g[0];
+        Assert.Equal(("İndikatör Paneli", (string?)null), (depoda.UrunAd, depoda.MusteriAd));
+        Assert.Empty(depoda.GeriCagrilanLotlar);
+    }
+
+    [Fact]
+    public async Task Arama_ve_urun_suzgeci()
+    {
+        await Uretim.UretAsync(Urun.Id, 3, Kullanici.Id);
+        await Satis.SatAsync(new SatisIstek("Beta Enerji", ["SN-IP-0003"]), Kullanici.Id);
+
+        Assert.Equal(["SN-IP-0002"], (await Uretim.UretimGecmisiAsync("0002")).Select(x => x.SeriNo));
+        Assert.Equal(["SN-IP-0003"], (await Uretim.UretimGecmisiAsync("beta")).Select(x => x.SeriNo));
+        Assert.Equal(3, (await Uretim.UretimGecmisiAsync("Panel")).Count);
+        Assert.Equal(3, (await Uretim.UretimGecmisiAsync(urunId: Urun.Id)).Count);
+        Assert.Empty(await Uretim.UretimGecmisiAsync(urunId: Urun.Id + 999));
+    }
+}
+
+public class UretimHurdaTestleri(TestVeritabani vt) : IsKuraliTesti(vt)
+{
+    [Fact]
+    public async Task Ayrilan_urun_satilamaz_ve_depoda_sayilmaz()
+    {
+        await Uretim.UretAsync(Urun.Id, 3, Kullanici.Id);  // 0001-0003, diyot ESKI lottan
+        var s = await Uretim.HurdayaAyirAsync(new UretimHurdaIstek(["sn-ip-0002"], "Kayip", "  Depoda bulunamadı "), Admin.Id);
+        Assert.Equal(["SN-IP-0002"], s.SeriNolar);
+        Assert.Equal(("Kayip", "Depoda bulunamadı"), (s.Tur, s.Aciklama));
+
+        var g = (await Uretim.UretimGecmisiAsync()).Single(x => x.SeriNo == "SN-IP-0002");
+        Assert.Equal(("Kayip", "Depoda bulunamadı", "Ad Min"), (g.Hurda!.Tur, g.Hurda.Aciklama, g.Hurda.KullaniciAd));
+        Assert.Null((await Uretim.UretimGecmisiAsync()).Single(x => x.SeriNo == "SN-IP-0001").Hurda);
+
+        var hata = await Assert.ThrowsAsync<SatisHatasi>(() => Satis.SatilabilirAsync("SN-IP-0002"));
+        Assert.Contains("SN-IP-0002", hata.Message);
+        await Assert.ThrowsAsync<SatisHatasi>(() => Satis.SatAsync(new SatisIstek("Atlas", ["SN-IP-0001", "SN-IP-0002"]), Kullanici.Id));
+        Assert.Empty(await Satis.SatisGecmisiAsync());  // hiçbiri satılmadı
+
+        var lotIz = (await Izleme.LotIzleAsync("L-D-ESKI"))!;
+        Assert.Equal(["SN-IP-0001", "SN-IP-0003"], lotIz.StoktakiUretimler.Select(u => u.SeriNo));
+        Assert.Equal("Kayip", lotIz.Uretimler.Single(u => u.SeriNo == "SN-IP-0002").HurdaTuru);
+        Assert.Equal("Kayip", (await Izleme.SeriIzleAsync("SN-IP-0002"))!.Hurda!.Tur);
+        Assert.Null((await Izleme.SeriIzleAsync("SN-IP-0001"))!.Hurda);
+    }
+
+    [Fact]
+    public async Task Kurallar_ve_hepsi_ya_da_hicbiri()
+    {
+        await Uretim.UretAsync(Urun.Id, 3, Kullanici.Id);
+        await Satis.SatAsync(new SatisIstek("Atlas", ["SN-IP-0003"]), Kullanici.Id);
+
+        await Assert.ThrowsAsync<IsKuraliHatasi>(() => Uretim.HurdayaAyirAsync(new(["SN-IP-0001"], "Hurda", " "), Admin.Id));
+        await Assert.ThrowsAsync<IsKuraliHatasi>(() => Uretim.HurdayaAyirAsync(new(["SN-IP-0001"], "Satildi", "x"), Admin.Id));
+        await Assert.ThrowsAsync<IsKuraliHatasi>(() => Uretim.HurdayaAyirAsync(new([], "Hurda", "x"), Admin.Id));
+        await Assert.ThrowsAsync<YetkiHatasi>(() => Uretim.HurdayaAyirAsync(new(["SN-IP-0001"], "Hurda", "x"), Kullanici.Id));
+        var hata = await Assert.ThrowsAsync<IsKuraliHatasi>(() => Uretim.HurdayaAyirAsync(new(["SN-IP-0001", "SN-YOK"], "Hurda", "x"), Admin.Id));
+        Assert.Contains("SN-YOK", hata.Message);
+        hata = await Assert.ThrowsAsync<IsKuraliHatasi>(() => Uretim.HurdayaAyirAsync(new(["SN-IP-0001", "SN-IP-0003"], "Hurda", "x"), Admin.Id));
+        Assert.Contains("Satılmış", hata.Message);
+        Assert.Equal(0, await Db.UretimHurdalari.CountAsync());  // hiçbiri ayrılmadı
+
+        await Uretim.HurdayaAyirAsync(new(["SN-IP-0001"], "hurda", "Düştü, kırıldı"), Admin.Id);
+        hata = await Assert.ThrowsAsync<IsKuraliHatasi>(() => Uretim.HurdayaAyirAsync(new(["SN-IP-0001", "SN-IP-0002"], "Hurda", "x"), Admin.Id));
+        Assert.Contains("Zaten ayrılmış", hata.Message);
+        Assert.Equal(1, await Db.UretimHurdalari.CountAsync());
     }
 }

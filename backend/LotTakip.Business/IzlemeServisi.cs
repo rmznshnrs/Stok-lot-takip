@@ -1,4 +1,5 @@
 using LotTakip.DataAccess;
+using LotTakip.Entity;
 using LotTakip.Shared;
 using Microsoft.EntityFrameworkCore;
 
@@ -43,6 +44,7 @@ public class IzlemeServisi(AppDbContext db) : IIzlemeServisi
                 SatisId = (int?)t.Uretim.SatisKalemi!.SatisId, SatisTarih = (DateOnly?)t.Uretim.SatisKalemi.Satis!.Tarih,
                 MusteriId = (int?)t.Uretim.SatisKalemi.Satis.MusteriId, MusteriAd = t.Uretim.SatisKalemi.Satis.Musteri!.Ad,
                 MusteriIletisim = t.Uretim.SatisKalemi.Satis.Musteri.Iletisim,
+                HurdaTur = (UretimHurdaTuru?)t.Uretim.Hurda!.Tur,
             })
             .Select(g => new { g.Key, Adet = g.Sum(t => t.Adet) })
             .ToListAsync(ct);
@@ -50,7 +52,8 @@ public class IzlemeServisi(AppDbContext db) : IIzlemeServisi
         var uretimler = satirlar.OrderBy(s => s.Key.SeriNo).Select(s => new LotIzUretimDto(
             s.Key.UretimId, s.Key.SeriNo, s.Key.Tarih, s.Key.UrunKod, s.Key.UrunAd, s.Adet,
             s.Key.SatisId is null ? null : new SatisBilgisiDto(
-                s.Key.SatisId.Value, s.Key.SatisTarih!.Value, s.Key.MusteriId!.Value, s.Key.MusteriAd!, s.Key.MusteriIletisim!)))
+                s.Key.SatisId.Value, s.Key.SatisTarih!.Value, s.Key.MusteriId!.Value, s.Key.MusteriAd!, s.Key.MusteriIletisim!),
+            s.Key.HurdaTur?.ToString()))
             .ToList();
 
         var musteriler = uretimler.Where(u => u.Satis is not null)
@@ -71,6 +74,7 @@ public class IzlemeServisi(AppDbContext db) : IIzlemeServisi
             .Include(u => u.Tuketimler).ThenInclude(t => t.StokLotu!).ThenInclude(l => l.Parca)
             .Include(u => u.Tuketimler).ThenInclude(t => t.StokLotu!).ThenInclude(l => l.Tedarikci)
             .Include(u => u.SatisKalemi!).ThenInclude(k => k.Satis!).ThenInclude(s => s.Musteri)
+            .Include(u => u.Hurda!).ThenInclude(h => h.OlusturanKullanici)
             .AsSplitQuery()
             .SingleOrDefaultAsync(u => u.SeriNo == no, ct);
         if (uretim is null)
@@ -82,7 +86,9 @@ public class IzlemeServisi(AppDbContext db) : IIzlemeServisi
             .ToList();
         var satis = uretim.SatisKalemi?.Satis;
         return new SeriIzDto(uretim.Id, uretim.SeriNo, uretim.Tarih, uretim.Urun!.Kod, uretim.Urun.Ad, parcalar,
-            satis is null ? null : new SatisBilgisiDto(satis.Id, satis.Tarih, satis.MusteriId, satis.Musteri!.Ad, satis.Musteri.Iletisim));
+            satis is null ? null : new SatisBilgisiDto(satis.Id, satis.Tarih, satis.MusteriId, satis.Musteri!.Ad, satis.Musteri.Iletisim),
+            uretim.Hurda is not { } h ? null
+                : new HurdaBilgisiDto(h.Tur.ToString(), h.Aciklama, h.OlusturmaZamani, $"{h.OlusturanKullanici!.Ad} {h.OlusturanKullanici.Soyad}"));
     }
 
     public async Task<NumaraAramaDto> NumaraAraAsync(string metin, CancellationToken ct = default)

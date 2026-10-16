@@ -23,6 +23,19 @@ public interface IUretimServisi
 
     /// <summary>Şimdi üretilirse verilecek ardışık seri numaraları.</summary>
     Task<List<string>> SonrakiSeriNolarAsync(int urunId, int adet, CancellationToken ct = default);
+
+    /// <summary>
+    /// Üretim geçmişi: her seri no bir satır (yeniden eskiye), satış durumu ve geri çağrılan lotlarıyla.
+    /// Arama seri no, ürün adı veya müşteri adında.
+    /// </summary>
+    Task<List<UretimGecmisiDto>> UretimGecmisiAsync(string? arama = null, int? urunId = null, int adet = 500,
+                                                    CancellationToken ct = default);
+
+    /// <summary>
+    /// Admin: depodaki seri numaralarını hurdaya / kayba ayırır (açıklama zorunlu). Bulunamayan, satılmış
+    /// veya zaten ayrılmış seri no varsa hiçbiri ayrılmaz. Ayrılan ürün satılamaz.
+    /// </summary>
+    Task<UretimHurdaSonucuDto> HurdayaAyirAsync(UretimHurdaIstek istek, int kullaniciId, CancellationToken ct = default);
 }
 
 public class UretimServisi(AppDbContext db, IStokLotuRepository lotlar, IUretimRepository uretimler) : IUretimServisi
@@ -30,6 +43,66 @@ public class UretimServisi(AppDbContext db, IStokLotuRepository lotlar, IUretimR
     public const int EnFazlaAdet = 999;
 
     private sealed record Plan(Urun Urun, int Adet, List<(UrunAgaci Satir, List<StokLotu> Lotlar, ParcaIhtiyaciDto Ihtiyac)> Parcalar);
+
+    public async Task<List<UretimGecmisiDto>> UretimGecmisiAsync(string? arama = null, int? urunId = null,
+                                                                 int adet = 500, CancellationToken ct = default)
+    {
+        var q = db.Uretimler.AsNoTracking();
+        if (urunId is { } id)
+            q = q.Where(u => u.UrunId == id);
+        arama = arama?.Trim();
+        if (!string.IsNullOrEmpty(arama))
+            q = q.Where(u => u.SeriNo.Contains(arama) || u.Urun!.Ad.Contains(arama)
+                             || (u.SatisKalemi != null && u.SatisKalemi.Satis!.Musteri!.Ad.Contains(arama)));
+        return await q.OrderByDescending(u => u.Tarih).ThenByDescending(u => u.Id).Take(adet)
+            .Select(u => new UretimGecmisiDto(
+                u.Id, u.SeriNo, u.UrunId, u.Urun!.Ad, u.Tarih,
+                u.SatisKalemi == null ? null : u.SatisKalemi.Satis!.Musteri!.Ad,
+                u.SatisKalemi == null ? null : u.SatisKalemi.Satis!.Tarih,
+                u.Tuketimler.Where(t => t.StokLotu!.GeriCagrildi).Select(t => t.StokLotu!.LotNo).Distinct().OrderBy(l => l).ToList(),
+                u.Hurda == null ? null : new HurdaBilgisiDto(u.Hurda.Tur.ToString(), u.Hurda.Aciklama, u.Hurda.OlusturmaZamani,
+                    u.Hurda.OlusturanKullanici!.Ad + " " + u.Hurda.OlusturanKullanici.Soyad)))
+            .ToListAsync(ct);
+    }
+
+    public Task<UretimHurdaSonucuDto> HurdayaAyirAsync(UretimHurdaIstek istek, int kullaniciId, CancellationToken ct = default)
+    {
+        var aciklama = (istek.Aciklama ?? "").Trim();
+        if (aciklama.Length == 0)
+            throw new IsKuraliHatasi("Hurdaya ayırmada açıklama zorunludur.");
+        if (!Enum.TryParse<UretimHurdaTuru>(istek.Tur, ignoreCase: true, out var tur) || !Enum.IsDefined(tur))
+            throw new IsKuraliHatasi("Tür Hurda veya Kayip olmalı.");
+        var seriler = (istek.SeriNolar ?? []).Select(s => (s ?? "").Trim()).Where(s => s.Length > 0)
+            .Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+        if (seriler.Count == 0)
+            throw new IsKuraliHatasi("En az bir seri no seçilmeli.");
+
+        return Islem.CalistirAsync(db, async () =>
+        {
+            var admin = await Kullanicilar.AdminGetirAsync(db, kullaniciId, "Hurdaya ayırma", ct);
+            var kayitlar = await db.Uretimler.Include(u => u.SatisKalemi).Include(u => u.Hurda)
+                .Where(u => seriler.Contains(u.SeriNo)).ToListAsync(ct);
+            var bulunamayan = seriler
+                .Where(s => !kayitlar.Any(u => string.Equals(u.SeriNo, s, StringComparison.OrdinalIgnoreCase))).ToList();
+            if (bulunamayan.Count > 0)
+                throw new IsKuraliHatasi($"Bulunamayan seri no: {string.Join(", ", bulunamayan)}");
+            var satilmis = kayitlar.Where(u => u.SatisKalemi is not null).Select(u => u.SeriNo).Order().ToList();
+            if (satilmis.Count > 0)
+                throw new IsKuraliHatasi($"Satılmış ürün hurdaya ayrılamaz: {string.Join(", ", satilmis)}");
+            var ayrilmis = kayitlar.Where(u => u.Hurda is not null).Select(u => u.SeriNo).Order().ToList();
+            if (ayrilmis.Count > 0)
+                throw new IsKuraliHatasi($"Zaten ayrılmış: {string.Join(", ", ayrilmis)}");
+
+            var zaman = Zaman.Simdi();
+            foreach (var u in kayitlar)
+                db.UretimHurdalari.Add(new UretimHurda
+                {
+                    Uretim = u, Tur = tur, Aciklama = aciklama, OlusturanKullanici = admin, OlusturmaZamani = zaman,
+                });
+            await db.SaveChangesAsync(ct);
+            return new UretimHurdaSonucuDto([.. kayitlar.Select(u => u.SeriNo).Order()], tur.ToString(), aciklama);
+        }, ct);
+    }
 
     public async Task<UretimOnizlemeDto> OnizleAsync(int urunId, int adet, CancellationToken ct = default)
     {
