@@ -3,6 +3,7 @@
 import { useSearchParams } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { hatirla } from "@/components/Oturum";
+import SifreKutusu from "@/components/SifreKutusu";
 import { ApiHatasi, oturum } from "@/lib/api";
 
 /** Yalnız uygulama içi yollara dönülür (dış adrese yönlendirme olmasın). */
@@ -16,6 +17,7 @@ export default function GirisFormu() {
   const [sifre, setSifre] = useState("");
   const [hata, setHata] = useState("");
   const [bekliyor, setBekliyor] = useState(false);
+  const [unuttum, setUnuttum] = useState(false);
 
   async function gonder(e: FormEvent) {
     e.preventDefault();
@@ -50,15 +52,22 @@ export default function GirisFormu() {
       </div>
       <div className="alan">
         <label htmlFor="sifre">Şifre</label>
-        <input
+        <SifreKutusu
           id="sifre"
-          type="password"
-          className="girdi"
           autoComplete="current-password"
           required
           value={sifre}
           onChange={(e) => setSifre(e.target.value)}
         />
+        <button type="button" className="baglanti-dugme" aria-expanded={unuttum} onClick={() => setUnuttum(!unuttum)}>
+          Şifremi unuttum
+        </button>
+        {unuttum && (
+          <div className="bilgi-kutu" role="status">
+            Şifrenizi yöneticiniz Yönetim sayfasından yenileyebilir. Yöneticinize başvurun; verdiği şifreyle girdikten
+            sonra Profil sayfasından kendi şifrenizi belirleyin.
+          </div>
+        )}
       </div>
 
       {hata && <div className="mesaj mesaj--error" role="alert">{hata}</div>}

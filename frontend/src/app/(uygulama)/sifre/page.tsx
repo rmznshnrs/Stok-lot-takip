@@ -1,12 +1,6 @@
-import type { Metadata } from "next";
-import SifreFormu from "./SifreFormu";
+import { redirect } from "next/navigation";
 
-export const metadata: Metadata = { title: "Şifre değiştir" };
-
+/** Eski adres: şifre değiştirme artık Profil sayfasında. */
 export default function Sayfa() {
-  return (
-    <main className="icerik">
-      <SifreFormu />
-    </main>
-  );
+  redirect("/profil");
 }

@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { simdikiTema, temaUygula, type Tema } from "@/lib/tema";
 import { cikisYap, useKullanici } from "./Oturum";
 
-/** Üst menünün sağındaki ☰: kullanıcı, şifre değiştir, açık/koyu tema, çıkış. */
+/** Üst menünün sağındaki ☰: kullanıcı, profil, açık/koyu tema, çıkış. */
 export default function HesapMenusu() {
   const k = useKullanici();
   const [acik, setAcik] = useState(false);
@@ -53,8 +53,8 @@ export default function HesapMenusu() {
             <span className="hesap-ad">{k.ad} {k.soyad}</span>
             <span className="hesap-rol">{k.rol === "Admin" ? "Yönetici" : "Kullanıcı"} · {k.kullaniciAdi}</span>
           </div>
-          <Link href="/sifre" className="hesap-oge" role="menuitem" onClick={() => setAcik(false)}>
-            Şifre değiştir
+          <Link href="/profil" className="hesap-oge" role="menuitem" onClick={() => setAcik(false)}>
+            Profil
           </Link>
           <button type="button" className="hesap-oge" role="menuitem" onClick={temaDegistir}>
             {tema === "koyu" ? "Açık moda geç" : "Koyu moda geç"}

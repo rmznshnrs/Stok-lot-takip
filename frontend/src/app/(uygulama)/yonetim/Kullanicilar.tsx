@@ -5,6 +5,7 @@ import Mesaj, { type MesajBilgisi } from "@/components/Mesaj";
 import { useKullanici } from "@/components/Oturum";
 import { ApiHatasi, kullanicilar, type Kullanici, type Rol } from "@/lib/api";
 import { useVeri } from "@/lib/kancalar";
+import SifreKutusu from "@/components/SifreKutusu";
 
 const BOS = { ad: "", soyad: "", kullaniciAdi: "", sifre: "", rol: "Kullanici" as Rol };
 
@@ -111,8 +112,9 @@ export default function Kullanicilar() {
             </select>
           </div>
           <div className="alan">
-            <label htmlFor="k-sifre">{duzenlenen ? "Yeni şifre (boşsa değişmez)" : "Şifre"}</label>
-            <input type="password" className="girdi" required={!duzenlenen} minLength={8} autoComplete="new-password" {...alan("sifre")} />
+            <label htmlFor="k-sifre">{duzenlenen ? "Yeni şifre" : "Şifre"}</label>
+            <SifreKutusu required={!duzenlenen} minLength={8} autoComplete="new-password" {...alan("sifre")} />
+            {duzenlenen && <span className="yardim">Boş bırakılırsa şifre değişmez.</span>}
           </div>
         </div>
         <div className="kaydet-grup">

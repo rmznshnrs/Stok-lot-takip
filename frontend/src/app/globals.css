@@ -264,6 +264,32 @@ form { margin: 0; }
 .satir-ekle { display: flex; gap: 8px; align-items: flex-start; }
 .satir-ekle .alan { gap: 4px; }
 .satir-ekle--alt { align-items: flex-end; }
+
+/* Şifre kutusu: sağda göz düğmesi */
+.sifre-kutu { position: relative; }
+.sifre-kutu .girdi { padding-right: 44px; }
+.sifre-goz {
+  position: absolute; top: 0; right: 0; width: 44px; height: 100%;
+  display: flex; align-items: center; justify-content: center;
+  border: none; background: none; color: var(--soluk); cursor: pointer; border-radius: 0 8px 8px 0;
+}
+.sifre-goz:hover { color: var(--metin); }
+.baglanti-dugme {
+  align-self: flex-end; border: none; background: none; padding: 2px 0; cursor: pointer;
+  font: inherit; font-size: 13px; color: var(--baglanti);
+}
+.baglanti-dugme:hover { text-decoration: underline; }
+
+/* Profil */
+.profil-bas { display: flex; align-items: center; gap: 14px; }
+.profil-harf {
+  width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  background: var(--ana-acik); color: var(--ana-koyu); font-weight: 600; font-size: 17px; flex-shrink: 0;
+}
+.profil-liste { margin: 0; display: flex; flex-direction: column; }
+.profil-liste > div { padding: 10px 0; border-bottom: 1px solid var(--kenar-ince); }
+.profil-liste dt { font-size: 12px; color: var(--soluk); }
+.profil-liste dd { margin: 2px 0 0; font-size: 15px; font-weight: 500; }
 .etiket-tercih { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .etiket-tercih .sekme { border: none; cursor: pointer; font: inherit; font-size: 13px; }
 .etiket-tercih .sekme:not(.sekme--aktif) { background: none; }
