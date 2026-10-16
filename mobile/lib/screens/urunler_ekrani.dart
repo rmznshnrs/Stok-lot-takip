@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../main.dart';
 import '../services/modeller.dart';
 import '../widgets/ortak.dart';
+import 'urun_depo_ekrani.dart';
 
 class UrunlerEkrani extends StatefulWidget {
   const UrunlerEkrani({super.key});
@@ -67,7 +68,8 @@ class _UrunlerEkraniState extends State<UrunlerEkrani> {
   );
 }
 
-/// Ürün bilgileri ve ürün ağacı (1 ürün için hangi parçadan kaç adet). urunId null ise yeni ürün.
+/// Ürün bilgileri ve ürün ağacı: 1 ürün için hangi parçadan kaç adet. Kayıtlı ürün önce salt okunur açılır,
+/// "Düzenle" ile forma geçilir. urunId null ise yeni ürün formu.
 class UrunSayfasi extends StatefulWidget {
   const UrunSayfasi({super.key, required this.urunId});
 
@@ -87,6 +89,8 @@ class _UrunSayfasiState extends State<UrunSayfasi> {
   bool _yuklendi = false;
   String? _hata;
   bool _bekliyor = false;
+  late bool _duzenle = widget.urunId == null;
+  Future<List<UretimGecmisi>>? _depo;
 
   @override
   void initState() {
@@ -111,6 +115,7 @@ class _UrunSayfasiState extends State<UrunSayfasi> {
       setState(() {
         _parcalar = parcalar;
         _urunuGoster(urun);
+        if (urun != null) _depo = api.uretimGecmisi(urunId: urun.id);
         _yuklendi = true;
         _hata = null;
       });
@@ -181,6 +186,8 @@ class _UrunSayfasiState extends State<UrunSayfasi> {
       if (!mounted) return;
       setState(() {
         _urunuGoster(kayitli);
+        _duzenle = false;
+        _depo = api.uretimGecmisi(urunId: kayitli.id);
       });
       bildir(context, '${kayitli.kod} – ${kayitli.ad} kaydedildi.');
     } catch (e) {
@@ -198,11 +205,34 @@ class _UrunSayfasiState extends State<UrunSayfasi> {
   Widget build(BuildContext context) {
     final onekKilitli = _urun != null && !_urun!.seriOnekiDegistirilebilir;
     return Scaffold(
-      appBar: GecisliBar(baslik: _urun?.ad ?? (widget.urunId == null ? 'Yeni ürün' : 'Ürün')),
+      appBar: GecisliBar(
+        baslik: _urun?.ad ?? (widget.urunId == null ? 'Yeni ürün' : 'Ürün'),
+        eylemler: [
+          if (_urun != null && !_duzenle)
+            IconButton(
+              tooltip: 'Düzenle',
+              icon: const Icon(Icons.edit_outlined),
+              onPressed: () => setState(() {
+                _duzenle = true;
+              }),
+            ),
+          if (_urun != null && _duzenle)
+            IconButton(
+              tooltip: 'Vazgeç',
+              icon: const Icon(Icons.close),
+              onPressed: () => setState(() {
+                _urunuGoster(_urun);
+                _duzenle = false;
+              }),
+            ),
+        ],
+      ),
       body: _hata != null
           ? HataGorunumu(metin: _hata!, yenile: _yukle)
           : !_yuklendi
           ? const Center(child: CircularProgressIndicator())
+          : !_duzenle && _urun != null
+          ? _bilgi(_urun!)
           : ListView(
               padding: const EdgeInsets.all(16),
               children: [
@@ -234,7 +264,7 @@ class _UrunSayfasiState extends State<UrunSayfasi> {
                     ),
                   ],
                 ),
-                const BolumBasligi('Ürün ağacı (1 ürün için)'),
+                const BolumBasligi('Ürün ağacı'),
                 if (_agac.isEmpty) const BosDurum('Ürün ağacı boş.'),
                 for (final s in _agac)
                   Padding(
@@ -285,4 +315,88 @@ class _UrunSayfasiState extends State<UrunSayfasi> {
             ),
     );
   }
+
+  /// Kayıtlı ürünün salt okunur görünümü: bilgiler, ürün ağacı, depodaki ürünler.
+  Widget _bilgi(UrunDetay u) => ListView(
+    padding: const EdgeInsets.all(16),
+    children: [
+      Kart(
+        child: Row(
+          children: [
+            Expanded(child: _Alan(ad: 'Ürün kodu', deger: u.kod)),
+            Expanded(child: _Alan(ad: 'Seri no öneki', deger: u.seriOneki)),
+          ],
+        ),
+      ),
+      const BolumBasligi('Ürün ağacı'),
+      if (u.agac.isEmpty) const BosDurum('Ürün ağacı boş. Parça eklemek için Düzenle\'ye dokunun.'),
+      for (final s in u.agac)
+        Padding(
+          padding: const EdgeInsets.only(bottom: 8),
+          child: Kart(
+            uyari: s.minAltinda,
+            padding: const EdgeInsets.all(14),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(s.parcaAd),
+                      Row(children: [Mono(s.parcaKod, boyut: 12), Soluk(' · stok ${s.kullanilabilirStok}', boyut: 12)]),
+                    ],
+                  ),
+                ),
+                Text('${s.adet}', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
+                const Soluk(' adet'),
+              ],
+            ),
+          ),
+        ),
+      const BolumBasligi('Depo'),
+      FutureBuilder<List<UretimGecmisi>>(
+        future: _depo,
+        builder: (context, d) {
+          final depoda = d.data?.where((x) => x.depoda).length;
+          return Kart(
+            onTap: () async {
+              await Navigator.of(
+                context,
+              ).push(MaterialPageRoute(builder: (_) => UrunDepoSayfasi(urunId: u.id, urunAd: u.ad)));
+              if (mounted) {
+                setState(() {
+                  _depo = context.api.uretimGecmisi(urunId: u.id);
+                });
+              }
+            },
+            child: Row(
+              children: [
+                const Icon(Icons.inventory_2_outlined),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    depoda == null ? 'Depodaki ürünler' : 'Depodaki ürünler · $depoda',
+                    style: const TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                ),
+                const Icon(Icons.chevron_right),
+              ],
+            ),
+          );
+        },
+      ),
+    ],
+  );
+}
+
+class _Alan extends StatelessWidget {
+  const _Alan({required this.ad, required this.deger});
+
+  final String ad, deger;
+
+  @override
+  Widget build(BuildContext context) => Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [Soluk(ad, boyut: 12), const SizedBox(height: 2), Mono(deger, kalin: true)],
+  );
 }

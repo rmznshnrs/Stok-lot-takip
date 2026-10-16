@@ -234,6 +234,41 @@ class BosDurum extends StatelessWidget {
   );
 }
 
+/// Şifre girişi; sağdaki göz düğmesiyle yazılan şifre gösterilir / gizlenir.
+class SifreAlani extends StatefulWidget {
+  const SifreAlani({super.key, required this.denetleyici, required this.etiket, this.otomatikDoldurma, this.gonder});
+
+  final TextEditingController denetleyici;
+  final String etiket;
+  final Iterable<String>? otomatikDoldurma;
+  final ValueChanged<String>? gonder;
+
+  @override
+  State<SifreAlani> createState() => _SifreAlaniState();
+}
+
+class _SifreAlaniState extends State<SifreAlani> {
+  bool _goster = false;
+
+  @override
+  Widget build(BuildContext context) => TextField(
+    controller: widget.denetleyici,
+    obscureText: !_goster,
+    autofillHints: widget.otomatikDoldurma,
+    onSubmitted: widget.gonder,
+    decoration: InputDecoration(
+      labelText: widget.etiket,
+      suffixIcon: IconButton(
+        tooltip: _goster ? 'Şifreyi gizle' : 'Şifreyi göster',
+        icon: Icon(_goster ? Icons.visibility_off_outlined : Icons.visibility_outlined),
+        onPressed: () => setState(() {
+          _goster = !_goster;
+        }),
+      ),
+    ),
+  );
+}
+
 /// Metin kutusu + listeden seçme düğmesi (müşteri, tedarikçi). Listede olmayan da yazılabilir.
 class ListedenSecilebilirAlan extends StatelessWidget {
   const ListedenSecilebilirAlan({super.key, required this.denetleyici, required this.etiket, required this.secenekler});

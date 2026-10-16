@@ -6,7 +6,7 @@ import 'ana_kabuk.dart';
 import 'api_adresi_ekrani.dart';
 import 'izlenebilirlik_ekrani.dart';
 import 'parcalar_ekrani.dart';
-import 'sifre_ekrani.dart';
+import 'profil_ekrani.dart';
 import 'urunler_ekrani.dart';
 
 class DahaFazlaEkrani extends StatelessWidget {
@@ -24,6 +24,7 @@ class DahaFazlaEkrani extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         children: [
           Kart(
+            onTap: () => ac(const ProfilEkrani()),
             child: Row(
               children: [
                 CircleAvatar(child: Text(k.ad.isEmpty ? '?' : k.ad[0])),
@@ -54,7 +55,7 @@ class DahaFazlaEkrani extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 8),
-          _Oge(ikon: Icons.lock_outline, baslik: 'Şifre değiştir', onTap: () => ac(const SifreEkrani())),
+          _Oge(ikon: Icons.person_outline, baslik: 'Profil', onTap: () => ac(const ProfilEkrani())),
           if (k.admin)
             _Oge(
               ikon: Icons.dns_outlined,

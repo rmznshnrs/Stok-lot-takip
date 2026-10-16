@@ -175,6 +175,55 @@ void main() {
     expect(tarihMetni(DateTime(2026, 3, 1)), '2026-03-01');
   });
 
+  test('üretim geçmişi, hurdaya ayırma ve stok düzeltme', () async {
+    await ayarlar.tokenKaydet('t');
+    final api = apiOlustur((r) async {
+      if (r.url.path.endsWith('uretim/gecmis')) {
+        return _json([
+          {
+            'uretimId': 2,
+            'seriNo': 'SN-IP-0002',
+            'urunId': 1,
+            'urunAd': 'Panel',
+            'tarih': '2026-04-02T10:00:00+03:00',
+            'musteriAd': null,
+            'satisTarihi': null,
+            'geriCagrilanLotlar': <String>[],
+            'hurda': {'tur': 'Kayip', 'aciklama': 'Bulunamadı', 'zaman': '2026-10-16T12:00:00+03:00', 'kullaniciAd': 'Ad Min'},
+          },
+          {
+            'uretimId': 1,
+            'seriNo': 'SN-IP-0001',
+            'urunId': 1,
+            'urunAd': 'Panel',
+            'tarih': '2026-04-02T10:00:00+03:00',
+            'musteriAd': 'Atlas',
+            'satisTarihi': '2026-05-12',
+            'geriCagrilanLotlar': ['L-D-2601'],
+            'hurda': null,
+          },
+        ]);
+      }
+      if (r.url.path.endsWith('uretim/hurda')) {
+        return _json({'seriNolar': ['SN-IP-0003'], 'tur': 'Hurda', 'aciklama': 'Kırık'});
+      }
+      return _json({'id': 5, 'lotNo': 'L-D-2601', 'miktar': -3, 'tur': 'Fire', 'aciklama': 'Kırık', 'yeniKalanAdet': 15});
+    });
+
+    final g = await api.uretimGecmisi(urunId: 1);
+    expect(istekler.last.url.queryParameters, {'urunId': '1'});
+    expect(g.first.hurda!.ad, 'Kayıp');
+    expect(g.first.depoda, isFalse);
+    expect(g.last.musteriAd, 'Atlas');
+    expect(g.last.geriCagrilanLotlar, ['L-D-2601']);
+
+    expect(await api.hurdayaAyir(['SN-IP-0003'], 'Hurda', 'Kırık'), ['SN-IP-0003']);
+    expect(jsonDecode(istekler.last.body), {'seriNolar': ['SN-IP-0003'], 'tur': 'Hurda', 'aciklama': 'Kırık'});
+
+    expect(await api.stokDuzelt(lotId: 1, miktar: -3, tur: 'Fire', aciklama: 'Kırık'), 15);
+    expect(jsonDecode(istekler.last.body), {'stokLotuId': 1, 'miktar': -3, 'tur': 'Fire', 'aciklama': 'Kırık'});
+  });
+
   test('API adresi sondaki / olmadan saklanır', () async {
     await ayarlar.apiAdresiKaydet(' http://192.168.1.20:5291/ ');
     expect(ayarlar.apiAdresi, 'http://192.168.1.20:5291');

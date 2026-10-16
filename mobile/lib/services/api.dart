@@ -161,6 +161,13 @@ class Api {
     return (lot: Lot.json(j['lot']), yeniTedarikci: j['yeniTedarikci'] as bool);
   }
 
+  /// Yalnız yönetici: lotun kalan adedini artırır (+) veya azaltır (−). Tur: SayimFarki, Fire, Diger. Yeni kalanı döner.
+  Future<int> stokDuzelt({required int lotId, required int miktar, required String tur, required String aciklama}) async {
+    final j = await _gonder('stok/duzeltme', {'stokLotuId': lotId, 'miktar': miktar, 'tur': tur, 'aciklama': aciklama})
+        as Map<String, dynamic>;
+    return j['yeniKalanAdet'] as int;
+  }
+
   // --- Üretim ----------------------------------------------------------------
 
   Future<UretimOnizleme> uretimOnizle(int urunId, int adet) async =>
@@ -168,6 +175,16 @@ class Api {
 
   Future<List<String>> uret(int urunId, int adet) async {
     final j = await _gonder('uretim', {'urunId': urunId, 'adet': adet}) as Map<String, dynamic>;
+    return (j['seriNolar'] as List).cast<String>();
+  }
+
+  /// Seri no başına satır, yeniden eskiye. Arama seri no, ürün veya müşteride.
+  Future<List<UretimGecmisi>> uretimGecmisi({String? arama, int? urunId}) async =>
+      _liste(await _al('uretim/gecmis', {'arama': arama, 'urunId': urunId}), UretimGecmisi.json);
+
+  /// Yalnız yönetici: depodaki seri numaralarını hurdaya ("Hurda") veya kayba ("Kayip") ayırır.
+  Future<List<String>> hurdayaAyir(List<String> seriNolar, String tur, String aciklama) async {
+    final j = await _gonder('uretim/hurda', {'seriNolar': seriNolar, 'tur': tur, 'aciklama': aciklama}) as Map<String, dynamic>;
     return (j['seriNolar'] as List).cast<String>();
   }
 

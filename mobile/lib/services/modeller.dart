@@ -105,15 +105,28 @@ class UretimOnizleme {
   final bool yeterli;
 }
 
+/// "Kayip" → "Kayıp"
+String hurdaAdi(String tur) => tur == 'Kayip' ? 'Kayıp' : 'Hurda';
+
+/// Depodaki seri no'nun hurdaya / kayba ayrılma bilgisi. Tur: "Hurda" veya "Kayip".
+class HurdaBilgisi {
+  HurdaBilgisi.json(J j) : tur = j['tur'], aciklama = j['aciklama'], zaman = _tarih(j['zaman']), kullaniciAd = j['kullaniciAd'];
+  final String tur, aciklama, kullaniciAd;
+  final DateTime zaman;
+  String get ad => hurdaAdi(tur);
+}
+
 class LotIzUretim {
   LotIzUretim.json(J j)
     : seriNo = j['seriNo'],
       urunAd = j['urunAd'],
       adet = j['adet'],
-      satis = j['satis'] == null ? null : SatisBilgisi.json(j['satis']);
+      satis = j['satis'] == null ? null : SatisBilgisi.json(j['satis']),
+      hurdaTuru = j['hurdaTuru'];
   final String seriNo, urunAd;
   final int adet;
   final SatisBilgisi? satis;
+  final String? hurdaTuru;
 }
 
 class LotIzMusteri {
@@ -137,7 +150,7 @@ class LotIz {
   final List<LotIzMusteri> musteriler;
   List<LotIzUretim> get depodakiler => [
     for (final u in uretimler)
-      if (u.satis == null) u,
+      if (u.satis == null && u.hurdaTuru == null) u,
   ];
 }
 
@@ -151,12 +164,36 @@ class SeriIz {
           (parca: ParcaOzet.json(p['parca']), lot: Lot.json(p['lot']), adet: p['adet'] as int),
       ],
       satis = j['satis'] == null ? null : SatisBilgisi.json(j['satis']),
-      geriCagrilanLotlar = _metinler(j['geriCagrilanLotlar']);
+      geriCagrilanLotlar = _metinler(j['geriCagrilanLotlar']),
+      hurda = j['hurda'] == null ? null : HurdaBilgisi.json(j['hurda']);
   final String seriNo, urunAd;
   final DateTime tarih;
   final List<({ParcaOzet parca, Lot lot, int adet})> parcalar;
   final SatisBilgisi? satis;
   final List<String> geriCagrilanLotlar;
+  final HurdaBilgisi? hurda;
+}
+
+/// Üretim geçmişinde bir seri no. Satılmadıysa musteriAd / satisTarihi, ayrılmadıysa hurda null.
+class UretimGecmisi {
+  UretimGecmisi.json(J j)
+    : uretimId = j['uretimId'],
+      seriNo = j['seriNo'],
+      urunId = j['urunId'],
+      urunAd = j['urunAd'],
+      tarih = _tarih(j['tarih']),
+      musteriAd = j['musteriAd'],
+      satisTarihi = j['satisTarihi'] == null ? null : _tarih(j['satisTarihi']),
+      geriCagrilanLotlar = _metinler(j['geriCagrilanLotlar']),
+      hurda = j['hurda'] == null ? null : HurdaBilgisi.json(j['hurda']);
+  final int uretimId, urunId;
+  final String seriNo, urunAd;
+  final DateTime tarih;
+  final String? musteriAd;
+  final DateTime? satisTarihi;
+  final List<String> geriCagrilanLotlar;
+  final HurdaBilgisi? hurda;
+  bool get depoda => musteriAd == null && hurda == null;
 }
 
 class NumaraArama {

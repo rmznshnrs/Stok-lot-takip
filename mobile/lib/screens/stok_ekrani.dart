@@ -7,6 +7,8 @@ import '../services/modeller.dart';
 import '../widgets/ortak.dart';
 import 'izlenebilirlik_ekrani.dart';
 import 'mal_girisi_ekrani.dart';
+import 'ana_kabuk.dart';
+import 'parca_duzeltme_ekrani.dart';
 
 Future<bool?> malGirisiAc(BuildContext context) =>
     Navigator.of(context).push<bool>(MaterialPageRoute(builder: (_) => const MalGirisiEkrani()));
@@ -169,7 +171,22 @@ class _ParcaLotlariSayfasiState extends State<ParcaLotlariSayfasi> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: GecisliBar(baslik: widget.parcaKod),
+    appBar: GecisliBar(
+      baslik: widget.parcaKod,
+      eylemler: [
+        if (KullaniciBaglami.of(context).kullanici.admin)
+          IconButton(
+            tooltip: 'Adet düzelt',
+            icon: const Icon(Icons.exposure),
+            onPressed: () async {
+              final degisti = await Navigator.of(
+                context,
+              ).push<bool>(MaterialPageRoute(builder: (_) => AdetDuzeltSayfasi(parcaKod: widget.parcaKod)));
+              if (degisti == true) _yenile();
+            },
+          ),
+      ],
+    ),
     body: Yukleyici<List<StokGrubu>>(
       future: _gruplar,
       yenile: _yenile,

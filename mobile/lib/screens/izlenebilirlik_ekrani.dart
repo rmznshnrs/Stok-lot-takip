@@ -220,9 +220,11 @@ class _LotIzSayfasiState extends State<LotIzSayfasi> {
                             children: [Mono(u.seriNo, kalin: true), Soluk('${u.urunAd} · ${u.adet} adet kullanıldı')],
                           ),
                         ),
-                        u.satis == null
-                            ? const Rozet('Depoda', tur: RozetTuru.basari)
-                            : const Rozet('Satıldı', tur: RozetTuru.uyari),
+                        u.satis != null
+                            ? const Rozet('Satıldı', tur: RozetTuru.uyari)
+                            : u.hurdaTuru != null
+                            ? Rozet(hurdaAdi(u.hurdaTuru!))
+                            : const Rozet('Depoda', tur: RozetTuru.basari),
                       ],
                     ),
                   ),
@@ -323,7 +325,9 @@ class _SeriIzSayfasiState extends State<SeriIzSayfasi> {
                   Text(iz.urunAd, style: const TextStyle(fontWeight: FontWeight.w600)),
                   const SizedBox(height: 10),
                   _Bilgi('Üretim tarihi', tarihSaat(iz.tarih)),
-                  _Bilgi('Durum', iz.satis == null ? 'Depoda' : 'Satıldı'),
+                  _Bilgi('Durum', iz.satis != null ? 'Satıldı' : iz.hurda?.ad ?? 'Depoda'),
+                  if (iz.hurda != null)
+                    _Bilgi('${iz.hurda!.ad} nedeni', '${iz.hurda!.aciklama} · ${iz.hurda!.kullaniciAd}, ${tarihSaat(iz.hurda!.zaman)}'),
                   if (iz.satis != null) _Bilgi('Satış', '${iz.satis!.musteriAd} · ${tarih(iz.satis!.tarih)}'),
                   if (iz.satis?.musteriIletisim.isNotEmpty ?? false) _Bilgi('Müşteri iletişim', iz.satis!.musteriIletisim),
                   if (iz.geriCagrilanLotlar.isNotEmpty)

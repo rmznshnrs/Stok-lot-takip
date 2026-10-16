@@ -7,6 +7,7 @@ import '../services/modeller.dart';
 import '../tema.dart';
 import '../widgets/ortak.dart';
 import 'izlenebilirlik_ekrani.dart';
+import 'uretim_gecmisi_ekrani.dart';
 
 /// Ürün seç → adet (büyük −/+) → parça kontrolü → kaydet → verilen seri numaraları.
 class UretimEkrani extends StatefulWidget {
@@ -93,7 +94,16 @@ class _UretimEkraniState extends State<UretimEkrani> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: const GecisliBar(baslik: 'Üretim'),
+    appBar: GecisliBar(
+      baslik: 'Üretim',
+      eylemler: [
+        IconButton(
+          tooltip: 'Üretim geçmişi',
+          icon: const Icon(Icons.history),
+          onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const UretimGecmisiSayfasi())),
+        ),
+      ],
+    ),
     body: Yukleyici<List<UrunListe>>(
       future: _urunler,
       yenile: () => setState(() {
