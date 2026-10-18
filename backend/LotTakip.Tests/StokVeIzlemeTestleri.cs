@@ -241,22 +241,33 @@ public class IzlemeYardimciTestleri(TestVeritabani vt) : IsKuraliTesti(vt)
     public async Task Son_hareketler_limit() => Assert.Equal(2, (await Izleme.SonHareketlerAsync(2)).Count);
 
     [Fact]
-    public async Task Lot_geri_cagir_ve_kaldir()
+    public async Task Sorunlu_lot_uretimde_kullanim_secimi_ve_kaldirma()
     {
-        var lot = await Izleme.LotGeriCagirAsync("l-d-eski", geriCagir: true, Admin.Id);
-        Assert.True(lot.GeriCagrildi);
-        Assert.True(await Db.StokLotlari.AsNoTracking().Where(l => l.Id == DiyotEski.Id).Select(l => l.GeriCagrildi).SingleAsync());
-        // Geri çağrılan lot artık sıradaki değil ve üretimde atlanır
+        // Kullanılmasın: üretime kapalı, sıradaki değil
+        var lot = (await Izleme.LotSorunAsync("l-d-eski", new LotSorunIstek(true, false, " Tedarikçi uyarısı "), Admin.Id)).Lot;
+        Assert.True(lot.Sorunlu && lot.UretimeKapali);
+        Assert.Equal("Tedarikçi uyarısı", lot.SorunAciklama);
         Assert.Equal("L-D-YENI", (await Stok.StokDurumuAsync(parcaKod: "DIY")).Single().Siradaki!.LotNo);
-        await Izleme.LotGeriCagirAsync("L-D-ESKI", geriCagir: false, Admin.Id);
-        Assert.False(await Db.StokLotlari.AsNoTracking().Where(l => l.Id == DiyotEski.Id).Select(l => l.GeriCagrildi).SingleAsync());
+
+        // Kullanılsın: sorunlu ama FIFO'da kalır; önizleme uyarır
+        lot = (await Izleme.LotSorunAsync("L-D-ESKI", new LotSorunIstek(true, true, "Tedarikçi uyarısı"), Admin.Id)).Lot;
+        Assert.True(lot.Sorunlu);
+        Assert.False(lot.UretimeKapali);
+        Assert.Equal("L-D-ESKI", (await Stok.StokDurumuAsync(parcaKod: "DIY")).Single().Siradaki!.LotNo);
+        Assert.Equal(["L-D-ESKI"], (await Uretim.OnizleAsync(Urun.Id, 1)).SorunluKullanilanLotlar);
+
+        // Kaldır
+        lot = (await Izleme.LotSorunAsync("L-D-ESKI", new LotSorunIstek(false, true, null), Admin.Id)).Lot;
+        Assert.False(lot.Sorunlu || lot.UretimeKapali);
+        Assert.Equal("", lot.SorunAciklama);
     }
 
     [Fact]
-    public async Task Lot_geri_cagirma_yalniz_admin_ve_bilinmeyen_lot()
+    public async Task Sorunlu_lot_yalniz_admin_aciklama_zorunlu()
     {
-        await Assert.ThrowsAsync<YetkiHatasi>(() => Izleme.LotGeriCagirAsync("L-D-ESKI", true, Kullanici.Id));
-        Assert.False(await Db.StokLotlari.AsNoTracking().Where(l => l.Id == DiyotEski.Id).Select(l => l.GeriCagrildi).SingleAsync());
-        await Assert.ThrowsAsync<BulunamadiHatasi>(() => Izleme.LotGeriCagirAsync("YOK", true, Admin.Id));
+        await Assert.ThrowsAsync<YetkiHatasi>(() => Izleme.LotSorunAsync("L-D-ESKI", new LotSorunIstek(true, false, "x"), Kullanici.Id));
+        await Assert.ThrowsAsync<IsKuraliHatasi>(() => Izleme.LotSorunAsync("L-D-ESKI", new LotSorunIstek(true, false, " "), Admin.Id));
+        Assert.False(await Db.StokLotlari.AsNoTracking().Where(l => l.Id == DiyotEski.Id).Select(l => l.Sorunlu).SingleAsync());
+        await Assert.ThrowsAsync<BulunamadiHatasi>(() => Izleme.LotSorunAsync("YOK", new LotSorunIstek(true, false, "x"), Admin.Id));
     }
 }

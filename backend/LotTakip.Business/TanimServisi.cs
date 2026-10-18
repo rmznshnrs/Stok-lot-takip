@@ -23,6 +23,11 @@ public interface ITanimServisi
 
     Task<List<IletisimDto>> TedarikcilerAsync(CancellationToken ct = default);
     Task<List<IletisimDto>> MusterilerAsync(CancellationToken ct = default);
+
+    /// <summary>id null ise yeni müşteri. Ad boş olamaz ve tekildir (büyük/küçük harf duyarsız).</summary>
+    Task<IletisimDto> MusteriKaydetAsync(int? id, IletisimIstek istek, CancellationToken ct = default);
+    /// <summary>id null ise yeni tedarikçi. Ad boş olamaz ve tekildir.</summary>
+    Task<IletisimDto> TedarikciKaydetAsync(int? id, IletisimIstek istek, CancellationToken ct = default);
 }
 
 public class TanimServisi(AppDbContext db, IStokServisi stok) : ITanimServisi
@@ -65,7 +70,7 @@ public class TanimServisi(AppDbContext db, IStokServisi stok) : ITanimServisi
         var q = db.Urunler.AsNoTracking();
         arama = arama?.Trim();
         if (!string.IsNullOrEmpty(arama))
-            q = q.Where(u => u.Kod.Contains(arama) || u.Ad.Contains(arama));
+            q = q.Where(u => EF.Functions.Like(u.Kod, Arama.Desen(arama)) || EF.Functions.Like(u.Ad, Arama.Desen(arama)));
         return await q.OrderBy(u => u.Kod)
             .Select(u => new UrunListeDto(u.Id, u.Kod, u.Ad, u.SeriOneki, u.Agac.Count, u.Uretimler.Count))
             .ToListAsync(ct);
@@ -160,4 +165,47 @@ public class TanimServisi(AppDbContext db, IStokServisi stok) : ITanimServisi
 
     public Task<List<IletisimDto>> MusterilerAsync(CancellationToken ct = default) =>
         db.Musteriler.AsNoTracking().OrderBy(m => m.Ad).Select(m => new IletisimDto(m.Id, m.Ad, m.Iletisim)).ToListAsync(ct);
+
+    public Task<IletisimDto> MusteriKaydetAsync(int? id, IletisimIstek istek, CancellationToken ct = default)
+    {
+        var (ad, iletisim) = IletisimKontrol(istek);
+        return Islem.CalistirAsync(db, async () =>
+        {
+            var m = id is null
+                ? db.Musteriler.Add(new Musteri { Ad = ad }).Entity
+                : await db.Musteriler.SingleOrDefaultAsync(x => x.Id == id, ct) ?? throw new BulunamadiHatasi("Müşteri bulunamadı.");
+            if (await db.Musteriler.AnyAsync(x => x.Ad == ad && x.Id != m.Id, ct))
+                throw new IsKuraliHatasi("Bu adla bir müşteri zaten var.");
+            (m.Ad, m.Iletisim) = (ad, iletisim);
+            await db.SaveChangesAsync(ct);
+            return new IletisimDto(m.Id, m.Ad, m.Iletisim);
+        }, ct);
+    }
+
+    public Task<IletisimDto> TedarikciKaydetAsync(int? id, IletisimIstek istek, CancellationToken ct = default)
+    {
+        var (ad, iletisim) = IletisimKontrol(istek);
+        return Islem.CalistirAsync(db, async () =>
+        {
+            var t = id is null
+                ? db.Tedarikciler.Add(new Tedarikci { Ad = ad }).Entity
+                : await db.Tedarikciler.SingleOrDefaultAsync(x => x.Id == id, ct) ?? throw new BulunamadiHatasi("Tedarikçi bulunamadı.");
+            if (await db.Tedarikciler.AnyAsync(x => x.Ad == ad && x.Id != t.Id, ct))
+                throw new IsKuraliHatasi("Bu adla bir tedarikçi zaten var.");
+            (t.Ad, t.Iletisim) = (ad, iletisim);
+            await db.SaveChangesAsync(ct);
+            return new IletisimDto(t.Id, t.Ad, t.Iletisim);
+        }, ct);
+    }
+
+    private static (string Ad, string Iletisim) IletisimKontrol(IletisimIstek istek)
+    {
+        var ad = Donusum.Sadelestir(istek.Ad);
+        var iletisim = (istek.Iletisim ?? "").Trim();
+        if (ad.Length == 0)
+            throw new IsKuraliHatasi("Ad boş olamaz.");
+        if (ad.Length > 200 || iletisim.Length > 500)
+            throw new IsKuraliHatasi("Ad en çok 200, iletişim en çok 500 karakter olabilir.");
+        return (ad, iletisim);
+    }
 }

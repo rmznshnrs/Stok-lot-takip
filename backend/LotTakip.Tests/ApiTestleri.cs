@@ -98,12 +98,14 @@ public class ApiTestleri(TestVeritabani vt) : IAsyncLifetime
         { "GET", "/api/kullanicilar" }, { "POST", "/api/kullanicilar" }, { "PUT", "/api/kullanicilar/1" },
         { "GET", "/api/parcalar" }, { "GET", "/api/parcalar/bul?metin=LED" }, { "POST", "/api/parcalar" }, { "PUT", "/api/parcalar/1" },
         { "GET", "/api/urunler" }, { "GET", "/api/urunler/1" }, { "POST", "/api/urunler" }, { "PUT", "/api/urunler/1" }, { "PUT", "/api/urunler/1/agac" },
-        { "GET", "/api/tedarikciler" }, { "GET", "/api/musteriler" },
+        { "GET", "/api/tedarikciler" }, { "GET", "/api/musteriler" }, { "POST", "/api/musteriler" }, { "PUT", "/api/musteriler/1" },
+        { "POST", "/api/tedarikciler" }, { "PUT", "/api/tedarikciler/1" }, { "POST", "/api/satis/1/iade" }, { "GET", "/api/islemler" },
         { "GET", "/api/stok" }, { "POST", "/api/stok/giris" }, { "POST", "/api/stok/duzeltme" },
         { "GET", "/api/uretim/onizleme?urunId=1&adet=1" }, { "POST", "/api/uretim" }, { "GET", "/api/uretim/gecmis" }, { "POST", "/api/uretim/hurda" },
         { "GET", "/api/satis/kontrol?seriNo=SN-IP-0003" }, { "POST", "/api/satis/uyarilar" }, { "POST", "/api/satis" }, { "GET", "/api/satis/gecmis" },
         { "GET", "/api/izleme/lot/L-D-2601" }, { "GET", "/api/izleme/seri/SN-IP-0001" }, { "GET", "/api/izleme/ara?q=L" },
-        { "GET", "/api/izleme/hareketler" }, { "POST", "/api/izleme/lot/L-D-2601/geri-cagir" },
+        { "GET", "/api/izleme/hareketler" }, { "POST", "/api/izleme/lot/L-D-2601/sorun" },
+        { "GET", "/api/geri-cagirma" }, { "POST", "/api/geri-cagirma" }, { "POST", "/api/geri-cagirma/1/geri-al" }, { "POST", "/api/geri-cagirma/1/satisa-ac" },
     };
 
     [Theory]
@@ -190,22 +192,27 @@ public class ApiTestleri(TestVeritabani vt) : IAsyncLifetime
     {
         var depo = await Depo();
         var lotId = await LotId("L-D-2601");
-        Assert.Equal(HttpStatusCode.Forbidden, (await depo.PostAsJsonAsync("/api/izleme/lot/L-D-2601/geri-cagir", new GeriCagirIstek())).StatusCode);
+        Assert.Equal(HttpStatusCode.Forbidden, (await depo.PostAsJsonAsync("/api/izleme/lot/L-D-2601/sorun", new LotSorunIstek(true, false, "x"))).StatusCode);
         Assert.Equal(HttpStatusCode.Forbidden, (await depo.PostAsJsonAsync("/api/stok/duzeltme", new StokDuzeltmeIstek(lotId, -1, "Fire", "x"))).StatusCode);
         Assert.Equal(HttpStatusCode.Forbidden, (await depo.GetAsync("/api/kullanicilar")).StatusCode);
         Assert.Equal(HttpStatusCode.Forbidden, (await depo.PostAsJsonAsync("/api/kullanicilar", new KullaniciOlusturIstek("A", "B", "x", "sifre-12345"))).StatusCode);
+        Assert.Equal(HttpStatusCode.Forbidden, (await depo.GetAsync("/api/islemler")).StatusCode);
+        Assert.Equal(HttpStatusCode.Forbidden, (await depo.PostAsJsonAsync("/api/uretim/hurda", new UretimHurdaIstek(["SN-IP-0003"], "Hurda", "x"))).StatusCode);
+        Assert.Equal(HttpStatusCode.Forbidden, (await depo.PostAsJsonAsync("/api/satis/1/iade", new SatisIadeIstek(["SN-IP-0001"], "x"))).StatusCode);
         await using var db = vt.YeniContext();
         Assert.False(await db.StokLotlari.Where(l => l.Id == lotId).Select(l => l.GeriCagrildi).SingleAsync());
         Assert.False(await db.StokDuzeltmeleri.AnyAsync());
+        Assert.False(await db.UretimHurdalari.AnyAsync());
+        Assert.False(await db.SatisIadeleri.AnyAsync());
     }
 
     [Fact]
     public async Task Admin_geri_cagirir_ve_stok_duzeltir()
     {
         var admin = await Admin();
-        var y = await admin.PostAsJsonAsync("/api/izleme/lot/l-d-2601/geri-cagir", new GeriCagirIstek());
+        var y = await admin.PostAsJsonAsync("/api/izleme/lot/l-d-2601/sorun", new LotSorunIstek(true, false, "Tedarikçi uyarısı"));
         Assert.Equal(HttpStatusCode.OK, y.StatusCode);
-        Assert.True((await y.Content.ReadFromJsonAsync<LotDto>())!.GeriCagrildi);
+        Assert.True((await y.Content.ReadFromJsonAsync<LotSorunSonucuDto>())!.Lot.GeriCagrildi);
 
         y = await admin.PostAsJsonAsync("/api/stok/duzeltme", new StokDuzeltmeIstek(await LotId("L-D-2603"), -2, "Fire", "kırık"));
         Assert.Equal(HttpStatusCode.OK, y.StatusCode);
@@ -244,7 +251,7 @@ public class ApiTestleri(TestVeritabani vt) : IAsyncLifetime
         var geciciIstemci = Istemci((await GirisYap("gecici", "gecici-sifre-1")).Token);
         await admin.PutAsJsonAsync($"/api/kullanicilar/{gecici.Id}", new KullaniciGuncelleIstek("Geçici", "Admin", Roller.Kullanici));
 
-        y = await geciciIstemci.PostAsJsonAsync("/api/izleme/lot/L-D-2601/geri-cagir", new GeriCagirIstek());
+        y = await geciciIstemci.PostAsJsonAsync("/api/izleme/lot/L-D-2601/sorun", new LotSorunIstek(true, false, "x"));
         Assert.Equal(HttpStatusCode.Forbidden, y.StatusCode);
     }
 
@@ -295,20 +302,19 @@ public class ApiTestleri(TestVeritabani vt) : IAsyncLifetime
     }
 
     [Fact]
-    public async Task Geri_cagrilan_lotta_satis_onay_ister()
+    public async Task Hatali_lot_urunlerini_geri_cagirir_ve_satisi_engeller()
     {
-        await (await Admin()).PostAsJsonAsync("/api/izleme/lot/L-D-2601/geri-cagir", new GeriCagirIstek());
+        var y = await (await Admin()).PostAsJsonAsync("/api/izleme/lot/L-D-2601/sorun", new LotSorunIstek(true, false, "Kısa devre"));
+        var sonuc = (await y.Content.ReadFromJsonAsync<LotSorunSonucuDto>())!;
+        Assert.True(sonuc.Lot.Sorunlu && sonuc.Lot.UretimeKapali);
+        Assert.Contains("SN-IP-0003", sonuc.GeriCagrilanSeriNolar);
+
         var c = await Depo();
-        var kontrol = (await c.GetFromJsonAsync<SatilabilirDto>("/api/satis/kontrol?seriNo=sn-ip-0003"))!;
-        Assert.Equal(["L-D-2601"], kontrol.GeriCagrilanLotlar);
-
-        var y = await c.PostAsJsonAsync("/api/satis", new SatisIstek("Beta Enerji", ["SN-IP-0003"]));
-        Assert.Equal(HttpStatusCode.Conflict, y.StatusCode);
-        Assert.Equal("SN-IP-0003", (await Problem(y)).GetProperty("uyarilar")[0].GetProperty("seriNo").GetString());
-
-        y = await c.PostAsJsonAsync("/api/satis", new SatisIstek("Beta Enerji", ["SN-IP-0003"], GeriCagrilanOnayi: true));
-        Assert.Equal(HttpStatusCode.Created, y.StatusCode);
-        Assert.Single((await y.Content.ReadFromJsonAsync<SatisSonucuDto>())!.Uyarilar);
+        y = await c.GetAsync("/api/satis/kontrol?seriNo=sn-ip-0003");
+        Assert.Equal(HttpStatusCode.BadRequest, y.StatusCode);
+        Assert.Contains("Geri çağrılmış", (await Problem(y)).GetProperty("detail").GetString());
+        var liste = (await c.GetFromJsonAsync<List<GeriCagirmaDto>>("/api/geri-cagirma?acik=true"))!;
+        Assert.Equal(sonuc.GeriCagrilanSeriNolar.Order(), liste.Select(g => g.SeriNo).Order());
     }
 
     [Fact]

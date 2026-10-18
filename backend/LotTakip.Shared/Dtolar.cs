@@ -10,7 +10,11 @@ public record ParcaOzetDto(int Id, string Kod, string Ad, string Birim);
 public record LotDto(
     int Id, string LotNo, int ParcaId, string ParcaKod, string ParcaAd, string TedarikciAd,
     DateOnly SiparisTarihi, string SiparisNo, int GirisAdet, int KalanAdet, bool GeriCagrildi,
-    DateTimeOffset GirisZamani, bool Sirada = false);
+    DateTimeOffset GirisZamani, bool Sirada = false, bool Sorunlu = false, string SorunAciklama = "")
+{
+    /// <summary>Üretime kapalı (sorunlu lotta kalan parçalar kullanılmasın seçildi). GeriCagrildi ile aynı.</summary>
+    public bool UretimeKapali => GeriCagrildi;
+}
 
 public record SatisBilgisiDto(int SatisId, DateOnly Tarih, int MusteriId, string MusteriAd, string MusteriIletisim);
 
@@ -38,7 +42,7 @@ public record StokDuzeltmeSonucuDto(int Id, string LotNo, int Miktar, string Tur
 
 // --- Üretim -------------------------------------------------------------------
 
-public record LotDusumuDto(int LotId, string LotNo, int Adet);
+public record LotDusumuDto(int LotId, string LotNo, int Adet, bool Sorunlu = false);
 
 public record ParcaIhtiyaciDto(
     ParcaOzetDto Parca, int BirimAdet, int Gereken, int Kullanilabilir,
@@ -53,8 +57,11 @@ public record UretimOnizlemeDto(
 {
     public IReadOnlyList<ParcaIhtiyaciDto> Eksikler => [.. Parcalar.Where(p => p.Eksik > 0)];
     public bool Yeterli => Eksikler.Count == 0;
-    /// <summary>Atlanacak (kalanı olan) geri çağrılmış lotlar.</summary>
+    /// <summary>Atlanacak (kalanı olan) üretime kapalı sorunlu lotlar.</summary>
     public IReadOnlyList<string> AtlananLotlar => [.. Parcalar.SelectMany(p => p.AtlananLotlar).Distinct().Order()];
+    /// <summary>Sorunlu olduğu hâlde üretimde kullanılmasına izin verilmiş, bu üretimde kullanılacak lotlar.</summary>
+    public IReadOnlyList<string> SorunluKullanilanLotlar =>
+        [.. Parcalar.SelectMany(p => p.Lotlar).Where(l => l.Sorunlu).Select(l => l.LotNo).Distinct().Order()];
 }
 
 public record EksikParcaDto(ParcaOzetDto Parca, int Gereken, int Kullanilabilir, int Eksik);
@@ -64,7 +71,8 @@ public record UretimSonucuDto(int UrunId, string UrunAd, IReadOnlyList<string> S
 /// <summary>Üretim geçmişinde bir seri no. MusteriAd/SatisTarihi satılmadıysa, Hurda ayrılmadıysa null.</summary>
 public record UretimGecmisiDto(
     int UretimId, string SeriNo, int UrunId, string UrunAd, DateTimeOffset Tarih,
-    string? MusteriAd, DateOnly? SatisTarihi, IReadOnlyList<string> GeriCagrilanLotlar, HurdaBilgisiDto? Hurda);
+    string? MusteriAd, DateOnly? SatisTarihi, IReadOnlyList<string> GeriCagrilanLotlar, HurdaBilgisiDto? Hurda,
+    string? GeriCagirmaDurumu = null);
 
 /// <summary>Tur: "Hurda" veya "Kayip".</summary>
 public record HurdaBilgisiDto(string Tur, string Aciklama, DateTimeOffset Zaman, string KullaniciAd);
@@ -74,12 +82,28 @@ public record UretimHurdaIstek(IReadOnlyList<string> SeriNolar, string Tur, stri
 
 public record UretimHurdaSonucuDto(IReadOnlyList<string> SeriNolar, string Tur, string Aciklama);
 
+// --- Sorunlu lot ve ürün geri çağırma -------------------------------------------
+
+/// <summary>Sorunlu=false sorunu kaldırır. UretimdeKullan: kalan parçalar üretimde kullanılsın mı.</summary>
+public record LotSorunIstek(bool Sorunlu, bool UretimdeKullan, string? Aciklama);
+
+/// <summary>GeriCagrilanSeriNolar: lot hatalı işaretlenince kendiliğinden geri çağrılan ürünler.</summary>
+public record LotSorunSonucuDto(LotDto Lot, IReadOnlyList<string> GeriCagrilanSeriNolar);
+
+/// <summary>Seri numaralarını geri çağırma; LotNo: sebep olan sorunlu lot (isteğe bağlı).</summary>
+public record GeriCagirmaIstek(IReadOnlyList<string> SeriNolar, string Aciklama, string? LotNo = null);
+
+/// <summary>Durum: musteride, geri_alindi, depoda, hurda, satisa_acildi.</summary>
+public record GeriCagirmaDto(
+    int Id, string SeriNo, string UrunAd, string? LotNo, string Aciklama, DateTimeOffset Zaman, string KullaniciAd,
+    string Durum, string? MusteriAd, string? MusteriIletisim, DateTimeOffset? GeriAlinmaZamani, DateTimeOffset? KapanmaZamani);
+
 // --- İzlenebilirlik -----------------------------------------------------------
 
 /// <summary>HurdaTuru: "Hurda", "Kayip" veya null (ayrılmadı).</summary>
 public record LotIzUretimDto(
     int UretimId, string SeriNo, DateTimeOffset Tarih, string UrunKod, string UrunAd, int Adet,
-    SatisBilgisiDto? Satis, string? HurdaTuru = null);
+    SatisBilgisiDto? Satis, string? HurdaTuru = null, string? GeriCagirmaDurumu = null);
 
 public record MusteriSatisiDto(string SeriNo, DateOnly Tarih);
 
@@ -99,10 +123,12 @@ public record SeriIzParcaDto(ParcaOzetDto Parca, LotDto Lot, int Adet);
 
 public record SeriIzDto(
     int UretimId, string SeriNo, DateTimeOffset Tarih, string UrunKod, string UrunAd,
-    IReadOnlyList<SeriIzParcaDto> Parcalar, SatisBilgisiDto? Satis, HurdaBilgisiDto? Hurda = null)
+    IReadOnlyList<SeriIzParcaDto> Parcalar, SatisBilgisiDto? Satis, HurdaBilgisiDto? Hurda = null,
+    IReadOnlyList<IadeBilgisiDto>? Iadeler = null, GeriCagirmaDto? GeriCagirma = null)
 {
+    /// <summary>İçindeki sorunlu lotlar (alan adı eski).</summary>
     public IReadOnlyList<string> GeriCagrilanLotlar =>
-        [.. Parcalar.Where(p => p.Lot.GeriCagrildi).Select(p => p.Lot.LotNo).Distinct().Order()];
+        [.. Parcalar.Where(p => p.Lot.Sorunlu).Select(p => p.Lot.LotNo).Distinct().Order()];
 }
 
 /// <summary>Tur: "lot", "seri", "parca" veya null (bulunamadı / adaylar).</summary>
@@ -128,4 +154,19 @@ public record SatisSonucuDto(
     int SatisId, int MusteriId, string MusteriAd, bool YeniMusteri, DateOnly Tarih,
     IReadOnlyList<string> SeriNolar, IReadOnlyList<SatisUyarisiDto> Uyarilar);
 
-public record SatisGecmisiDto(int SatisId, DateOnly Tarih, string MusteriAd, string UrunAd, IReadOnlyList<string> SeriNolar);
+/// <summary>SeriNolar: hâlâ satılmış olanlar; IadeEdilenler: bu satıştan iade alınanlar.</summary>
+public record SatisGecmisiDto(int SatisId, DateOnly Tarih, string MusteriAd, string UrunAd, IReadOnlyList<string> SeriNolar,
+                              IReadOnlyList<string> IadeEdilenler);
+
+/// <summary>Satıştan iade: seri numaraları ve zorunlu açıklama.</summary>
+public record SatisIadeIstek(IReadOnlyList<string> SeriNolar, string Aciklama);
+
+public record SatisIadeSonucuDto(int SatisId, IReadOnlyList<string> SeriNolar);
+
+/// <summary>Seri no'nun geçmişteki bir satışından iade.</summary>
+public record IadeBilgisiDto(string MusteriAd, DateOnly SatisTarihi, DateTimeOffset IadeZamani, string Aciklama, string KullaniciAd);
+
+// --- İşlem geçmişi ------------------------------------------------------------
+
+/// <summary>Tur: giris, uretim, satis, iade, duzeltme, hurda, sorun, geri. NumaraTuru: "lot", "seri" veya null.</summary>
+public record IslemDto(DateTimeOffset Zaman, string Tur, string KullaniciAd, string Aciklama, string? Numara, string? NumaraTuru);

@@ -129,7 +129,8 @@ public class OrnekVeri(AppDbContext db, IUretimServisi uretimServisi, ISatisServ
             {
                 LotNo = l.LotNo, Parca = parcalar[l.Parca], Tedarikci = tedarikciler[l.Tedarikci],
                 SiparisTarihi = l.Siparis, SiparisNo = l.SiparisNo, GirisAdet = l.Adet, KalanAdet = l.Adet,
-                GeriCagrildi = l.Geri, GirisZamani = giris, OlusturanKullanici = admin, OlusturmaZamani = giris,
+                GeriCagrildi = l.Geri, Sorunlu = l.Geri, SorunAciklama = l.Geri ? "Tedarikçi uyarısı: temas sorunu" : "",
+                SorunZamani = l.Geri ? giris : null, SorunIsaretleyen = l.Geri ? admin : null, GirisZamani = giris, OlusturanKullanici = admin, OlusturmaZamani = giris,
             });
         }
         var urunler = Urunler.ToDictionary(u => u.Kod, u =>
@@ -159,6 +160,9 @@ public class OrnekVeri(AppDbContext db, IUretimServisi uretimServisi, ISatisServ
     private async Task SifirlaAsync(CancellationToken ct)
     {
         // Restrict ilişkileri nedeniyle bağımlı kayıtlardan başlayarak sil
+        await db.UrunGeriCagirmalari.ExecuteDeleteAsync(ct);
+        await db.SatisIadeleri.ExecuteDeleteAsync(ct);
+        await db.UretimHurdalari.ExecuteDeleteAsync(ct);
         await db.SatisKalemleri.ExecuteDeleteAsync(ct);
         await db.Satislar.ExecuteDeleteAsync(ct);
         await db.Musteriler.ExecuteDeleteAsync(ct);

@@ -32,7 +32,7 @@ public class StokServisi(AppDbContext db) : IStokServisi
         var q = db.Parcalar.AsQueryable();
         arama = arama?.Trim();
         if (!string.IsNullOrEmpty(arama))
-            q = q.Where(p => p.Kod.Contains(arama) || p.Ad.Contains(arama));
+            q = q.Where(p => EF.Functions.Like(p.Kod, Arama.Desen(arama)) || EF.Functions.Like(p.Ad, Arama.Desen(arama)));
         return await StokluListeAsync(q, ct);
     }
 
@@ -64,9 +64,9 @@ public class StokServisi(AppDbContext db) : IStokServisi
         HashSet<int> parcaEslesen = [];
         if (!string.IsNullOrEmpty(arama))
         {
-            parcaEslesen = [.. await db.Parcalar.Where(p => p.Kod.Contains(arama) || p.Ad.Contains(arama))
+            parcaEslesen = [.. await db.Parcalar.Where(p => EF.Functions.Like(p.Kod, Arama.Desen(arama)) || EF.Functions.Like(p.Ad, Arama.Desen(arama)))
                                                 .Select(p => p.Id).ToListAsync(ct)];
-            var lotEslesen = await db.StokLotlari.Where(l => l.LotNo.Contains(arama))
+            var lotEslesen = await db.StokLotlari.Where(l => EF.Functions.Like(l.LotNo, Arama.Desen(arama)))
                                                  .Select(l => l.ParcaId).Distinct().ToListAsync(ct);
             var idler = parcaEslesen.Union(lotEslesen).ToList();
             parcalar = parcalar.Where(p => idler.Contains(p.Id));
@@ -86,7 +86,7 @@ public class StokServisi(AppDbContext db) : IStokServisi
             var siradaki = tum.FirstOrDefault(l => !l.GeriCagrildi && l.KalanAdet > 0);
             var gosterilen = tum.Where(l => bitenler || l.KalanAdet > 0);
             if (!string.IsNullOrEmpty(arama) && !parcaEslesen.Contains(parca.Id))
-                gosterilen = gosterilen.Where(l => l.LotNo.Contains(arama, StringComparison.OrdinalIgnoreCase));
+                gosterilen = gosterilen.Where(l => Arama.Eslesir(l.LotNo, arama));
             sonuc.Add(new StokGrubuDto(
                 parca,
                 [.. gosterilen.Select(l => Donusum.Lot(l, sirada: l == siradaki))],
@@ -140,7 +140,7 @@ public class StokServisi(AppDbContext db) : IStokServisi
         if (parca is not null)
             return Donusum.Ozet(parca);
 
-        var adaylar = await db.Parcalar.Where(p => p.Kod.Contains(deger) || p.Ad.Contains(deger))
+        var adaylar = await db.Parcalar.Where(p => EF.Functions.Like(p.Kod, Arama.Desen(deger)) || EF.Functions.Like(p.Ad, Arama.Desen(deger)))
                                        .OrderBy(p => p.Kod).Take(6).ToListAsync(ct);
         return adaylar.Count switch
         {

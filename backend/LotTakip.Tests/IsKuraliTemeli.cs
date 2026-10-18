@@ -61,7 +61,7 @@ public abstract class IsKuraliTesti(TestVeritabani vt) : VeritabaniTesti(vt)
         var lot = new StokLotu
         {
             LotNo = lotNo, ParcaId = parca.Id, TedarikciId = Ted.Id, SiparisTarihi = tarih, GirisAdet = adet,
-            KalanAdet = adet, GeriCagrildi = geri, GirisZamani = Zaman.Simdi(),
+            KalanAdet = adet, GeriCagrildi = geri, Sorunlu = geri, SorunAciklama = geri ? "test" : "", GirisZamani = Zaman.Simdi(),
             OlusturanKullaniciId = Kullanici.Id, OlusturmaZamani = Zaman.Simdi(),
         };
         Db.StokLotlari.Add(lot);
@@ -73,9 +73,11 @@ public abstract class IsKuraliTesti(TestVeritabani vt) : VeritabaniTesti(vt)
     protected Task<int> Kalan(StokLotu lot) =>
         Db.StokLotlari.AsNoTracking().Where(l => l.Id == lot.Id).Select(l => l.KalanAdet).SingleAsync();
 
+    /// <summary>Lotu sorunlu ve üretime kapalı yapar (eski adıyla "geri çağır").</summary>
     protected async Task GeriCagir(StokLotu lot)
     {
-        await Db.StokLotlari.Where(l => l.Id == lot.Id).ExecuteUpdateAsync(s => s.SetProperty(l => l.GeriCagrildi, true));
+        await Db.StokLotlari.Where(l => l.Id == lot.Id)
+            .ExecuteUpdateAsync(s => s.SetProperty(l => l.GeriCagrildi, true).SetProperty(l => l.Sorunlu, true).SetProperty(l => l.SorunAciklama, "test"));
         Db.ChangeTracker.Clear();
     }
 }

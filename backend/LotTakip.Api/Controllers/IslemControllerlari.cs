@@ -73,7 +73,7 @@ public class SatisController(ISatisServisi satis) : ControllerBase
     public Task<List<SatisUyarisiDto>> Uyarilar(SatisUyarilariIstek istek, CancellationToken ct) =>
         satis.SatisUyarilariAsync(istek.SeriNolar, ct);
 
-    /// <summary>Satışı kaydeder. Geri çağrılan lot içeren ürün varsa GeriCagrilanOnayi=true gerekir (yoksa 409 ve "uyarilar").</summary>
+    /// <summary>Satışı kaydeder. Sorunlu lot içeren ürün varsa GeriCagrilanOnayi=true gerekir (yoksa 409 ve "uyarilar").</summary>
     [HttpPost]
     public async Task<ActionResult<SatisSonucuDto>> Sat(SatisIstek istek, CancellationToken ct)
     {
@@ -83,6 +83,24 @@ public class SatisController(ISatisServisi satis) : ControllerBase
 
     [HttpGet("gecmis")]
     public Task<List<SatisGecmisiDto>> Gecmis([FromQuery] string? arama, CancellationToken ct) => satis.SatisGecmisiAsync(arama, ct: ct);
+
+    /// <summary>Satıştan iade (yalnız Admin, açıklama zorunlu). Ürün depoya döner.</summary>
+    [HttpPost("{id:int}/iade")]
+    [Authorize(Policy = Politikalar.Admin)]
+    public Task<SatisIadeSonucuDto> Iade(int id, SatisIadeIstek istek, CancellationToken ct) =>
+        satis.IadeAlAsync(id, istek, User.KullaniciId(), ct);
+}
+
+/// <summary>Kim, ne zaman, ne yaptı (yalnız Admin).</summary>
+[ApiController]
+[Route("api/islemler")]
+[Authorize(Policy = Politikalar.Admin)]
+public class IslemlerController(IIslemGecmisiServisi islemler) : ControllerBase
+{
+    [HttpGet]
+    public Task<List<IslemDto>> Liste([FromQuery] string? tur, [FromQuery] int? kullaniciId, [FromQuery] DateTimeOffset? once,
+                                      [FromQuery] int adet = 50, CancellationToken ct = default) =>
+        islemler.IslemlerAsync(User.KullaniciId(), tur, kullaniciId, once, adet, ct);
 }
 
 /// <summary>İzlenebilirlik, arama, son hareketler, lot geri çağırma.</summary>
@@ -108,9 +126,34 @@ public class IzlemeController(IIzlemeServisi izleme) : ControllerBase
     public Task<List<HareketDto>> Hareketler([FromQuery] int adet = 8, CancellationToken ct = default) =>
         izleme.SonHareketlerAsync(Math.Clamp(adet, 1, 100), ct);
 
-    /// <summary>Lotu geri çağırır veya geri çağırmayı kaldırır (yalnız Admin).</summary>
-    [HttpPost("lot/{lotNo}/geri-cagir")]
+    /// <summary>Lotu hatalı işaretler / hatayı kaldırır (yalnız Admin). Kullanıldığı ürünler kendiliğinden geri çağrılır.</summary>
+    [HttpPost("lot/{lotNo}/sorun")]
     [Authorize(Policy = Politikalar.Admin)]
-    public Task<LotDto> GeriCagir(string lotNo, GeriCagirIstek istek, CancellationToken ct) =>
-        izleme.LotGeriCagirAsync(lotNo, istek.GeriCagir, User.KullaniciId(), ct);
+    public Task<LotSorunSonucuDto> Sorun(string lotNo, LotSorunIstek istek, CancellationToken ct) =>
+        izleme.LotSorunAsync(lotNo, istek, User.KullaniciId(), ct);
+}
+
+/// <summary>Ürün (seri no) geri çağırma. Liste herkese, işlemler yalnız Admin.</summary>
+[ApiController]
+[Route("api/geri-cagirma")]
+public class GeriCagirmaController(IGeriCagirmaServisi geri) : ControllerBase
+{
+    [HttpGet]
+    public Task<List<GeriCagirmaDto>> Liste([FromQuery] bool acik = false, [FromQuery] string? arama = null, CancellationToken ct = default) =>
+        geri.ListeAsync(acik, arama, ct);
+
+    [HttpPost]
+    [Authorize(Policy = Politikalar.Admin)]
+    public Task<List<GeriCagirmaDto>> GeriCagir(GeriCagirmaIstek istek, CancellationToken ct) =>
+        geri.GeriCagirAsync(istek, User.KullaniciId(), ct);
+
+    /// <summary>Müşterideki ürün geri alındı: iade yapılır, ürün depoya döner (satışa kapalı kalır).</summary>
+    [HttpPost("{id:int}/geri-al")]
+    [Authorize(Policy = Politikalar.Admin)]
+    public Task<GeriCagirmaDto> GeriAl(int id, CancellationToken ct) => geri.GeriAlAsync(id, User.KullaniciId(), ct);
+
+    /// <summary>Depodaki ürün yeniden satışa açılır; geri çağırma kapanır.</summary>
+    [HttpPost("{id:int}/satisa-ac")]
+    [Authorize(Policy = Politikalar.Admin)]
+    public Task<GeriCagirmaDto> SatisaAc(int id, CancellationToken ct) => geri.SatisaAcAsync(id, User.KullaniciId(), ct);
 }

@@ -68,4 +68,16 @@ public class ListelerController(ITanimServisi tanim) : ControllerBase
 
     [HttpGet("musteriler")]
     public Task<List<IletisimDto>> Musteriler(CancellationToken ct) => tanim.MusterilerAsync(ct);
+
+    [HttpPost("musteriler")]
+    public Task<IletisimDto> MusteriOlustur(IletisimIstek istek, CancellationToken ct) => tanim.MusteriKaydetAsync(null, istek, ct);
+
+    [HttpPut("musteriler/{id:int}")]
+    public Task<IletisimDto> MusteriGuncelle(int id, IletisimIstek istek, CancellationToken ct) => tanim.MusteriKaydetAsync(id, istek, ct);
+
+    [HttpPost("tedarikciler")]
+    public Task<IletisimDto> TedarikciOlustur(IletisimIstek istek, CancellationToken ct) => tanim.TedarikciKaydetAsync(null, istek, ct);
+
+    [HttpPut("tedarikciler/{id:int}")]
+    public Task<IletisimDto> TedarikciGuncelle(int id, IletisimIstek istek, CancellationToken ct) => tanim.TedarikciKaydetAsync(id, istek, ct);
 }

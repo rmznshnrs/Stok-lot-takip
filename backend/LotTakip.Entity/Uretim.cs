@@ -16,4 +16,6 @@ public class Uretim : IDenetimli
     public List<UretimTuketim> Tuketimler { get; set; } = [];
     public SatisKalemi? SatisKalemi { get; set; }
     public UretimHurda? Hurda { get; set; }
+    public List<SatisIade> Iadeler { get; set; } = [];
+    public List<UrunGeriCagirma> GeriCagirmalar { get; set; } = [];
 }

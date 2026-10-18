@@ -12,4 +12,5 @@ public class Satis : IDenetimli
     public DateTimeOffset OlusturmaZamani { get; set; }
 
     public List<SatisKalemi> Kalemler { get; set; } = [];
+    public List<SatisIade> Iadeler { get; set; } = [];
 }

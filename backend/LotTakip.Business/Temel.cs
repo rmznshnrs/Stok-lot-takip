@@ -117,7 +117,7 @@ internal static class Donusum
     /// <summary>Lot → DTO. Lotun Parca ve Tedarikci'si yüklenmiş olmalı.</summary>
     public static LotDto Lot(StokLotu l, bool sirada = false) => new(
         l.Id, l.LotNo, l.ParcaId, l.Parca!.Kod, l.Parca.Ad, l.Tedarikci!.Ad, l.SiparisTarihi, l.SiparisNo,
-        l.GirisAdet, l.KalanAdet, l.GeriCagrildi, l.GirisZamani, sirada);
+        l.GirisAdet, l.KalanAdet, l.GeriCagrildi, l.GirisZamani, sirada, l.Sorunlu, l.SorunAciklama);
 
     /// <summary>Ad ve kodlarda baştaki/sondaki ve ardışık boşlukları temizler.</summary>
     public static string Sadelestir(string? metin) => string.Join(' ', (metin ?? "").Split(' ', StringSplitOptions.RemoveEmptyEntries)).Trim();

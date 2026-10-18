@@ -45,10 +45,12 @@ public record UrunDetayDto(int Id, string Kod, string Ad, string SeriOneki, bool
 
 public record IletisimDto(int Id, string Ad, string Iletisim);
 
+/// <summary>Müşteri veya tedarikçi: ad zorunlu ve tekil, iletişim serbest metin.</summary>
+public record IletisimIstek(string Ad, string? Iletisim);
+
 // --- İşlem istekleri ---------------------------------------------------------------
 
 public record UretimIstek(int UrunId, int Adet);
 
-public record GeriCagirIstek(bool GeriCagir = true);
 
 public record SatisUyarilariIstek(IReadOnlyList<string> SeriNolar);

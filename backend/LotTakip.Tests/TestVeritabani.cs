@@ -43,6 +43,7 @@ public sealed class TestVeritabani : IAsyncLifetime
     {
         await using var db = YeniContext();
         await db.Database.ExecuteSqlRawAsync("""
+            DELETE FROM UrunGeriCagirma; DELETE FROM SatisIade; DELETE FROM UretimHurda;
             DELETE FROM SatisKalemi; DELETE FROM Satis; DELETE FROM Musteri; DELETE FROM StokDuzeltme;
             DELETE FROM UretimTuketim; DELETE FROM Uretim; DELETE FROM UrunAgaci; DELETE FROM Urun;
             DELETE FROM StokLotu; DELETE FROM Tedarikci; DELETE FROM Parca; DELETE FROM Kullanici;

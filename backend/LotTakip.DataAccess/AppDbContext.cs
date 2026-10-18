@@ -24,6 +24,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<Kullanici> Kullanicilar => Set<Kullanici>();
     public DbSet<StokDuzeltme> StokDuzeltmeleri => Set<StokDuzeltme>();
     public DbSet<UretimHurda> UretimHurdalari => Set<UretimHurda>();
+    public DbSet<SatisIade> SatisIadeleri => Set<SatisIade>();
+    public DbSet<UrunGeriCagirma> UrunGeriCagirmalari => Set<UrunGeriCagirma>();
 
     protected override void ConfigureConventions(ModelConfigurationBuilder c)
     {
@@ -61,7 +63,9 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
                 t.HasCheckConstraint("CK_StokLotu_GirisAdet", "[GirisAdet] > 0");
                 // Sayım fazlası (+ düzeltme) giriş adedini aşabilir; yalnız negatif olamaz
                 t.HasCheckConstraint("CK_StokLotu_KalanAdet", "[KalanAdet] >= 0");
-            });
+                e.Property(x => x.SorunAciklama).HasMaxLength(500);
+            e.HasOne(x => x.SorunIsaretleyen).WithMany().HasForeignKey(x => x.SorunIsaretleyenId);
+        });
             e.Property(x => x.LotNo).HasMaxLength(100);
             e.Property(x => x.SiparisNo).HasMaxLength(100);
             e.Property(x => x.RowVersion).IsRowVersion();
@@ -164,6 +168,27 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             e.HasIndex(x => x.UretimId).IsUnique();  // bir seri no yalnızca bir kez ayrılır
             e.HasOne(x => x.Uretim).WithOne(u => u.Hurda).HasForeignKey<UretimHurda>(x => x.UretimId);
             e.HasOne(x => x.OlusturanKullanici).WithMany().HasForeignKey(x => x.OlusturanKullaniciId);
+        });
+
+        m.Entity<SatisIade>(e =>
+        {
+            e.ToTable("SatisIade", t => t.HasCheckConstraint("CK_SatisIade_Aciklama", "LEN([Aciklama]) > 0"));
+            e.Property(x => x.Aciklama).HasMaxLength(500);
+            e.HasOne(x => x.Satis).WithMany(s => s.Iadeler).HasForeignKey(x => x.SatisId);
+            e.HasOne(x => x.Uretim).WithMany(u => u.Iadeler).HasForeignKey(x => x.UretimId);
+            e.HasOne(x => x.OlusturanKullanici).WithMany().HasForeignKey(x => x.OlusturanKullaniciId);
+        });
+
+        m.Entity<UrunGeriCagirma>(e =>
+        {
+            e.ToTable("UrunGeriCagirma", t => t.HasCheckConstraint("CK_UrunGeriCagirma_Aciklama", "LEN([Aciklama]) > 0"));
+            e.Property(x => x.Aciklama).HasMaxLength(500);
+            // Bir seri no'nun aynı anda tek açık geri çağırması olur
+            e.HasIndex(x => x.UretimId).IsUnique().HasFilter("[KapanmaZamani] IS NULL");
+            e.HasOne(x => x.Uretim).WithMany(u => u.GeriCagirmalar).HasForeignKey(x => x.UretimId);
+            e.HasOne(x => x.StokLotu).WithMany().HasForeignKey(x => x.StokLotuId);
+            e.HasOne(x => x.OlusturanKullanici).WithMany().HasForeignKey(x => x.OlusturanKullaniciId);
+            e.HasOne(x => x.KapatanKullanici).WithMany().HasForeignKey(x => x.KapatanKullaniciId);
         });
 
         // Bağlı kayıt silinmez. Tek istisna yukarıdaki UrunAgaci → Urun.

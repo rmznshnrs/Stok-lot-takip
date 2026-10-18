@@ -52,16 +52,17 @@ public class UretimServisi(AppDbContext db, IStokLotuRepository lotlar, IUretimR
             q = q.Where(u => u.UrunId == id);
         arama = arama?.Trim();
         if (!string.IsNullOrEmpty(arama))
-            q = q.Where(u => u.SeriNo.Contains(arama) || u.Urun!.Ad.Contains(arama)
-                             || (u.SatisKalemi != null && u.SatisKalemi.Satis!.Musteri!.Ad.Contains(arama)));
+            q = q.Where(u => EF.Functions.Like(u.SeriNo, Arama.Desen(arama)) || EF.Functions.Like(u.Urun!.Ad, Arama.Desen(arama))
+                             || (u.SatisKalemi != null && EF.Functions.Like(u.SatisKalemi.Satis!.Musteri!.Ad, Arama.Desen(arama))));
         return await q.OrderByDescending(u => u.Tarih).ThenByDescending(u => u.Id).Take(adet)
             .Select(u => new UretimGecmisiDto(
                 u.Id, u.SeriNo, u.UrunId, u.Urun!.Ad, u.Tarih,
                 u.SatisKalemi == null ? null : u.SatisKalemi.Satis!.Musteri!.Ad,
                 u.SatisKalemi == null ? null : u.SatisKalemi.Satis!.Tarih,
-                u.Tuketimler.Where(t => t.StokLotu!.GeriCagrildi).Select(t => t.StokLotu!.LotNo).Distinct().OrderBy(l => l).ToList(),
+                u.Tuketimler.Where(t => t.StokLotu!.Sorunlu).Select(t => t.StokLotu!.LotNo).Distinct().OrderBy(l => l).ToList(),
                 u.Hurda == null ? null : new HurdaBilgisiDto(u.Hurda.Tur.ToString(), u.Hurda.Aciklama, u.Hurda.OlusturmaZamani,
-                    u.Hurda.OlusturanKullanici!.Ad + " " + u.Hurda.OlusturanKullanici.Soyad)))
+                    u.Hurda.OlusturanKullanici!.Ad + " " + u.Hurda.OlusturanKullanici.Soyad),
+                u.Hurda == null && u.GeriCagirmalar.Any(g => g.KapanmaZamani == null) ? "acik" : null))
             .ToListAsync(ct);
     }
 
@@ -216,7 +217,7 @@ public class UretimServisi(AppDbContext db, IStokLotuRepository lotlar, IUretimR
                 if (kalan == 0)
                     break;
                 var dusulen = Math.Min(kalan, lot.KalanAdet);
-                dusumler.Add(new LotDusumuDto(lot.Id, lot.LotNo, dusulen));
+                dusumler.Add(new LotDusumuDto(lot.Id, lot.LotNo, dusulen, lot.Sorunlu));
                 kalan -= dusulen;
             }
             parcalar.Add((satir, lotlarim, new ParcaIhtiyaciDto(

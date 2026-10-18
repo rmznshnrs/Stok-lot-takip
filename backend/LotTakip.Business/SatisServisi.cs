@@ -10,18 +10,24 @@ public interface ISatisServisi
     /// <summary>Satış listesine eklenecek seri no'yu doğrular: var mı, daha önce satıldı mı. Değilse SatisHatasi.</summary>
     Task<SatilabilirDto> SatilabilirAsync(string seriNo, CancellationToken ct = default);
 
-    /// <summary>Geri çağrılan lot içeren seri numaraları ve ilgili lotlar (kaydetmeden kontrol).</summary>
+    /// <summary>Sorunlu lot içeren seri numaraları ve ilgili lotlar (kaydetmeden kontrol).</summary>
     Task<List<SatisUyarisiDto>> SatisUyarilariAsync(IReadOnlyCollection<string> seriNolar, CancellationToken ct = default);
 
     /// <summary>
     /// Seri numaralarını müşteriye satar (müşteri yoksa oluşturur). Bulunamayan, tekrarlanan veya
-    /// daha önce satılmış seri no varsa hiçbir şey kaydedilmez (SatisHatasi). Geri çağrılan lot
+    /// daha önce satılmış seri no varsa hiçbir şey kaydedilmez (SatisHatasi). Sorunlu lot
     /// içeren ürün varsa ve onay verilmediyse GeriCagrilanLotOnayiGerekliHatasi.
     /// </summary>
     Task<SatisSonucuDto> SatAsync(SatisIstek istek, int kullaniciId, CancellationToken ct = default);
 
     /// <summary>Satış geçmişi: her satış + ürün için bir satır (yeniden eskiye). Arama müşteri adı veya seri no'da.</summary>
     Task<List<SatisGecmisiDto>> SatisGecmisiAsync(string? arama = null, int adet = 50, CancellationToken ct = default);
+
+    /// <summary>
+    /// Yalnız Admin: satıştan seri numaralarını iade alır (açıklama zorunlu). Satış kalemi kaldırılır, ürün depoya
+    /// döner ve yeniden satılabilir; kime satıldığı iade kaydında kalır. Bu satışta olmayan seri no varsa hiçbiri alınmaz.
+    /// </summary>
+    Task<SatisIadeSonucuDto> IadeAlAsync(int satisId, SatisIadeIstek istek, int kullaniciId, CancellationToken ct = default);
 }
 
 public class SatisServisi(AppDbContext db) : ISatisServisi
@@ -34,6 +40,8 @@ public class SatisServisi(AppDbContext db) : ISatisServisi
                      ?? throw new SatisHatasi($"{no} seri numarası bulunamadı.");
         if (uretim.Hurda is not null)
             throw new SatisHatasi(HurdaMesaji([uretim]));
+        if (await db.UrunGeriCagirmalari.AnyAsync(g => g.UretimId == uretim.Id && g.KapanmaZamani == null, ct))
+            throw new SatisHatasi(GeriCagirmaMesaji([uretim.SeriNo]));
         var satis = await SatildigiSatisAsync([uretim.Id], ct);
         if (satis.Count > 0)
             throw new SatisHatasi(SatilmisMesaji(satis));
@@ -46,7 +54,7 @@ public class SatisServisi(AppDbContext db) : ISatisServisi
     {
         var liste = seriNolar.Select(s => s.Trim()).ToList();
         var satirlar = await db.UretimTuketimleri.AsNoTracking()
-            .Where(t => liste.Contains(t.Uretim!.SeriNo) && t.StokLotu!.GeriCagrildi)
+            .Where(t => liste.Contains(t.Uretim!.SeriNo) && t.StokLotu!.Sorunlu)
             .Select(t => new { t.Uretim!.SeriNo, t.StokLotu!.LotNo })
             .Distinct().ToListAsync(ct);
         var lotlar = satirlar.GroupBy(s => s.SeriNo, StringComparer.OrdinalIgnoreCase)
@@ -83,6 +91,12 @@ public class SatisServisi(AppDbContext db) : ISatisServisi
             var hurdalar = uretimler.Where(u => u.Hurda is not null).ToList();
             if (hurdalar.Count > 0)
                 throw new SatisHatasi(HurdaMesaji(hurdalar));
+            var uretimIdleri = uretimler.Select(u => u.Id).ToList();
+            var geriCagrilan = await db.UrunGeriCagirmalari
+                .Where(g => uretimIdleri.Contains(g.UretimId) && g.KapanmaZamani == null)
+                .Select(g => g.Uretim!.SeriNo).ToListAsync(ct);
+            if (geriCagrilan.Count > 0)
+                throw new SatisHatasi(GeriCagirmaMesaji(geriCagrilan));
 
             // Açık kontrol: bire bir ilişkide EF eski kalemi sessizce silebilir
             var satilmis = await SatildigiSatisAsync([.. uretimler.Select(u => u.Id)], ct);
@@ -119,19 +133,64 @@ public class SatisServisi(AppDbContext db) : ISatisServisi
         var q = db.Satislar.AsNoTracking();
         arama = arama?.Trim();
         if (!string.IsNullOrEmpty(arama))
-            q = q.Where(s => s.Musteri!.Ad.Contains(arama) || s.Kalemler.Any(k => k.Uretim!.SeriNo.Contains(arama)));
+            q = q.Where(s => EF.Functions.Like(s.Musteri!.Ad, Arama.Desen(arama))
+                             || s.Kalemler.Any(k => EF.Functions.Like(k.Uretim!.SeriNo, Arama.Desen(arama)))
+                             || s.Iadeler.Any(i => EF.Functions.Like(i.Uretim!.SeriNo, Arama.Desen(arama))));
         var satislar = await q.OrderByDescending(s => s.Tarih).ThenByDescending(s => s.Id).Take(adet)
             .Select(s => new
             {
                 s.Id, s.Tarih, MusteriAd = s.Musteri!.Ad,
-                Kalemler = s.Kalemler.Select(k => new { k.Uretim!.SeriNo, UrunAd = k.Uretim.Urun!.Ad }).ToList(),
+                Satilan = s.Kalemler.Select(k => new { k.Uretim!.SeriNo, UrunAd = k.Uretim.Urun!.Ad }).ToList(),
+                Iade = s.Iadeler.Select(i => new { i.Uretim!.SeriNo, UrunAd = i.Uretim.Urun!.Ad }).ToList(),
             }).ToListAsync(ct);
-        return [.. satislar.SelectMany(s => s.Kalemler
+        return [.. satislar.SelectMany(s => s.Satilan.Select(k => (k.SeriNo, k.UrunAd, Iade: false))
+            .Concat(s.Iade.Select(i => (i.SeriNo, i.UrunAd, Iade: true)))
             .GroupBy(k => k.UrunAd).OrderBy(g => g.Key, StringComparer.CurrentCulture)
-            .Select(g => new SatisGecmisiDto(s.Id, s.Tarih, s.MusteriAd, g.Key, [.. g.Select(k => k.SeriNo).Order()])))];
+            .Select(g => new SatisGecmisiDto(s.Id, s.Tarih, s.MusteriAd, g.Key,
+                [.. g.Where(k => !k.Iade).Select(k => k.SeriNo).Order()],
+                [.. g.Where(k => k.Iade).Select(k => k.SeriNo).Distinct().Order()])))];
+    }
+
+    public Task<SatisIadeSonucuDto> IadeAlAsync(int satisId, SatisIadeIstek istek, int kullaniciId, CancellationToken ct = default)
+    {
+        var aciklama = (istek.Aciklama ?? "").Trim();
+        if (aciklama.Length == 0)
+            throw new IsKuraliHatasi("İadede açıklama zorunludur.");
+        var seriler = (istek.SeriNolar ?? []).Select(s => (s ?? "").Trim()).Where(s => s.Length > 0)
+            .Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+        if (seriler.Count == 0)
+            throw new IsKuraliHatasi("İade alınacak en az bir seri no seçilmeli.");
+
+        return Islem.CalistirAsync(db, async () =>
+        {
+            var admin = await Kullanicilar.AdminGetirAsync(db, kullaniciId, "İade alma", ct);
+            if (!await db.Satislar.AnyAsync(s => s.Id == satisId, ct))
+                throw new BulunamadiHatasi("Satış bulunamadı.");
+            var kalemler = await db.SatisKalemleri.Include(k => k.Uretim)
+                .Where(k => k.SatisId == satisId && seriler.Contains(k.Uretim!.SeriNo)).ToListAsync(ct);
+            var olmayan = seriler
+                .Where(s => !kalemler.Any(k => string.Equals(k.Uretim!.SeriNo, s, StringComparison.OrdinalIgnoreCase))).ToList();
+            if (olmayan.Count > 0)
+                throw new IsKuraliHatasi($"Bu satışta olmayan ya da zaten iade alınmış seri no: {string.Join(", ", olmayan)}");
+
+            var zaman = Zaman.Simdi();
+            foreach (var k in kalemler)
+            {
+                db.SatisIadeleri.Add(new SatisIade
+                {
+                    SatisId = satisId, UretimId = k.UretimId, Aciklama = aciklama, OlusturanKullanici = admin, OlusturmaZamani = zaman,
+                });
+            }
+            db.SatisKalemleri.RemoveRange(kalemler);
+            await db.SaveChangesAsync(ct);
+            return new SatisIadeSonucuDto(satisId, [.. kalemler.Select(k => k.Uretim!.SeriNo).Order()]);
+        }, ct);
     }
 
     // --- iç ------------------------------------------------------------------
+
+    private static string GeriCagirmaMesaji(IEnumerable<string> seriNolar) =>
+        $"Geri çağrılmış ürün satılamaz: {string.Join(", ", seriNolar.Order())}";
 
     private static string HurdaMesaji(IEnumerable<Uretim> uretimler) =>
         $"Hurdaya / kayba ayrılmış ürün satılamaz: {string.Join(", ", uretimler.Select(u => u.SeriNo).Order())}";
