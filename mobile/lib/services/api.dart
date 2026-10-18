@@ -210,7 +210,7 @@ class Api {
   Future<List<SatisGecmisi>> satisGecmisi([String? arama]) async =>
       _liste(await _al('satis/gecmis', {'arama': arama}), SatisGecmisi.json);
 
-  // --- İzlenebilirlik --------------------------------------------------------
+  // --- Lot ve seri no ayrıntısı ----------------------------------------------
 
   Future<LotIz?> lotIz(String lotNo) async {
     try {
@@ -234,6 +234,18 @@ class Api {
 
   Future<List<Hareket>> hareketler([int adet = 8]) async => _liste(await _al('izleme/hareketler', {'adet': adet}), Hareket.json);
 
-  Future<Lot> geriCagir(String lotNo, bool geriCagir) async =>
-      Lot.json(await _gonder('izleme/lot/${Uri.encodeComponent(lotNo)}/geri-cagir', {'geriCagir': geriCagir}));
+  /// Yalnız yönetici: lotu hatalı işaretler (kalan parçalar üretimde kullanılsın mı) ya da hatayı kaldırır.
+  /// İlk işaretlemede bu lottan parça taşıyan ürünler kendiliğinden geri çağrılır; seri numaraları döner.
+  Future<List<String>> lotSorun(String lotNo, {required bool sorunlu, required bool uretimdeKullan, String aciklama = ''}) async {
+    final j = await _gonder('izleme/lot/${Uri.encodeComponent(lotNo)}/sorun', {
+      'sorunlu': sorunlu,
+      'uretimdeKullan': uretimdeKullan,
+      'aciklama': aciklama,
+    }) as Map<String, dynamic>;
+    return (j['geriCagrilanSeriNolar'] as List).cast<String>();
+  }
+
+  /// Yalnız yönetici: seri numaralı ürünleri geri çağırır; lotNo sebep olan hatalı lot.
+  Future<void> urunleriGeriCagir(List<String> seriNolar, String aciklama, {String? lotNo}) =>
+      _gonder('geri-cagirma', {'seriNolar': seriNolar, 'aciklama': aciklama, 'lotNo': lotNo});
 }

@@ -7,7 +7,7 @@ import '../services/modeller.dart';
 import '../widgets/ortak.dart';
 import 'izlenebilirlik_ekrani.dart';
 
-/// Üretilen seri numaraları (yeniden eskiye): ürün, tarih, depoda / satıldı / hurda, geri çağrılan lot.
+/// Üretilen seri numaraları (yeniden eskiye): ürün, tarih, depoda / satıldı / hurda, hatalı lot.
 class UretimGecmisiSayfasi extends StatefulWidget {
   const UretimGecmisiSayfasi({super.key});
 
@@ -88,7 +88,7 @@ class _UretimGecmisiSayfasiState extends State<UretimGecmisiSayfasi> {
                           if (u.geriCagrilanLotlar.isNotEmpty) ...[
                             const SizedBox(height: 4),
                             Text(
-                              'Geri çağrılan lot: ${u.geriCagrilanLotlar.join(', ')}',
+                              'Hatalı lot: ${u.geriCagrilanLotlar.join(', ')}',
                               style: TextStyle(color: Theme.of(context).colorScheme.error, fontSize: 13),
                             ),
                           ],

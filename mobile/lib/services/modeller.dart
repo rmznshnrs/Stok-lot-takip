@@ -35,12 +35,17 @@ class Lot {
       girisAdet = j['girisAdet'],
       kalanAdet = j['kalanAdet'],
       geriCagrildi = j['geriCagrildi'],
+      sorunlu = j['sorunlu'] ?? false,
+      sorunAciklama = j['sorunAciklama'] ?? '',
       girisZamani = _tarih(j['girisZamani']),
       sirada = j['sirada'] ?? false;
   final int id, parcaId, girisAdet, kalanAdet;
   final String lotNo, parcaKod, parcaAd, tedarikciAd, siparisNo;
   final DateTime siparisTarihi, girisZamani;
+  /// Üretime kapalı (hatalı lotta kalan parçalar kullanılmasın seçildi).
   final bool geriCagrildi, sirada;
+  final bool sorunlu;
+  final String sorunAciklama;
 }
 
 class SatisBilgisi {
@@ -122,11 +127,14 @@ class LotIzUretim {
       urunAd = j['urunAd'],
       adet = j['adet'],
       satis = j['satis'] == null ? null : SatisBilgisi.json(j['satis']),
-      hurdaTuru = j['hurdaTuru'];
+      hurdaTuru = j['hurdaTuru'],
+      geriCagirmaDurumu = j['geriCagirmaDurumu'];
   final String seriNo, urunAd;
   final int adet;
   final SatisBilgisi? satis;
   final String? hurdaTuru;
+  /// "acik": açık geri çağırması var.
+  final String? geriCagirmaDurumu;
 }
 
 class LotIzMusteri {
@@ -165,13 +173,40 @@ class SeriIz {
       ],
       satis = j['satis'] == null ? null : SatisBilgisi.json(j['satis']),
       geriCagrilanLotlar = _metinler(j['geriCagrilanLotlar']),
-      hurda = j['hurda'] == null ? null : HurdaBilgisi.json(j['hurda']);
+      hurda = j['hurda'] == null ? null : HurdaBilgisi.json(j['hurda']),
+      geriCagirma = j['geriCagirma'] == null ? null : GeriCagirma.json(j['geriCagirma']);
+  final GeriCagirma? geriCagirma;
   final String seriNo, urunAd;
   final DateTime tarih;
   final List<({ParcaOzet parca, Lot lot, int adet})> parcalar;
   final SatisBilgisi? satis;
   final List<String> geriCagrilanLotlar;
   final HurdaBilgisi? hurda;
+}
+
+/// Ürün (seri no) geri çağırma. Durum: musteride, geri_alindi, depoda, hurda, satisa_acildi.
+class GeriCagirma {
+  GeriCagirma.json(J j)
+    : id = j['id'],
+      seriNo = j['seriNo'],
+      urunAd = j['urunAd'],
+      lotNo = j['lotNo'],
+      aciklama = j['aciklama'],
+      zaman = _tarih(j['zaman']),
+      durum = j['durum'],
+      musteriAd = j['musteriAd'];
+  final int id;
+  final String seriNo, urunAd, aciklama, durum;
+  final String? lotNo, musteriAd;
+  final DateTime zaman;
+  bool get acik => durum == 'musteride' || durum == 'geri_alindi' || durum == 'depoda';
+  String get durumAdi => switch (durum) {
+    'musteride' => 'Müşteride, geri alınacak',
+    'geri_alindi' => 'Geri alındı, depoda',
+    'depoda' => 'Depoda, satışa kapalı',
+    'hurda' => 'Hurdaya ayrıldı',
+    _ => 'Satışa açıldı',
+  };
 }
 
 /// Üretim geçmişinde bir seri no. Satılmadıysa musteriAd / satisTarihi, ayrılmadıysa hurda null.

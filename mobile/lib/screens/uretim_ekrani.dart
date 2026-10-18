@@ -198,23 +198,8 @@ class _UretimEkraniState extends State<UretimEkrani> {
                       if (o.atlananLotlar.isNotEmpty)
                         Padding(
                           padding: const EdgeInsets.only(bottom: 8),
-                          child: Soluk('Geri çağrılan lotlar atlandı: ${o.atlananLotlar.join(', ')}'),
+                          child: Soluk('Üretime kapalı hatalı lotlar atlandı: ${o.atlananLotlar.join(', ')}'),
                         ),
-                      const SizedBox(height: 8),
-                      Kart(
-                        child: Row(
-                          children: [
-                            const Icon(Icons.qr_code_2),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: Mono(
-                                o.seriNolar.length > 1 ? '${o.seriNolar.first} … ${o.seriNolar.last}' : o.seriNolar.first,
-                                kalin: true,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
                       const SizedBox(height: 16),
                       if (!o.yeterli)
                         Padding(

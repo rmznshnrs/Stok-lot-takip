@@ -92,7 +92,7 @@ class _AnaSayfaState extends State<AnaSayfa> {
               gonder: _ara,
             ),
             const SizedBox(height: 10),
-            AnaDugme(metin: 'İzini sür', ikon: Icons.search, bekliyor: _araniyor, onPressed: () => _ara(_arama.text)),
+            AnaDugme(metin: 'Ara', ikon: Icons.search, bekliyor: _araniyor, onPressed: () => _ara(_arama.text)),
             if (_sonuc != null) ...[
               const SizedBox(height: 12),
               if (_sonuc!.adaylar.isEmpty)

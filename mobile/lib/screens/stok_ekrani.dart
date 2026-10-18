@@ -193,6 +193,7 @@ class _ParcaLotlariSayfasiState extends State<ParcaLotlariSayfasi> {
       builder: (context, gruplar) {
         if (gruplar.isEmpty) return const BosDurum('Parça bulunamadı.');
         final g = gruplar.first;
+        final admin = KullaniciBaglami.of(context).kullanici.admin;
         return ListView(
           padding: const EdgeInsets.all(16),
           children: [
@@ -203,7 +204,7 @@ class _ParcaLotlariSayfasiState extends State<ParcaLotlariSayfasi> {
             ),
             SwitchListTile(
               contentPadding: EdgeInsets.zero,
-              title: const Text('Biten lotlar da'),
+              title: const Text('Tükenen lotları da göster'),
               value: _bitenler,
               onChanged: (v) {
                 _bitenler = v;
@@ -215,7 +216,7 @@ class _ParcaLotlariSayfasiState extends State<ParcaLotlariSayfasi> {
               Padding(
                 padding: const EdgeInsets.only(bottom: 8),
                 child: Kart(
-                  uyari: lot.geriCagrildi,
+                  uyari: lot.sorunlu,
                   onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => LotIzSayfasi(lotNo: lot.lotNo))),
                   child: Row(
                     children: [
@@ -228,7 +229,7 @@ class _ParcaLotlariSayfasiState extends State<ParcaLotlariSayfasi> {
                               crossAxisAlignment: WrapCrossAlignment.center,
                               children: [
                                 Mono(lot.lotNo, kalin: true),
-                                if (lot.geriCagrildi) const Rozet('Geri çağrıldı', tur: RozetTuru.uyari),
+                                if (lot.sorunlu) Rozet(lot.geriCagrildi ? 'Hatalı · üretime kapalı' : 'Hatalı', tur: RozetTuru.uyari),
                                 if (lot.sirada) const Rozet('Sıradaki'),
                                 if (lot.kalanAdet == 0) const Rozet('Bitti', tur: RozetTuru.basari),
                               ],
@@ -245,6 +246,14 @@ class _ParcaLotlariSayfasiState extends State<ParcaLotlariSayfasi> {
                           Soluk('/ ${lot.girisAdet}', boyut: 12),
                         ],
                       ),
+                      if (admin && !lot.sorunlu)
+                        IconButton(
+                          tooltip: 'Hatalı işaretle',
+                          icon: const Icon(Icons.report_outlined, color: Color(0xFFC2410C)),
+                          onPressed: () async {
+                            if (await hataliLotIsaretle(context, lot)) _yenile();
+                          },
+                        ),
                     ],
                   ),
                 ),

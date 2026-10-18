@@ -95,23 +95,6 @@ class _GirisEkraniState extends State<GirisEkrani> {
                           otomatikDoldurma: const [AutofillHints.password],
                           gonder: (_) => _giris(),
                         ),
-                        Align(
-                          alignment: Alignment.centerRight,
-                          child: TextButton(
-                            onPressed: () => showDialog<void>(
-                              context: context,
-                              builder: (c) => AlertDialog(
-                                title: const Text('Şifremi unuttum'),
-                                content: const Text(
-                                  'Şifrenizi yöneticiniz Yönetim sayfasından yenileyebilir. Yöneticinize başvurun; '
-                                  'verdiği şifreyle girdikten sonra Profil sayfasından kendi şifrenizi belirleyin.',
-                                ),
-                                actions: [TextButton(onPressed: () => Navigator.pop(c), child: const Text('Tamam'))],
-                              ),
-                            ),
-                            child: const Text('Şifremi unuttum'),
-                          ),
-                        ),
                         if (_hata != null) ...[
                           const SizedBox(height: 14),
                           Text(_hata!, style: TextStyle(color: Theme.of(context).colorScheme.error)),

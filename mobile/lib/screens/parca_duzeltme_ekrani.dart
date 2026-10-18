@@ -119,7 +119,7 @@ class _AdetDuzeltSayfasiState extends State<AdetDuzeltSayfasi> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Mono(l.lotNo, kalin: true),
-                              Soluk('${tarih(l.siparisTarihi)}${l.geriCagrildi ? ' · geri çağrıldı' : ''}', boyut: 12),
+                              Soluk('${tarih(l.siparisTarihi)}${l.sorunlu ? ' · hatalı' : ''}', boyut: 12),
                             ],
                           ),
                         ),

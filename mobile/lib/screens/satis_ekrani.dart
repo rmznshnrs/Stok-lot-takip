@@ -9,7 +9,7 @@ import '../widgets/barkod.dart';
 import '../widgets/ortak.dart';
 import 'izlenebilirlik_ekrani.dart';
 
-/// Müşteri, tarih, seri no okutarak ekleme; geri çağrılan lot içeren ürün onaysız satılmaz.
+/// Müşteri, tarih, seri no okutarak ekleme; hatalı lot içeren ürün onaysız satılmaz.
 class SatisEkrani extends StatefulWidget {
   const SatisEkrani({super.key});
 
@@ -100,7 +100,7 @@ class _SatisEkraniState extends State<SatisEkrani> {
     if (_musteri.text.trim().isEmpty) return bildir(context, 'Müşteri adını yazın.', hata: true);
     if (_sepet.isEmpty) return bildir(context, 'En az bir seri numarası ekleyin.', hata: true);
     if (_uyariVar && !_onay) {
-      return bildir(context, 'Geri çağrılan lot içeren ürünler var; satmak için onay kutusunu işaretleyin.', hata: true);
+      return bildir(context, 'Hatalı lot içeren ürünler var; satmak için onay kutusunu işaretleyin.', hata: true);
     }
     setState(() {
       _bekliyor = true;
@@ -121,7 +121,7 @@ class _SatisEkraniState extends State<SatisEkrani> {
       });
       if (s.yeniMusteri) _musterileriYukle();
     } on ApiHatasi catch (h) {
-      // Bu arada bir lot geri çağrıldıysa uyarılar güncellenir, yeniden onay istenir
+      // Bu arada bir lot hatalı işaretlendiyse uyarılar güncellenir, yeniden onay istenir
       if (h.uyarilar.isNotEmpty) {
         setState(() {
           for (final u in h.uyarilar) {
@@ -209,7 +209,7 @@ class _SatisEkraniState extends State<SatisEkrani> {
                           Soluk(k.urunAd)
                         else
                           Text(
-                            'Geri çağrılan lot: ${k.geriCagrilanLotlar.join(', ')}',
+                            'Hatalı lot: ${k.geriCagrilanLotlar.join(', ')}',
                             style: TextStyle(color: Theme.of(context).colorScheme.error, fontSize: 13),
                           ),
                       ],
@@ -235,7 +235,7 @@ class _SatisEkraniState extends State<SatisEkrani> {
               _onay = v ?? false;
             }),
             title: Text(
-              'Geri çağrılan lot içeren ürünleri yine de sat',
+              'Hatalı lot içeren ürünleri yine de sat',
               style: TextStyle(color: Theme.of(context).colorScheme.error),
             ),
           ),

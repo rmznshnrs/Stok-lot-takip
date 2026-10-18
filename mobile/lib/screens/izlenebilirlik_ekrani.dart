@@ -2,87 +2,10 @@ import 'package:flutter/material.dart';
 
 import '../main.dart';
 import '../services/modeller.dart';
-import '../widgets/barkod.dart';
 import '../widgets/ortak.dart';
 import 'ana_kabuk.dart';
 
 /// Lot no → ürünler → müşteriler, seri no → parçalar. Numara yazılır ya da okutulur.
-class IzlenebilirlikEkrani extends StatefulWidget {
-  const IzlenebilirlikEkrani({super.key});
-
-  @override
-  State<IzlenebilirlikEkrani> createState() => _IzlenebilirlikEkraniState();
-}
-
-class _IzlenebilirlikEkraniState extends State<IzlenebilirlikEkrani> {
-  final _lot = TextEditingController();
-  final _seri = TextEditingController();
-
-  @override
-  void dispose() {
-    _lot.dispose();
-    _seri.dispose();
-    super.dispose();
-  }
-
-  void _ac(Widget sayfa) => Navigator.of(context).push(MaterialPageRoute(builder: (_) => sayfa));
-
-  @override
-  Widget build(BuildContext context) => DefaultTabController(
-    length: 2,
-    child: Scaffold(
-      appBar: const GecisliBar(
-        baslik: 'İzlenebilirlik',
-        alt: TabBar(
-          labelColor: Colors.white,
-          unselectedLabelColor: Colors.white70,
-          indicatorColor: Colors.white,
-          tabs: [
-            Tab(text: 'Lot → Müşteri'),
-            Tab(text: 'Seri no → Parçalar'),
-          ],
-        ),
-      ),
-      body: TabBarView(
-        children: [
-          ListView(
-            padding: const EdgeInsets.all(16),
-            children: [
-              OkutulabilirAlan(
-                denetleyici: _lot,
-                etiket: 'Lot numarası',
-                gonder: (v) => v.trim().isEmpty ? null : _ac(LotIzSayfasi(lotNo: v.trim())),
-              ),
-              const SizedBox(height: 12),
-              AnaDugme(
-                metin: 'Lotu izle',
-                ikon: Icons.search,
-                onPressed: () => _lot.text.trim().isEmpty ? null : _ac(LotIzSayfasi(lotNo: _lot.text.trim())),
-              ),
-            ],
-          ),
-          ListView(
-            padding: const EdgeInsets.all(16),
-            children: [
-              OkutulabilirAlan(
-                denetleyici: _seri,
-                etiket: 'Seri numarası',
-                gonder: (v) => v.trim().isEmpty ? null : _ac(SeriIzSayfasi(seriNo: v.trim())),
-              ),
-              const SizedBox(height: 12),
-              AnaDugme(
-                metin: 'Ürünü izle',
-                ikon: Icons.search,
-                onPressed: () => _seri.text.trim().isEmpty ? null : _ac(SeriIzSayfasi(seriNo: _seri.text.trim())),
-              ),
-            ],
-          ),
-        ],
-      ),
-    ),
-  );
-}
-
 class _Bilgi extends StatelessWidget {
   const _Bilgi(this.ad, this.deger);
 
@@ -119,27 +42,12 @@ class _LotIzSayfasiState extends State<LotIzSayfasi> {
     _iz = context.api.lotIz(widget.lotNo);
   });
 
-  Future<void> _geriCagir(LotIz iz) async {
-    final lot = iz.lot;
-    final soru = lot.geriCagrildi
-        ? '${lot.lotNo} için geri çağırma kaldırılsın mı? Lot yeniden üretimde kullanılabilir olacak.'
-        : '${lot.lotNo} geri çağrılsın mı? Lot üretimde kullanılmayacak; ${iz.uretimler.length} ürün ve ${iz.musteriler.length} müşteri etkileniyor.';
-    final onay = await showDialog<bool>(
-      context: context,
-      builder: (c) => AlertDialog(
-        content: Text(soru),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(c, false), child: const Text('Vazgeç')),
-          FilledButton(onPressed: () => Navigator.pop(c, true), child: const Text('Evet')),
-        ],
-      ),
-    );
-    if (onay != true || !mounted) return;
+  Future<void> _calistir(Future<void> Function() islem) async {
     setState(() {
       _bekliyor = true;
     });
     try {
-      await context.api.geriCagir(lot.lotNo, !lot.geriCagrildi);
+      await islem();
       _yenile();
     } catch (e) {
       if (mounted) bildir(context, hataMetni(e), hata: true);
@@ -151,6 +59,28 @@ class _LotIzSayfasiState extends State<LotIzSayfasi> {
       }
     }
   }
+
+  Future<void> _hataliIsaretle(Lot lot) async {
+    if (await hataliLotIsaretle(context, lot)) _yenile();
+  }
+
+  Future<void> _hatayiKaldir(Lot lot) async {
+    final onay = await _sor('${lot.lotNo} artık hatalı sayılmasın mı? Geri çağrılmış ürünler listede kalır.');
+    if (onay && mounted) await _calistir(() => context.api.lotSorun(lot.lotNo, sorunlu: false, uretimdeKullan: true));
+  }
+
+  Future<bool> _sor(String soru) async =>
+      await showDialog<bool>(
+        context: context,
+        builder: (c) => AlertDialog(
+          content: Text(soru),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(c, false), child: const Text('Vazgeç')),
+            FilledButton(onPressed: () => Navigator.pop(c, true), child: const Text('Evet')),
+          ],
+        ),
+      ) ??
+      false;
 
   @override
   Widget build(BuildContext context) {
@@ -167,18 +97,22 @@ class _LotIzSayfasiState extends State<LotIzSayfasi> {
             padding: const EdgeInsets.all(16),
             children: [
               Kart(
-                uyari: lot.geriCagrildi,
+                uyari: lot.sorunlu,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Mono(lot.lotNo, boyut: 22, kalin: true),
                     const SizedBox(height: 4),
                     Text('${lot.parcaAd} · ${lot.parcaKod}', style: const TextStyle(fontWeight: FontWeight.w600)),
-                    if (lot.geriCagrildi)
+                    if (lot.sorunlu) ...[
                       const Padding(
                         padding: EdgeInsets.only(top: 6),
-                        child: Rozet('Geri çağrıldı', tur: RozetTuru.uyari),
+                        child: Rozet('Hatalı lot', tur: RozetTuru.uyari),
                       ),
+                      const SizedBox(height: 4),
+                      Soluk(lot.sorunAciklama),
+                      Soluk(lot.geriCagrildi ? 'Kalan parçalar üretimde kullanılmıyor' : 'Kalan parçalar üretimde kullanılabilir'),
+                    ],
                     const SizedBox(height: 10),
                     _Bilgi('Tedarikçi', lot.tedarikciAd),
                     _Bilgi('Sipariş tarihi', tarih(lot.siparisTarihi)),
@@ -220,16 +154,21 @@ class _LotIzSayfasiState extends State<LotIzSayfasi> {
                             children: [Mono(u.seriNo, kalin: true), Soluk('${u.urunAd} · ${u.adet} adet kullanıldı')],
                           ),
                         ),
-                        u.satis != null
-                            ? const Rozet('Satıldı', tur: RozetTuru.uyari)
-                            : u.hurdaTuru != null
+                        if (u.geriCagirmaDurumu != null && u.hurdaTuru == null)
+                          const Padding(
+                            padding: EdgeInsets.only(right: 6),
+                            child: Rozet('Geri çağrıldı', tur: RozetTuru.uyari),
+                          ),
+                        u.hurdaTuru != null
                             ? Rozet(hurdaAdi(u.hurdaTuru!))
+                            : u.satis != null
+                            ? const Rozet('Müşteride')
                             : const Rozet('Depoda', tur: RozetTuru.basari),
                       ],
                     ),
                   ),
                 ),
-              const BolumBasligi('Etkilenen müşteriler'),
+              const BolumBasligi('Ürünlerin gittiği müşteriler'),
               if (iz.musteriler.isEmpty) const BosDurum('Bu lottan yapılan ürünlerden henüz satılan yok.'),
               for (final m in iz.musteriler)
                 Padding(
@@ -247,18 +186,26 @@ class _LotIzSayfasiState extends State<LotIzSayfasi> {
                 ),
               if (admin) ...[
                 const SizedBox(height: 16),
-                lot.geriCagrildi
-                    ? OutlinedButton.icon(
-                        onPressed: _bekliyor ? null : () => _geriCagir(iz),
-                        icon: const Icon(Icons.undo),
-                        label: const Text('Geri çağırmayı kaldır'),
-                      )
-                    : FilledButton.icon(
-                        style: FilledButton.styleFrom(backgroundColor: const Color(0xFFC2410C)),
-                        onPressed: _bekliyor ? null : () => _geriCagir(iz),
-                        icon: const Icon(Icons.report),
-                        label: const Text('Bu lotu geri çağır'),
-                      ),
+                if (!lot.sorunlu)
+                  FilledButton.icon(
+                    style: FilledButton.styleFrom(backgroundColor: const Color(0xFFC2410C)),
+                    onPressed: _bekliyor ? null : () => _hataliIsaretle(lot),
+                    icon: const Icon(Icons.report),
+                    label: const Text('Hatalı lot olarak işaretle'),
+                  )
+                else ...[
+                  OutlinedButton.icon(
+                    onPressed: _bekliyor ? null : () => _hataliIsaretle(lot),
+                    icon: const Icon(Icons.edit_outlined),
+                    label: const Text('Hatayı düzenle'),
+                  ),
+                  const SizedBox(height: 8),
+                  OutlinedButton.icon(
+                    onPressed: _bekliyor ? null : () => _hatayiKaldir(lot),
+                    icon: const Icon(Icons.undo),
+                    label: const Text('Hatayı kaldır'),
+                  ),
+                ],
               ],
             ],
           );
@@ -316,7 +263,7 @@ class _SeriIzSayfasiState extends State<SeriIzSayfasi> {
           padding: const EdgeInsets.all(16),
           children: [
             Kart(
-              uyari: iz.geriCagrilanLotlar.isNotEmpty,
+              uyari: iz.geriCagrilanLotlar.isNotEmpty || (iz.geriCagirma?.acik ?? false),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -330,10 +277,15 @@ class _SeriIzSayfasiState extends State<SeriIzSayfasi> {
                     _Bilgi('${iz.hurda!.ad} nedeni', '${iz.hurda!.aciklama} · ${iz.hurda!.kullaniciAd}, ${tarihSaat(iz.hurda!.zaman)}'),
                   if (iz.satis != null) _Bilgi('Satış', '${iz.satis!.musteriAd} · ${tarih(iz.satis!.tarih)}'),
                   if (iz.satis?.musteriIletisim.isNotEmpty ?? false) _Bilgi('Müşteri iletişim', iz.satis!.musteriIletisim),
+                  if (iz.geriCagirma?.acik ?? false)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8),
+                      child: Rozet('Geri çağrıldı · ${iz.geriCagirma!.durumAdi}', tur: RozetTuru.uyari),
+                    ),
                   if (iz.geriCagrilanLotlar.isNotEmpty)
                     Padding(
                       padding: const EdgeInsets.only(top: 8),
-                      child: Rozet('Geri çağrılan ${iz.geriCagrilanLotlar.length} lot var', tur: RozetTuru.uyari),
+                      child: Rozet('Hatalı lot var: ${iz.geriCagrilanLotlar.join(', ')}', tur: RozetTuru.uyari),
                     ),
                 ],
               ),
@@ -343,7 +295,7 @@ class _SeriIzSayfasiState extends State<SeriIzSayfasi> {
               Padding(
                 padding: const EdgeInsets.only(bottom: 8),
                 child: Kart(
-                  uyari: p.lot.geriCagrildi,
+                  uyari: p.lot.sorunlu,
                   onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => LotIzSayfasi(lotNo: p.lot.lotNo))),
                   child: Row(
                     children: [
@@ -353,7 +305,7 @@ class _SeriIzSayfasiState extends State<SeriIzSayfasi> {
                           children: [
                             Text(p.parca.ad, style: const TextStyle(fontWeight: FontWeight.w600)),
                             Row(
-                              children: [Mono(p.lot.lotNo, boyut: 13), if (p.lot.geriCagrildi) const Soluk(' · geri çağrıldı')],
+                              children: [Mono(p.lot.lotNo, boyut: 13), if (p.lot.sorunlu) const Soluk(' · hatalı')],
                             ),
                             Soluk('${p.lot.tedarikciAd} · ${tarih(p.lot.siparisTarihi)}'),
                           ],
@@ -369,4 +321,78 @@ class _SeriIzSayfasiState extends State<SeriIzSayfasi> {
       },
     ),
   );
+}
+
+/// Yalnız yönetici: lotu hatalı işaretler. Hata açıklaması ve kalan parçaların üretimde kullanılıp kullanılmayacağı
+/// (seçim zorunlu) sorulur. İlk işaretlemede bu lottan parça taşıyan ürünler kendiliğinden geri çağrılır.
+/// Kaydedildiyse true döner.
+Future<bool> hataliLotIsaretle(BuildContext context, Lot lot) async {
+  final aciklama = TextEditingController(text: lot.sorunAciklama);
+  bool? kullan = lot.sorunlu ? !lot.geriCagrildi : null;
+  final tamam = await showDialog<bool>(
+    context: context,
+    builder: (c) => StatefulBuilder(
+      builder: (c, yenile) => AlertDialog(
+        title: Text(lot.sorunlu ? 'Hatayı düzenle' : 'Hatalı lot'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Mono(lot.lotNo, kalin: true),
+            const SizedBox(height: 10),
+            TextField(
+              controller: aciklama,
+              decoration: const InputDecoration(labelText: 'Hata'),
+              onChanged: (_) => yenile(() {}),
+            ),
+            const SizedBox(height: 14),
+            Soluk('Stokta kalan ${lot.kalanAdet} parça üretimde'),
+            const SizedBox(height: 6),
+            SegmentedButton<bool>(
+              emptySelectionAllowed: true,
+              segments: const [
+                ButtonSegment(value: true, label: Text('kullanılsın')),
+                ButtonSegment(value: false, label: Text('kullanılmasın')),
+              ],
+              selected: {?kullan},
+              onSelectionChanged: (s) => yenile(() {
+                kullan = s.isEmpty ? kullan : s.first;
+              }),
+            ),
+            if (!lot.sorunlu) ...[
+              const SizedBox(height: 10),
+              const Soluk('Kaydedince bu lottan parça taşıyan ürünler kendiliğinden geri çağrılır.', boyut: 12),
+            ],
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(c, false), child: const Text('Vazgeç')),
+          FilledButton(
+            onPressed: kullan == null || aciklama.text.trim().isEmpty ? null : () => Navigator.pop(c, true),
+            child: const Text('Kaydet'),
+          ),
+        ],
+      ),
+    ),
+  );
+  final metin = aciklama.text.trim();
+  aciklama.dispose();
+  if (tamam != true || !context.mounted) return false;
+  try {
+    final geri = await context.api.lotSorun(lot.lotNo, sorunlu: true, uretimdeKullan: kullan!, aciklama: metin);
+    if (context.mounted) {
+      bildir(
+        context,
+        lot.sorunlu
+            ? '${lot.lotNo} güncellendi.'
+            : geri.isEmpty
+            ? '${lot.lotNo} hatalı işaretlendi. Bu lottan yapılmış ürün yok.'
+            : '${lot.lotNo} hatalı işaretlendi. ${geri.length} ürün geri çağrıldı.',
+      );
+    }
+    return true;
+  } catch (e) {
+    if (context.mounted) bildir(context, hataMetni(e), hata: true);
+    return false;
+  }
 }

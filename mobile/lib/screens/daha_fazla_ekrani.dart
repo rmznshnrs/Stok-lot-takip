@@ -4,7 +4,6 @@ import '../main.dart';
 import '../widgets/ortak.dart';
 import 'ana_kabuk.dart';
 import 'api_adresi_ekrani.dart';
-import 'izlenebilirlik_ekrani.dart';
 import 'parcalar_ekrani.dart';
 import 'profil_ekrani.dart';
 import 'urunler_ekrani.dart';
@@ -42,7 +41,6 @@ class DahaFazlaEkrani extends StatelessWidget {
             ),
           ),
           const BolumBasligi('Ekranlar'),
-          _Oge(ikon: Icons.account_tree_outlined, baslik: 'İzlenebilirlik', onTap: () => ac(const IzlenebilirlikEkrani())),
           _Oge(ikon: Icons.category_outlined, baslik: 'Ürünler', onTap: () => ac(const UrunlerEkrani())),
           _Oge(ikon: Icons.memory_outlined, baslik: 'Parçalar', onTap: () => ac(const ParcalarEkrani())),
           const BolumBasligi('Ayarlar'),
