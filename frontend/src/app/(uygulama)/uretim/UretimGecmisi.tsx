@@ -5,8 +5,9 @@ import { useState } from "react";
 import { hurdaAdi, uretim, urunler } from "@/lib/api";
 import { tarih, tarihSaat } from "@/lib/bicim";
 import { useGecikmeli, useVeri } from "@/lib/kancalar";
+import { seriAdresi } from "@/lib/adres";
 
-/** Üretilen seri numaraları: ürün, tarih, depoda / satıldı, geri çağrılan lot uyarısı. */
+/** Üretilen seri numaraları: ürün, tarih, depoda / satıldı / hurda, geri çağırma ve hatalı lot uyarısı. */
 export default function UretimGecmisi() {
   const [arama, setArama] = useState("");
   const [urunId, setUrunId] = useState("");
@@ -33,7 +34,6 @@ export default function UretimGecmisi() {
               type="search"
               className="girdi girdi--ara"
               aria-label="Üretimlerde ara"
-             
               value={arama}
               onChange={(e) => setArama(e.target.value)}
             />
@@ -48,20 +48,19 @@ export default function UretimGecmisi() {
                 <th>Ürün</th>
                 <th>Üretim tarihi</th>
                 <th>Durum</th>
-                <th>Geri çağrılan lot</th>
               </tr>
             </thead>
             <tbody>
-              {liste === null && !hata && <tr className="bos"><td colSpan={5}>Yükleniyor…</td></tr>}
+              {liste === null && !hata && <tr className="bos"><td colSpan={4}>Yükleniyor…</td></tr>}
               {liste?.length === 0 && (
                 <tr className="bos">
-                  <td colSpan={5}>{aranan || urunId ? "Aramaya uyan üretim bulunamadı." : "Henüz üretim yok."}</td>
+                  <td colSpan={4}>{aranan || urunId ? "Aramaya uyan üretim bulunamadı." : "Henüz üretim yok."}</td>
                 </tr>
               )}
               {liste?.map((u) => (
                 <tr key={u.uretimId}>
                   <td className="mono">
-                    <Link href={`/izlenebilirlik?seri=${encodeURIComponent(u.seriNo)}`}>{u.seriNo}</Link>
+                    <Link href={seriAdresi(u.seriNo)}>{u.seriNo}</Link>
                   </td>
                   <td>{u.urunAd}</td>
                   <td>{tarihSaat(u.tarih)}</td>
@@ -79,12 +78,11 @@ export default function UretimGecmisi() {
                     ) : (
                       <span className="rozet rozet--kucuk rozet--basari">Depoda</span>
                     )}
-                  </td>
-                  <td className="mono">
-                    {u.geriCagrilanLotlar.length > 0 ? (
-                      <span className="rozet rozet--kucuk rozet--uyari">{u.geriCagrilanLotlar.join(", ")}</span>
-                    ) : (
-                      <span className="not">—</span>
+                    {u.geriCagirmaDurumu && <> <span className="rozet rozet--kucuk rozet--uyari">Geri çağrıldı</span></>}
+                    {u.geriCagrilanLotlar.length > 0 && (
+                      <div className="yardim uyari-metin">
+                        Hatalı lot içeriyor: <span className="mono">{u.geriCagrilanLotlar.join(", ")}</span>
+                      </div>
                     )}
                   </td>
                 </tr>

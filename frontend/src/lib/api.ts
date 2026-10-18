@@ -11,7 +11,10 @@ export interface ParcaOzet { id: number; kod: string; ad: string; birim: string 
 
 export interface Lot {
   id: number; lotNo: string; parcaId: number; parcaKod: string; parcaAd: string; tedarikciAd: string;
-  siparisTarihi: string; siparisNo: string; girisAdet: number; kalanAdet: number; geriCagrildi: boolean;
+  siparisTarihi: string; siparisNo: string; girisAdet: number; kalanAdet: number;
+  /** Üretime kapalı (hatalı lotta kalan parçalar kullanılmasın seçildi). */
+  geriCagrildi: boolean;
+  sorunlu: boolean; sorunAciklama: string;
   girisZamani: string; sirada: boolean;
 }
 
@@ -34,7 +37,7 @@ export type DuzeltmeTuru = "SayimFarki" | "Fire" | "Diger";
 export interface StokDuzeltmeIstek { stokLotuId: number; miktar: number; tur: DuzeltmeTuru; aciklama: string }
 export interface StokDuzeltmeSonucu { id: number; lotNo: string; miktar: number; tur: string; aciklama: string; yeniKalanAdet: number }
 
-export interface LotDusumu { lotId: number; lotNo: string; adet: number }
+export interface LotDusumu { lotId: number; lotNo: string; adet: number; sorunlu: boolean }
 export interface ParcaIhtiyaci {
   parca: ParcaOzet; birimAdet: number; gereken: number; kullanilabilir: number;
   lotlar: LotDusumu[]; atlananLotlar: string[]; eksik: number;
@@ -42,12 +45,15 @@ export interface ParcaIhtiyaci {
 export interface UretimOnizleme {
   urunId: number; urunKod: string; urunAd: string; adet: number;
   parcalar: ParcaIhtiyaci[]; seriNolar: string[]; eksikler: ParcaIhtiyaci[]; yeterli: boolean; atlananLotlar: string[];
+  sorunluKullanilanLotlar: string[];
 }
 export interface UretimSonucu { urunId: number; urunAd: string; seriNolar: string[] }
 
 export interface LotIzUretim {
   uretimId: number; seriNo: string; tarih: string; urunKod: string; urunAd: string; adet: number; satis: SatisBilgisi | null;
   hurdaTuru: HurdaTuru | null;
+  /** "acik": açık geri çağırması var. */
+  geriCagirmaDurumu: string | null;
 }
 export interface LotIzMusteri { id: number; ad: string; iletisim: string; satislar: { seriNo: string; tarih: string }[]; seriNolar: string[] }
 export interface LotIz {
@@ -56,7 +62,8 @@ export interface LotIz {
 export interface SeriIzParca { parca: ParcaOzet; lot: Lot; adet: number }
 export interface SeriIz {
   uretimId: number; seriNo: string; tarih: string; urunKod: string; urunAd: string;
-  parcalar: SeriIzParca[]; satis: SatisBilgisi | null; geriCagrilanLotlar: string[]; hurda: HurdaBilgisi | null;
+  parcalar: SeriIzParca[]; satis: SatisBilgisi | null; geriCagrilanLotlar: string[]; hurda: HurdaBilgisi | null; iadeler: IadeBilgisi[];
+  geriCagirma: GeriCagirma | null;
 }
 
 export type NumaraTuru = "lot" | "seri" | "parca";
@@ -70,6 +77,7 @@ export interface Hareket {
 export interface UretimGecmisi {
   uretimId: number; seriNo: string; urunId: number; urunAd: string; tarih: string;
   musteriAd: string | null; satisTarihi: string | null; geriCagrilanLotlar: string[]; hurda: HurdaBilgisi | null;
+  geriCagirmaDurumu: string | null;
 }
 export type HurdaTuru = "Hurda" | "Kayip";
 export interface HurdaBilgisi { tur: HurdaTuru; aciklama: string; zaman: string; kullaniciAd: string }
@@ -84,7 +92,16 @@ export interface SatisSonucu {
   satisId: number; musteriId: number; musteriAd: string; yeniMusteri: boolean; tarih: string;
   seriNolar: string[]; uyarilar: SatisUyarisi[];
 }
-export interface SatisGecmisi { satisId: number; tarih: string; musteriAd: string; urunAd: string; seriNolar: string[] }
+/** seriNolar: hâlâ satılmış olanlar; iadeEdilenler: bu satıştan iade alınanlar. */
+export interface SatisGecmisi { satisId: number; tarih: string; musteriAd: string; urunAd: string; seriNolar: string[]; iadeEdilenler: string[] }
+export interface IadeBilgisi { musteriAd: string; satisTarihi: string; iadeZamani: string; aciklama: string; kullaniciAd: string }
+export type IslemTuru = "giris" | "uretim" | "satis" | "iade" | "duzeltme" | "hurda" | "sorun" | "geri";
+export interface GeriCagirma {
+  id: number; seriNo: string; urunAd: string; lotNo: string | null; aciklama: string; zaman: string; kullaniciAd: string;
+  durum: "musteride" | "geri_alindi" | "depoda" | "hurda" | "satisa_acildi";
+  musteriAd: string | null; musteriIletisim: string | null; geriAlinmaZamani: string | null; kapanmaZamani: string | null;
+}
+export interface Islem { zaman: string; tur: IslemTuru; kullaniciAd: string; aciklama: string; numara: string | null; numaraTuru: "lot" | "seri" | null }
 
 export interface ParcaIstek { kod: string; ad: string; birim?: string; minStok?: number }
 export interface UrunIstek { kod: string; ad: string; seriOneki: string }
@@ -95,6 +112,7 @@ export interface UrunAgaciSatiri {
 }
 export interface UrunDetay { id: number; kod: string; ad: string; seriOneki: string; seriOnekiDegistirilebilir: boolean; agac: UrunAgaciSatiri[] }
 export interface Iletisim { id: number; ad: string; iletisim: string }
+export interface IletisimIstek { ad: string; iletisim: string }
 
 export interface KullaniciOlusturIstek { ad: string; soyad: string; kullaniciAdi: string; sifre: string; rol: Rol }
 export interface KullaniciGuncelleIstek { ad: string; soyad: string; rol: Rol; yeniSifre?: string }
@@ -207,6 +225,19 @@ export const urunler = {
 export const tedarikciler = () => al<Iletisim[]>("tedarikciler");
 export const musteriler = () => al<Iletisim[]>("musteriler");
 
+export const firmalar = {
+  musteriler,
+  tedarikciler,
+  musteriEkle: (f: IletisimIstek) => gonder<Iletisim>("musteriler", f),
+  musteriGuncelle: (id: number, f: IletisimIstek) => guncelle<Iletisim>(`musteriler/${id}`, f),
+  tedarikciEkle: (f: IletisimIstek) => gonder<Iletisim>("tedarikciler", f),
+  tedarikciGuncelle: (id: number, f: IletisimIstek) => guncelle<Iletisim>(`tedarikciler/${id}`, f),
+};
+
+export const islemler = {
+  liste: (s: { tur?: IslemTuru; kullaniciId?: number; once?: string; adet?: number } = {}) => al<Islem[]>("islemler", s),
+};
+
 // --- Stok, üretim, satış, izleme ------------------------------------------------------
 
 export const stok = {
@@ -227,6 +258,8 @@ export const satis = {
   uyarilar: (seriNolar: string[]) => gonder<SatisUyarisi[]>("satis/uyarilar", { seriNolar }),
   sat: (s: SatisIstek) => gonder<SatisSonucu>("satis", s),
   gecmis: (arama?: string) => al<SatisGecmisi[]>("satis/gecmis", { arama }),
+  iade: (satisId: number, seriNolar: string[], aciklama: string) =>
+    gonder<{ satisId: number; seriNolar: string[] }>(`satis/${satisId}/iade`, { seriNolar, aciklama }),
 };
 
 export const izleme = {
@@ -234,7 +267,16 @@ export const izleme = {
   seri: (seriNo: string) => al<SeriIz>(`izleme/seri/${parca(seriNo)}`),
   ara: (q: string) => al<NumaraArama>("izleme/ara", { q }),
   hareketler: (adet = 8) => al<Hareket[]>("izleme/hareketler", { adet }),
-  geriCagir: (lotNo: string, geriCagir: boolean) => gonder<Lot>(`izleme/lot/${parca(lotNo)}/geri-cagir`, { geriCagir }),
+  /** Yalnız yönetici: lotu hatalı işaretler / hatayı kaldırır. İlk işaretlemede ürünler kendiliğinden geri çağrılır. */
+  sorun: (lotNo: string, s: { sorunlu: boolean; uretimdeKullan: boolean; aciklama: string }) =>
+    gonder<{ lot: Lot; geriCagrilanSeriNolar: string[] }>(`izleme/lot/${parca(lotNo)}/sorun`, s),
+};
+
+export const geriCagirma = {
+  liste: (acik = false, arama?: string) => al<GeriCagirma[]>("geri-cagirma", { acik, arama }),
+  geriCagir: (seriNolar: string[], aciklama: string, lotNo?: string) => gonder<GeriCagirma[]>("geri-cagirma", { seriNolar, aciklama, lotNo }),
+  geriAl: (id: number) => gonder<GeriCagirma>(`geri-cagirma/${id}/geri-al`),
+  satisaAc: (id: number) => gonder<GeriCagirma>(`geri-cagirma/${id}/satisa-ac`),
 };
 
 // --- Kullanıcılar (Admin) -----------------------------------------------------------

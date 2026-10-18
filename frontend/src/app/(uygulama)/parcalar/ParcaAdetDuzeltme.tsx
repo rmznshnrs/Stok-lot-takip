@@ -70,7 +70,7 @@ export default function ParcaAdetDuzeltme({ parca, kapat, kaydedildi }: {
               <label key={l.id} className={`lot-secenek${l.id === lotId ? " lot-secenek--secili" : ""}`}>
                 <input type="radio" name="lot" checked={l.id === lotId} onChange={() => setLotId(l.id)} />
                 <span className="mono">{l.lotNo}</span>
-                <span className="not">{tarih(l.siparisTarihi)}{l.geriCagrildi && " · geri çağrıldı"}</span>
+                <span className="not">{tarih(l.siparisTarihi)}{l.sorunlu && " · hatalı"}</span>
                 <span className="lot-secenek-adet">{l.kalanAdet} / {l.girisAdet}</span>
               </label>
             ))}

@@ -148,7 +148,6 @@ export default function UrunFormu({ urun, parcalar, kaydedildi }: Props) {
             id="parca-ekle"
             list="parca-listesi"
             className="girdi girdi--kesikli"
-           
             autoComplete="off"
             value={yeniParca}
             onChange={(e) => setYeniParca(e.target.value)}
@@ -168,7 +167,6 @@ export default function UrunFormu({ urun, parcalar, kaydedildi }: Props) {
             type="number"
             min={1}
             className="girdi girdi--kesikli"
-           
             value={yeniAdet}
             onChange={(e) => setYeniAdet(e.target.value)}
             onKeyDown={(e) => {

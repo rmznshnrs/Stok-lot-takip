@@ -1,31 +1,42 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { usePathname, useSearchParams } from "next/navigation";
+import { Fragment, useState } from "react";
+import HataliLotFormu from "@/components/HataliLotFormu";
+import Mesaj, { type MesajBilgisi } from "@/components/Mesaj";
+import { useAdminMi } from "@/components/Oturum";
+import { lotAdresi } from "@/lib/adres";
 import { parcalar, stok, type StokGrubu } from "@/lib/api";
 import { tarih } from "@/lib/bicim";
 import { useGecikmeli, useVeri } from "@/lib/kancalar";
 import MalGirisiFormu from "./MalGirisiFormu";
 
-type Gorunum = "parca" | "lot";
+type Gorunum = "parca" | "lot" | "biten";
+
+const GORUNUMLER: { deger: Gorunum; ad: string }[] = [
+  { deger: "parca", ad: "Parça bazında" },
+  { deger: "lot", ad: "Lot bazında" },
+  { deger: "biten", ad: "Tükenen lotlar" },
+];
 
 export default function StokEkrani() {
-  const router = useRouter();
   const yol = usePathname();
   const params = useSearchParams();
   const parcaKod = params.get("parca") ?? "";
-  const gorunum: Gorunum = params.get("gorunum") === "lot" || (parcaKod && params.get("gorunum") !== "parca") ? "lot" : "parca";
-  const bitenler = params.get("bitenler") === "1";
+  const istenen = params.get("gorunum");
+  const gorunum: Gorunum =
+    istenen === "biten" ? "biten" : istenen === "lot" || (parcaKod && istenen !== "parca") ? "lot" : "parca";
 
   const [arama, setArama] = useState(params.get("q") ?? "");
   const aranan = useGecikmeli(arama.trim());
 
   const { veri: gruplar, hata, yenile } = useVeri(
-    () => stok.durum({ arama: aranan, parca: parcaKod, bitenler: gorunum === "lot" && bitenler }),
-    [aranan, parcaKod, gorunum, bitenler],
+    () => stok.durum({ arama: aranan, parca: parcaKod, bitenler: gorunum === "biten" }),
+    [aranan, parcaKod, gorunum],
   );
   const { veri: tumParcalar, yenile: parcalariYenile } = useVeri(() => parcalar.listele(), []);
+  const [mesaj, setMesaj] = useState<MesajBilgisi | null>(null);
 
   function adres(degisen: Record<string, string | null>) {
     const p = new URLSearchParams(params.toString());
@@ -52,35 +63,24 @@ export default function StokEkrani() {
           <div className="bas-satir-sol">
             <h2>Stok durumu</h2>
             <nav className="sekmeler" aria-label="Görünüm">
-              {(["parca", "lot"] as const).map((g) => (
+              {GORUNUMLER.map((g) => (
                 <Link
-                  key={g}
-                  href={adres({ gorunum: g })}
+                  key={g.deger}
+                  href={adres({ gorunum: g.deger, bitenler: null })}
                   replace
-                  className={`sekme${gorunum === g ? " sekme--aktif" : ""}`}
-                  aria-current={gorunum === g ? "page" : undefined}
+                  className={`sekme${gorunum === g.deger ? " sekme--aktif" : ""}`}
+                  aria-current={gorunum === g.deger ? "page" : undefined}
                 >
-                  {g === "parca" ? "Parça bazında" : "Lot bazında"}
+                  {g.ad}
                 </Link>
               ))}
             </nav>
           </div>
           <div className="arama-satiri">
-            {gorunum === "lot" && (
-              <label className="onay-etiket">
-                <input
-                  type="checkbox"
-                  checked={bitenler}
-                  onChange={(e) => router.replace(adres({ bitenler: e.target.checked ? "1" : null }))}
-                />{" "}
-                Biten lotlar da
-              </label>
-            )}
             <input
               type="search"
               className="girdi girdi--ara"
               aria-label="Stokta ara"
-             
               value={arama}
               onChange={(e) => setArama(e.target.value)}
             />
@@ -94,10 +94,21 @@ export default function StokEkrani() {
           </div>
         )}
         {hata && <div className="mesaj mesaj--error">{hata}</div>}
+        <Mesaj mesaj={mesaj} />
 
         <div className="tablo-kap">
-          {gorunum === "lot" ? (
-            <LotTablosu gruplar={gruplar} aranan={aranan} />
+          {gorunum === "biten" ? (
+            <TukenenTablosu gruplar={gruplar} aranan={aranan} />
+          ) : gorunum === "lot" ? (
+            <LotTablosu
+              gruplar={gruplar}
+              aranan={aranan}
+              isaretlendi={(metin) => {
+                setMesaj({ tur: "success", metin });
+                yenile();
+                parcalariYenile();
+              }}
+            />
           ) : (
             <ParcaTablosu gruplar={gruplar} aranan={aranan} lotAdresi={(kod) => adres({ parca: kod, gorunum: "lot" })} />
           )}
@@ -157,7 +168,54 @@ function ParcaTablosu({ gruplar, aranan, lotAdresi }: { gruplar: StokGrubu[] | n
   );
 }
 
-function LotTablosu({ gruplar, aranan }: { gruplar: StokGrubu[] | null; aranan: string }) {
+/** Kalanı 0'a düşmüş lotlar (son gelen üstte). Lota tıklayınca kime gittiği açılır. */
+function TukenenTablosu({ gruplar, aranan }: { gruplar: StokGrubu[] | null; aranan: string }) {
+  const lotlar = (gruplar ?? [])
+    .flatMap(({ parca, lotlar }) => lotlar.filter((l) => l.kalanAdet === 0).map((l) => ({ parca, lot: l })))
+    .sort((a, b) => b.lot.siparisTarihi.localeCompare(a.lot.siparisTarihi));
+  return (
+    <table className="tablo">
+      <thead>
+        <tr>
+          <th>Parça</th>
+          <th>Lot No</th>
+          <th>Tedarikçi</th>
+          <th>Sipariş tarihi</th>
+          <th className="sag">Gelen</th>
+        </tr>
+      </thead>
+      <tbody>
+        {gruplar === null && <tr className="bos"><td colSpan={5}>Yükleniyor…</td></tr>}
+        {gruplar !== null && lotlar.length === 0 && (
+          <tr className="bos"><td colSpan={5}>{aranan ? `“${aranan}” için tükenen lot yok.` : "Tükenen lot yok."}</td></tr>
+        )}
+        {lotlar.map(({ parca: p, lot }) => (
+          <tr key={lot.id} className={lot.sorunlu ? "uyari-satir" : undefined}>
+            <td>{p.ad} <span className="mono yardim">{p.kod}</span></td>
+            <td className="mono">
+              <Link href={lotAdresi(lot.lotNo)} className={lot.sorunlu ? "uyari-metin" : "lot-baglanti"}>
+                {lot.lotNo}
+              </Link>
+              {lot.sorunlu && <> <span className="lot-etiket lot-etiket--uyari">· hatalı</span></>}
+            </td>
+            <td>{lot.tedarikciAd}</td>
+            <td>{tarih(lot.siparisTarihi)}</td>
+            <td className="sag">{lot.girisAdet}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
+}
+
+function LotTablosu({ gruplar, aranan, isaretlendi }: {
+  gruplar: StokGrubu[] | null;
+  aranan: string;
+  isaretlendi: (mesaj: string) => void;
+}) {
+  const admin = useAdminMi();
+  const [acikLot, setAcikLot] = useState<number | null>(null);
+  const sutun = admin ? 7 : 6;
   return (
     <table className="tablo">
       <thead>
@@ -168,10 +226,11 @@ function LotTablosu({ gruplar, aranan }: { gruplar: StokGrubu[] | null; aranan: 
           <th>Sipariş tarihi</th>
           <th className="sag">Gelen</th>
           <th className="sag">Kalan</th>
+          {admin && <th><span className="gorunmez">Hatalı lot</span></th>}
         </tr>
       </thead>
       <tbody>
-        <BosSatir gruplar={gruplar} aranan={aranan} sutun={6} />
+        <BosSatir gruplar={gruplar} aranan={aranan} sutun={sutun} />
         {gruplar?.map(({ parca: p, lotlar }) => {
           const parcaHucresi = (
             <td className="parca-hucre" rowSpan={Math.max(lotlar.length, 1)}>
@@ -187,21 +246,22 @@ function LotTablosu({ gruplar, aranan }: { gruplar: StokGrubu[] | null; aranan: 
             return (
               <tr key={p.id}>
                 {parcaHucresi}
-                <td colSpan={5} className="soluk">{aranan ? "Aramayla eşleşen lot yok." : "Stokta lot yok."}</td>
+                <td colSpan={sutun - 1} className="soluk">{aranan ? "Aramayla eşleşen lot yok." : "Stokta lot yok."}</td>
               </tr>
             );
           }
           return lotlar.map((lot, i) => {
-            const izAdresi = `/izlenebilirlik?lot=${encodeURIComponent(lot.lotNo)}`;
-            const kalanSinifi = p.minAltinda && !lot.geriCagrildi ? " uyari-metin" : !lot.kalanAdet ? " soluk" : "";
+            const izAdresi = lotAdresi(lot.lotNo);
+            const kalanSinifi = p.minAltinda && !lot.sorunlu ? " uyari-metin" : !lot.kalanAdet ? " soluk" : "";
             return (
-              <tr key={lot.id} className={lot.geriCagrildi ? "uyari-satir" : undefined}>
+              <Fragment key={lot.id}>
+              <tr className={lot.sorunlu ? "uyari-satir" : undefined}>
                 {i === 0 && parcaHucresi}
                 <td className="mono">
-                  {lot.geriCagrildi ? (
+                  {lot.sorunlu ? (
                     <>
                       <Link href={izAdresi} className="uyari-metin">{lot.lotNo}</Link>{" "}
-                      <span className="lot-etiket lot-etiket--uyari">· geri çağrıldı</span>
+                      <span className="lot-etiket lot-etiket--uyari">· hatalı{lot.geriCagrildi ? ", üretime kapalı" : ""}</span>
                     </>
                   ) : (
                     <>
@@ -215,7 +275,36 @@ function LotTablosu({ gruplar, aranan }: { gruplar: StokGrubu[] | null; aranan: 
                 <td>{tarih(lot.siparisTarihi)}</td>
                 <td className="sag">{lot.girisAdet}</td>
                 <td className={`sag${kalanSinifi}`}>{lot.kalanAdet}</td>
+                {admin && (
+                  <td className="hucre-dar">
+                    {!lot.sorunlu && (
+                      <button
+                        type="button"
+                        className="btn btn--ikincil btn--kucuk"
+                        aria-expanded={acikLot === lot.id}
+                        onClick={() => setAcikLot(acikLot === lot.id ? null : lot.id)}
+                      >
+                        Hatalı işaretle
+                      </button>
+                    )}
+                  </td>
+                )}
               </tr>
+              {acikLot === lot.id && (
+                <tr>
+                  <td colSpan={sutun - (i === 0 ? 1 : 0)}>
+                    <HataliLotFormu
+                      lot={lot}
+                      kapat={() => setAcikLot(null)}
+                      kaydedildi={(metin) => {
+                        setAcikLot(null);
+                        isaretlendi(metin);
+                      }}
+                    />
+                  </td>
+                </tr>
+              )}
+              </Fragment>
             );
           });
         })}

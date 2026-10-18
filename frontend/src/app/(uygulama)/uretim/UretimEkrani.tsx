@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { ApiHatasi, uretim, urunler, type UretimSonucu } from "@/lib/api";
 import { ETIKET_TURLERI, etiketTuruKaydet, kayitliEtiketTuru, type EtiketTuru } from "@/lib/etiket";
 import { useGecikmeli, useVeri } from "@/lib/kancalar";
+import { seriAdresi } from "@/lib/adres";
 
 const EN_COK = 999;
 
@@ -70,7 +71,6 @@ export default function UretimEkrani() {
           type="search"
           className="girdi girdi--liste-ara"
           aria-label="Ürün ara"
-         
           value={arama}
           onChange={(e) => setArama(e.target.value)}
         />
@@ -100,7 +100,7 @@ export default function UretimEkrani() {
             <div className="sonuc-baslik">Üretim kaydedildi: {sonuc.seriNolar.length} adet {sonuc.urunAd}</div>
             <div className="seri-listesi">
               {sonuc.seriNolar.map((s) => (
-                <Link key={s} href={`/izlenebilirlik?seri=${encodeURIComponent(s)}`} className="seri-cip">{s}</Link>
+                <Link key={s} href={seriAdresi(s)} className="seri-cip">{s}</Link>
               ))}
             </div>
             <div className="etiket-tercih">
@@ -157,7 +157,6 @@ export default function UretimEkrani() {
                   <span className="adet-urun">{secili?.ad ?? guncel?.urunAd}</span>
                 </div>
               </div>
-              <Link href={`/urunler?urun=${urunId}&duzenle=1`} className="not--buyuk">Parça listesini değiştir</Link>
             </div>
 
             <div className="adim-baslik">
@@ -191,7 +190,13 @@ export default function UretimEkrani() {
                           <td className="sag">{p.kullanilabilir}</td>
                           <td className="mono">
                             {p.lotlar.length ? (
-                              p.lotlar.map((d) => `${d.lotNo} × ${d.adet}`).join(" · ")
+                              p.lotlar.map((d, i) => (
+                                <span key={d.lotId}>
+                                  {i > 0 && " · "}
+                                  <span className={d.sorunlu ? "uyari-metin" : undefined}>{d.lotNo} × {d.adet}</span>
+                                  {d.sorunlu && <span className="lot-etiket lot-etiket--uyari"> hatalı</span>}
+                                </span>
+                              ))
                             ) : (
                               <span className="soluk">kullanılabilir lot yok</span>
                             )}
@@ -208,24 +213,24 @@ export default function UretimEkrani() {
                 </div>
                 {guncel.atlananLotlar.length > 0 && (
                   <div className="not">
-                    Geri çağrılan lotlar (
+                    Üretime kapalı hatalı lotlar (
                     {guncel.atlananLotlar.map((l, i) => (
                       <span key={l}>{i > 0 && ", "}<span className="mono">{l}</span></span>
                     ))}
                     ) atlandı.
                   </div>
                 )}
+                {guncel.sorunluKullanilanLotlar.length > 0 && (
+                  <div className="mesaj mesaj--warning">
+                    Bu üretimde hatalı lot kullanılacak:{" "}
+                    <span className="mono">{guncel.sorunluKullanilanLotlar.join(", ")}</span>. Kullanılmasına izin verilmiş.
+                  </div>
+                )}
 
                 {kayitHatasi && <div className="mesaj mesaj--error" role="alert">{kayitHatasi}</div>}
 
                 <div className="kart-alt">
-                  <div className="baslik-grup">
-                    <span className="adim-baslik">4 · Verilecek seri numaraları</span>
-                    <span className="mono seri-aralik">
-                      {guncel.seriNolar[0]}
-                      {guncel.seriNolar.length > 1 && ` … ${guncel.seriNolar[guncel.seriNolar.length - 1]}`}
-                    </span>
-                  </div>
+                  <span />
                   <div className="kaydet-grup">
                     {!guncel.yeterli && <span className="uyari-not">Eksik parça var</span>}
                     <button type="button" className="btn" disabled={!guncel.yeterli || bekliyor} onClick={kaydet}>

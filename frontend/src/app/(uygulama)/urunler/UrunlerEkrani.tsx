@@ -49,7 +49,6 @@ export default function UrunlerEkrani() {
           type="search"
           className="girdi girdi--liste-ara"
           aria-label="Ürün ara"
-         
           value={arama}
           onChange={(e) => setArama(e.target.value)}
         />

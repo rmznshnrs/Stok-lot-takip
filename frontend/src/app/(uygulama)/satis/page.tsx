@@ -1,8 +1,13 @@
 import type { Metadata } from "next";
-import SatisEkrani from "./SatisEkrani";
+import { Suspense } from "react";
+import SatisSayfasi from "./SatisSayfasi";
 
 export const metadata: Metadata = { title: "Satış" };
 
 export default function Sayfa() {
-  return <SatisEkrani />;
+  return (
+    <Suspense>
+      <SatisSayfasi />
+    </Suspense>
+  );
 }

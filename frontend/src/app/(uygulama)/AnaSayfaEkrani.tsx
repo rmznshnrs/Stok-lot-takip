@@ -4,14 +4,15 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { ApiHatasi, izleme, type Aday, type NumaraArama, type NumaraTuru } from "@/lib/api";
+import { lotAdresi, seriAdresi } from "@/lib/adres";
 import { tarih } from "@/lib/bicim";
 import { numaraAyikla } from "@/lib/gs1";
 import { useVeri } from "@/lib/kancalar";
 
 function izAdresi(tur: NumaraTuru, deger: string) {
   const d = encodeURIComponent(deger);
-  if (tur === "lot") return `/izlenebilirlik?lot=${d}`;
-  if (tur === "seri") return `/izlenebilirlik?sekme=seri&seri=${d}`;
+  if (tur === "lot") return lotAdresi(deger);
+  if (tur === "seri") return seriAdresi(deger);
   return `/stok?parca=${d}`;
 }
 
@@ -55,18 +56,17 @@ export default function AnaSayfaEkrani() {
   return (
     <main className="icerik icerik--dikey icerik--genis">
       <section className="arama-bolumu">
-        <h1>Bir lot veya seri numarasının izini sür</h1>
+        <h1>Lot veya seri numarası ara</h1>
         <form className="arama-buyuk" role="search" onSubmit={ara}>
           <input
             type="search"
             className="girdi girdi--buyuk"
             aria-label="Lot, seri no veya parça kodu"
-           
             autoFocus
             value={q}
             onChange={(e) => setQ(e.target.value)}
           />
-          <button type="submit" className="btn btn--buyuk" disabled={bekliyor}>İzini sür</button>
+          <button type="submit" className="btn btn--buyuk" disabled={bekliyor}>Ara</button>
         </form>
         {hata ? (
           <div className="mesaj mesaj--error">{hata}</div>

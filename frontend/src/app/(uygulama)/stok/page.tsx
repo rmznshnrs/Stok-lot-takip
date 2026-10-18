@@ -1,13 +1,13 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import StokEkrani from "./StokEkrani";
+import StokSayfasi from "./StokSayfasi";
 
 export const metadata: Metadata = { title: "Stok" };
 
 export default function Sayfa() {
   return (
     <Suspense>
-      <StokEkrani />
+      <StokSayfasi />
     </Suspense>
   );
 }

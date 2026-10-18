@@ -106,7 +106,6 @@ export default function ParcalarEkrani() {
             type="search"
             className="girdi girdi--ara"
             aria-label="Parça ara"
-           
             value={arama}
             onChange={(e) => setArama(e.target.value)}
           />

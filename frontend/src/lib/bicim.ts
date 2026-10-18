@@ -16,6 +16,16 @@ export function tarihSaat(deger: string) {
   return tarihSaatBicimi.format(new Date(deger));
 }
 
+/** Aramada i/ı/I/İ birbirinin yerine geçer ("indikatör" → "İndikatör"). */
+export function katla(s: string) {
+  return s.toLocaleLowerCase("tr").replaceAll("ı", "i");
+}
+
+/** metin, aranan'ı içeriyor mu (büyük/küçük harf ve i/ı/İ farkı gözetilmez). */
+export function icerir(metin: string, aranan: string) {
+  return katla(metin).includes(katla(aranan));
+}
+
 export function sayi(n: number) {
   return n.toLocaleString("tr-TR");
 }

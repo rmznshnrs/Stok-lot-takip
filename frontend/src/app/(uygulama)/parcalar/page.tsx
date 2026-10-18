@@ -1,8 +1,13 @@
 import type { Metadata } from "next";
-import ParcalarEkrani from "./ParcalarEkrani";
+import { Suspense } from "react";
+import ParcalarSayfasi from "./ParcalarSayfasi";
 
 export const metadata: Metadata = { title: "Parçalar" };
 
 export default function Sayfa() {
-  return <ParcalarEkrani />;
+  return (
+    <Suspense>
+      <ParcalarSayfasi />
+    </Suspense>
+  );
 }

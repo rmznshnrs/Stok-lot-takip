@@ -59,7 +59,7 @@ export default function SatisFormu({ kaydedildi }: { kaydedildi: () => void }) {
     if (!musteri.trim()) return setMesaj({ tur: "error", metin: "Müşteri adını yazın." });
     if (!sepet.length) return setMesaj({ tur: "error", metin: "En az bir seri numarası ekleyin." });
     if (uyariVar && !onay) {
-      return setMesaj({ tur: "warning", metin: "Geri çağrılan lot içeren ürünler var. Satmak için onay kutusunu işaretleyin." });
+      return setMesaj({ tur: "warning", metin: "Hatalı lot içeren ürünler var. Satmak için onay kutusunu işaretleyin." });
     }
     setBekliyor(true);
     try {
@@ -79,7 +79,7 @@ export default function SatisFormu({ kaydedildi }: { kaydedildi: () => void }) {
       kaydedildi();
     } catch (err) {
       if (err instanceof ApiHatasi && err.uyarilar.length) {
-        // Bu arada bir lot geri çağrıldıysa sepetteki uyarıları güncelle
+        // Bu arada bir lot sorunlu işaretlendiyse sepetteki uyarıları güncelle
         setSepet(sepet.map((k) => ({ ...k, geriCagrilanLotlar: err.uyarilar.find((u) => u.seriNo === k.seriNo)?.lotlar ?? k.geriCagrilanLotlar })));
         setOnay(false);
       }
@@ -100,7 +100,6 @@ export default function SatisFormu({ kaydedildi }: { kaydedildi: () => void }) {
             id="musteri"
             className="girdi"
             list="musteri-listesi"
-           
             autoComplete="off"
             maxLength={200}
             value={musteri}
@@ -143,7 +142,7 @@ export default function SatisFormu({ kaydedildi }: { kaydedildi: () => void }) {
                   <span className="mono akis-numara">{k.seriNo}</span>
                   {k.geriCagrilanLotlar.length ? (
                     <span className="yardim uyari-metin">
-                      Geri çağrılan lot içeriyor: {k.geriCagrilanLotlar.join(", ")} — satışa uygun değil
+                      Hatalı lot içeriyor: {k.geriCagrilanLotlar.join(", ")}
                     </span>
                   ) : (
                     <span className="yardim">{k.urunAd}</span>
@@ -164,7 +163,7 @@ export default function SatisFormu({ kaydedildi }: { kaydedildi: () => void }) {
         )}
         {uyariVar && (
           <label className="onay-etiket onay-etiket--uyari">
-            <input type="checkbox" checked={onay} onChange={(e) => setOnay(e.target.checked)} /> Geri çağrılan lot içeren
+            <input type="checkbox" checked={onay} onChange={(e) => setOnay(e.target.checked)} /> Hatalı lot içeren
             ürünleri yine de sat
           </label>
         )}

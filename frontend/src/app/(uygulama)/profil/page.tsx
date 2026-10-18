@@ -6,7 +6,7 @@ export const metadata: Metadata = { title: "Profil" };
 
 export default function Sayfa() {
   return (
-    <main className="icerik">
+    <main className="icerik icerik--profil">
       <ProfilBilgisi />
       <SifreFormu />
     </main>

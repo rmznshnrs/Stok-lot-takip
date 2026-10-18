@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 import HesapMenusu from "./HesapMenusu";
+import Logo from "./Logo";
 import { useKullanici } from "./Oturum";
 
 const BAGLANTILAR = [
@@ -26,7 +27,7 @@ export function UstMenuCercevesi({ admin = false, children }: { admin?: boolean;
 
   return (
     <header className="ust">
-      <Link className="logo" href="/">MKC BİLİŞİM</Link>
+      <Link className="logo" href="/" aria-label="MKC Bilişim ana sayfa"><Logo /></Link>
       <nav className="menu" aria-label="Ana menü">
         {baglantilar.map((b) => {
           const aktif = aktifMi(b.yol, simdiki);

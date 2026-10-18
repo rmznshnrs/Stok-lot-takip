@@ -75,7 +75,6 @@ export default function MalGirisiFormu({ parcalar, kaydedildi }: { parcalar: Par
           <input
             className="girdi"
             list="tedarikci-listesi"
-           
             autoComplete="off"
             required
             maxLength={200}

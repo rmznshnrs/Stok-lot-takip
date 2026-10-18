@@ -5,8 +5,9 @@ import { useState, type FormEvent } from "react";
 import Mesaj, { type MesajBilgisi } from "@/components/Mesaj";
 import { useAdminMi } from "@/components/Oturum";
 import { ApiHatasi, uretim, type HurdaTuru } from "@/lib/api";
-import { tarihSaat } from "@/lib/bicim";
+import { icerir, tarihSaat } from "@/lib/bicim";
 import { useVeri } from "@/lib/kancalar";
+import { seriAdresi } from "@/lib/adres";
 
 /** Ürünün depodaki seri numaraları; yönetici seçtiklerini hurdaya / kayba ayırabilir (açıklama zorunlu). */
 export default function UrunDepo({ urunId, degisti }: { urunId: number; degisti?: () => void }) {
@@ -16,8 +17,7 @@ export default function UrunDepo({ urunId, degisti }: { urunId: number; degisti?
   const ayrilan = liste?.filter((u) => u.hurda).length ?? 0;
 
   const [ara, setAra] = useState("");
-  const aranan = ara.trim().toLocaleUpperCase("tr");
-  const gorunen = depoda.filter((u) => u.seriNo.toLocaleUpperCase("tr").includes(aranan));
+  const gorunen = depoda.filter((u) => icerir(u.seriNo, ara.trim()));
   const [secili, setSecili] = useState<string[]>([]);
   const hepsiSecili = gorunen.length > 0 && gorunen.every((u) => secili.includes(u.seriNo));
   const [tur, setTur] = useState<HurdaTuru>("Hurda");
@@ -90,7 +90,7 @@ export default function UrunDepo({ urunId, degisti }: { urunId: number; degisti?
                   <span className="not">{tarihSaat(u.tarih)}</span>
                 </label>
               ) : (
-                <Link key={u.uretimId} href={`/izlenebilirlik?seri=${encodeURIComponent(u.seriNo)}`} className="depo-oge">
+                <Link key={u.uretimId} href={seriAdresi(u.seriNo)} className="depo-oge">
                   <span className="mono">{u.seriNo}</span>
                   <span className="not">{tarihSaat(u.tarih)}</span>
                 </Link>
