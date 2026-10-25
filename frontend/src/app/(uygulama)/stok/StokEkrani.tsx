@@ -11,10 +11,12 @@ import { parcalar, stok, type StokGrubu } from "@/lib/api";
 import { tarih } from "@/lib/bicim";
 import { useGecikmeli, useVeri } from "@/lib/kancalar";
 import MalGirisiFormu from "./MalGirisiFormu";
+import UrunStokTablosu from "./UrunStokTablosu";
 
-type Gorunum = "parca" | "lot" | "biten";
+type Gorunum = "urun" | "parca" | "lot" | "biten";
 
 const GORUNUMLER: { deger: Gorunum; ad: string }[] = [
+  { deger: "urun", ad: "Ürün bazında" },
   { deger: "parca", ad: "Parça bazında" },
   { deger: "lot", ad: "Lot bazında" },
   { deger: "biten", ad: "Tükenen lotlar" },
@@ -26,7 +28,7 @@ export default function StokEkrani() {
   const parcaKod = params.get("parca") ?? "";
   const istenen = params.get("gorunum");
   const gorunum: Gorunum =
-    istenen === "biten" ? "biten" : istenen === "lot" || (parcaKod && istenen !== "parca") ? "lot" : "parca";
+    istenen === "urun" ? "urun" : istenen === "biten" ? "biten" : istenen === "lot" || (parcaKod && istenen !== "parca") ? "lot" : "parca";
 
   const [arama, setArama] = useState(params.get("q") ?? "");
   const aranan = useGecikmeli(arama.trim());
@@ -97,7 +99,9 @@ export default function StokEkrani() {
         <Mesaj mesaj={mesaj} />
 
         <div className="tablo-kap">
-          {gorunum === "biten" ? (
+          {gorunum === "urun" ? (
+            <UrunStokTablosu aranan={aranan} />
+          ) : gorunum === "biten" ? (
             <TukenenTablosu gruplar={gruplar} aranan={aranan} />
           ) : gorunum === "lot" ? (
             <LotTablosu

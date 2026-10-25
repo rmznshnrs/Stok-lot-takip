@@ -950,3 +950,9 @@ a.akis-oge:hover { border-color: var(--ana-acik-kenar); background: var(--ana-ac
 .etiket-yazilar { display: flex; flex-direction: column; gap: 0.6mm; min-width: 0; }
 .etiket--karekod .etiket-firma { font-size: 6.5pt; }
 .etiket-gs1 { font-family: var(--mono); font-size: 7pt; line-height: 1.15; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* Tablo içinde bağlantı gibi görünen düğme (Ürün stoğunda ürün adı) */
+.btn-baglanti { border: none; background: none; padding: 0; font: inherit; font-size: 14px; color: var(--baglanti); cursor: pointer; white-space: nowrap; }
+.btn-baglanti:hover { color: var(--baglanti-koyu); text-decoration: underline; }
+
+.seri-cip--uyari { background: var(--uyari-zemin); color: var(--uyari); }

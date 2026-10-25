@@ -6,7 +6,7 @@ const ORTAK_YETKILER = [
   "Mal girişi, üretim ve satış kaydı",
   "Stok, ürün ve parça tanımları",
   "Müşteri ve tedarikçi bilgileri",
-  "İzlenebilirlik ve etiket yazdırma",
+  "Lot ve seri no sorgulama, etiket yazdırma",
 ];
 const YONETICI_YETKILERI = [
   "Kullanıcı ekleme ve düzenleme",
