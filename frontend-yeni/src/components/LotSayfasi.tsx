@@ -33,6 +33,14 @@ export default function LotSayfasi({ lotNo, geri }: { lotNo: string; geri: strin
           </div>
         )}
       </div>
+      {iz && (
+        <ol className="zincir" aria-label="İzlenebilirlik zinciri">
+          <li>{iz.lot.tedarikciAd}</li>
+          <li className="zincir--aktif mono" aria-current="step">{iz.lot.lotNo}</li>
+          <li>{iz.uretimler.length} ürün</li>
+          <li>{iz.musteriler.length} müşteri</li>
+        </ol>
+      )}
       {hata && <div className="mesaj mesaj--error">{hata}</div>}
       {iz === null && !hata && <p className="yukleniyor">Yükleniyor…</p>}
       {iz === undefined && (

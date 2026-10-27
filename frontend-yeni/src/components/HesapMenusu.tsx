@@ -2,66 +2,33 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { simdikiTema, temaUygula, type Tema } from "@/lib/tema";
 import { cikisYap } from "./Oturum";
 
-/** Üst çubuğun sağı: profil düğmesi ve yanında ⋮ menüsü (açık/koyu mod, çıkış). */
+/** Sol menünün altı: profil, açık/koyu mod ve çıkış. */
 export default function HesapMenusu() {
   const simdiki = usePathname();
-  const [acik, setAcik] = useState(false);
   const [tema, setTema] = useState<Tema>(simdikiTema);
-  const kutu = useRef<HTMLDivElement>(null);
-
-  // Dışarı tıklayınca veya Esc ile kapanır
-  useEffect(() => {
-    if (!acik) return;
-    const tikla = (e: MouseEvent) => {
-      if (!kutu.current?.contains(e.target as Node)) setAcik(false);
-    };
-    const tus = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setAcik(false);
-    };
-    document.addEventListener("mousedown", tikla);
-    document.addEventListener("keydown", tus);
-    return () => {
-      document.removeEventListener("mousedown", tikla);
-      document.removeEventListener("keydown", tus);
-    };
-  }, [acik]);
 
   function temaDegistir() {
     const yeni = tema === "koyu" ? "acik" : "koyu";
     temaUygula(yeni);
     setTema(yeni);
-    setAcik(false);
   }
 
+  const profilde = simdiki === "/profil";
   return (
-    <div className="hesap" ref={kutu}>
-      <Link href="/profil" className={`btn btn--ikincil btn--kucuk${simdiki === "/profil" ? " btn--secili" : ""}`}>
+    <div className="yan-alt">
+      <Link href="/profil" className={`yan-alt-oge yan-alt-oge--profil${profilde ? " aktif" : ""}`} aria-current={profilde ? "page" : undefined}>
         Profil
       </Link>
-      <button
-        type="button"
-        className="btn btn--ikincil btn--kucuk hesap-nokta"
-        aria-label="Diğer seçenekler"
-        aria-haspopup="menu"
-        aria-expanded={acik}
-        onClick={() => setAcik(!acik)}
-      >
-        ⋮
+      <button type="button" className="yan-alt-oge yan-alt-oge--tema" onClick={temaDegistir}>
+        {tema === "koyu" ? "Açık mod" : "Koyu mod"}
       </button>
-      {acik && (
-        <div className="hesap-menu" role="menu">
-          <button type="button" className="hesap-oge" role="menuitem" onClick={temaDegistir}>
-            {tema === "koyu" ? "Açık mod" : "Koyu mod"}
-          </button>
-          <button type="button" className="hesap-oge hesap-oge--cikis" role="menuitem" onClick={cikisYap}>
-            Çıkış
-          </button>
-        </div>
-      )}
+      <button type="button" className="yan-alt-oge yan-alt-oge--cikis" onClick={cikisYap}>
+        Çıkış
+      </button>
     </div>
   );
 }

@@ -28,26 +28,13 @@ const GRUPLAR: { ad: string | null; baglantilar: Baglanti[]; admin?: boolean }[]
   { ad: "Sistem", baglantilar: [{ yol: "/yonetim", ad: "Yönetim" }], admin: true },
 ];
 
-const DIGER: Record<string, string> = { "/profil": "Profil", "/sifre": "Şifre değiştir", "/etiket": "Etiket yazdır" };
-
 function aktifMi(yol: string, simdiki: string) {
   return yol === "/" ? simdiki === "/" : simdiki === yol || simdiki.startsWith(`${yol}/`);
 }
 
-/** Üst çubuktaki konum: "İşlemler / Stok" gibi. */
-function konum(simdiki: string) {
-  for (const g of GRUPLAR) {
-    const b = g.baglantilar.find((x) => aktifMi(x.yol, simdiki));
-    if (b) return { grup: g.ad, ad: b.ad };
-  }
-  const diger = Object.keys(DIGER).find((y) => aktifMi(y, simdiki));
-  return { grup: null, ad: diger ? DIGER[diger] : "" };
-}
-
-/** Sol menü + üst çubuk + sayfa içeriği. Sağ üst köşe (hesap menüsü) dışarıdan verilir. */
+/** Sol menü + sayfa içeriği. Menünün altı (hesap: profil, tema, çıkış) dışarıdan verilir. */
 export function UstMenuCercevesi({ admin = false, sag, children }: { admin?: boolean; sag?: ReactNode; children?: ReactNode }) {
   const simdiki = usePathname();
-  const k = konum(simdiki);
 
   return (
     <div className="duzen">
@@ -70,17 +57,9 @@ export function UstMenuCercevesi({ admin = false, sag, children }: { admin?: boo
             </div>
           ))}
         </nav>
+        {sag}
       </aside>
-      <div className="govde">
-        <header className="ust">
-          <div className="ust-konum">
-            {k.grup && <span>{k.grup} / </span>}
-            <strong>{k.ad}</strong>
-          </div>
-          {sag}
-        </header>
-        {children}
-      </div>
+      <div className="govde">{children}</div>
     </div>
   );
 }
