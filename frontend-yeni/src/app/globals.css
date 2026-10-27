@@ -1237,3 +1237,66 @@ a:hover { color: var(--baglanti-koyu); }
 /* Menü (hesap) */
 .hesap-menu { border: 1px solid var(--kenar); border-radius: 8px; box-shadow: var(--golge); }
 .hesap-oge:hover { background: var(--ana-acik); color: var(--ana-koyu); }
+
+/* ===========================================================================
+   Kimlik dokunuşları (yerleşim aynı): ikonlu menü, kutu sekmeler, çizgili tablolar
+   =========================================================================== */
+
+/* Logo: küçük yeşil işaret */
+.yan-logo { display: flex; align-items: center; gap: 10px; }
+.yan-logo::before {
+  content: ""; width: 26px; height: 26px; border-radius: 7px; flex-shrink: 0;
+  background: var(--ana) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 18V7l7 6 7-6v11'/%3E%3C/svg%3E") center / 16px no-repeat;
+}
+
+/* Menü: her bağlantının önünde çizgi ikon */
+.yan-menu nav a { display: flex; align-items: center; gap: 10px; }
+.yan-menu nav a::before {
+  content: ""; width: 17px; height: 17px; flex-shrink: 0; background: currentColor; opacity: 0.75;
+  -webkit-mask: center / contain no-repeat; mask: center / contain no-repeat;
+}
+.yan-menu nav a.aktif::before { opacity: 1; background: var(--ana); }
+.yan-menu nav a[href="/"]::before { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 11l9-7 9 7'/%3E%3Cpath d='M5 10v10h14V10'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 11l9-7 9 7'/%3E%3Cpath d='M5 10v10h14V10'/%3E%3C/svg%3E"); }
+.yan-menu nav a[href="/uretim"]::before { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='3'/%3E%3Cpath d='M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='3'/%3E%3Cpath d='M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1'/%3E%3C/svg%3E"); }
+.yan-menu nav a[href="/stok"]::before { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 7l9-4 9 4-9 4-9-4z'/%3E%3Cpath d='M3 7v10l9 4 9-4V7'/%3E%3Cpath d='M12 11v10'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 7l9-4 9 4-9 4-9-4z'/%3E%3Cpath d='M3 7v10l9 4 9-4V7'/%3E%3Cpath d='M12 11v10'/%3E%3C/svg%3E"); }
+.yan-menu nav a[href="/satis"]::before { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 4h2l2.4 11h10.2L20 8H6.2'/%3E%3Ccircle cx='9' cy='19' r='1.5'/%3E%3Ccircle cx='17' cy='19' r='1.5'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 4h2l2.4 11h10.2L20 8H6.2'/%3E%3Ccircle cx='9' cy='19' r='1.5'/%3E%3Ccircle cx='17' cy='19' r='1.5'/%3E%3C/svg%3E"); }
+.yan-menu nav a[href="/urunler"]::before { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='4' y='4' width='16' height='16' rx='2'/%3E%3Cpath d='M9 4v6l3-2 3 2V4'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='4' y='4' width='16' height='16' rx='2'/%3E%3Cpath d='M9 4v6l3-2 3 2V4'/%3E%3C/svg%3E"); }
+.yan-menu nav a[href="/parcalar"]::before { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='7' y='7' width='10' height='10' rx='1'/%3E%3Cpath d='M10 3v4M14 3v4M10 17v4M14 17v4M3 10h4M3 14h4M17 10h4M17 14h4'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='7' y='7' width='10' height='10' rx='1'/%3E%3Cpath d='M10 3v4M14 3v4M10 17v4M14 17v4M3 10h4M3 14h4M17 10h4M17 14h4'/%3E%3C/svg%3E"); }
+.yan-menu nav a[href="/yonetim"]::before { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='9' cy='8' r='3.5'/%3E%3Cpath d='M2.5 20c.8-3.5 3.4-5.5 6.5-5.5s5.7 2 6.5 5.5'/%3E%3Cpath d='M17 11l1.5 1.5L21.5 9'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='9' cy='8' r='3.5'/%3E%3Cpath d='M2.5 20c.8-3.5 3.4-5.5 6.5-5.5s5.7 2 6.5 5.5'/%3E%3Cpath d='M17 11l1.5 1.5L21.5 9'/%3E%3C/svg%3E"); }
+
+/* Sayfa başlığı: altında kısa yeşil çizgi */
+.sayfa-bas h1, .ust-sekme-satiri h1 { position: relative; padding-bottom: 6px; }
+.sayfa-bas h1::after, .ust-sekme-satiri h1::after {
+  content: ""; position: absolute; left: 0; bottom: 0; width: 28px; height: 3px; border-radius: 2px; background: var(--ana);
+}
+
+/* Sekmeler: alt çizgi yerine kutu (segment) görünümü */
+.sekmeler, .ust-sekme-satiri .sekmeler {
+  display: inline-flex; width: auto; gap: 2px; padding: 3px; border: 1px solid var(--kenar); border-bottom: 1px solid var(--kenar);
+  border-radius: 8px; background: #F3F9F7;
+}
+:root[data-tema="koyu"] .sekmeler { background: var(--serit); }
+.panel .sekmeler { margin: 10px 14px 0; padding: 3px; }
+.sekme, .sekmeler--buyuk .sekme, button.sekme {
+  padding: 6px 14px; border: 0; border-bottom: 0; margin: 0; border-radius: 6px; font-size: 13px; color: var(--metin-ikincil);
+}
+.sekme--aktif, .sekmeler--buyuk .sekme--aktif, button.sekme.sekme--aktif {
+  background: var(--kart); color: var(--ana-koyu); font-weight: 600; box-shadow: 0 0 0 1px var(--kenar);
+}
+.ust-sekme-satiri .sekmeler { margin-bottom: 4px; }
+
+/* Panel başlığı: hafif yeşil şerit */
+.panel-bas { background: #F7FBF9; border-radius: 10px 10px 0 0; }
+:root[data-tema="koyu"] .panel-bas { background: var(--serit); }
+
+/* Tablolar: başlık küçük harf aralıklı, satırlar hafif çizgili */
+.tablo th { text-transform: uppercase; font-size: 11px; letter-spacing: 0.04em; }
+.tablo tbody tr:nth-child(even) > td { background: #FAFDFC; }
+:root[data-tema="koyu"] .tablo tbody tr:nth-child(even) > td { background: #141C19; }
+.tablo tbody tr.uyari-satir > td { background: var(--uyari-satir); }
+.tablo--girisler tbody tr > td, .tablo--girisler tbody tr:nth-child(even) > td { background: var(--kart); }
+
+/* Özet kutuları: solda renkli şerit, büyük sayı */
+.ozet-kutu { border-left: 4px solid var(--ana); padding: 14px 16px; }
+.ozet-kutu b { font-size: 26px; }
+.ozet-kutu--dikkat { border-left-color: var(--uyari); }
