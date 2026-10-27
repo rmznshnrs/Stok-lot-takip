@@ -24,8 +24,8 @@ public interface IIzlemeServisi
 
     /// <summary>
     /// Yalnız Admin: lotu hatalı (sorunlu) işaretler (açıklama zorunlu) ve kalan parçaların üretimde kullanılıp
-    /// kullanılmayacağını belirler; Sorunlu=false hatayı kaldırır. İlk işaretlemede bu lottan parça taşıyan
-    /// (hurdaya ayrılmamış, açık geri çağırması olmayan) bütün ürünler aynı işlemde geri çağrılır.
+    /// kullanılmayacağını belirler; Sorunlu=false hatayı kaldırır. Ürünler kendiliğinden geri çağrılmaz;
+    /// yalnız GeriCagrilacaklar'da seçilen (bu lottan parça taşıyan) seri numaraları aynı işlemde geri çağrılır.
     /// </summary>
     Task<LotSorunSonucuDto> LotSorunAsync(string lotNo, LotSorunIstek istek, int kullaniciId, CancellationToken ct = default);
 }
@@ -100,7 +100,7 @@ public class IzlemeServisi(AppDbContext db) : IIzlemeServisi
                 : new HurdaBilgisiDto(h.Tur.ToString(), h.Aciklama, h.OlusturmaZamani, $"{h.OlusturanKullanici!.Ad} {h.OlusturanKullanici.Soyad}"),
             [.. uretim.Iadeler.OrderBy(i => i.OlusturmaZamani).Select(i => new IadeBilgisiDto(i.Satis!.Musteri!.Ad, i.Satis.Tarih,
                 i.OlusturmaZamani, i.Aciklama, $"{i.OlusturanKullanici!.Ad} {i.OlusturanKullanici.Soyad}"))],
-            (await geri.ListeAsync(ct: ct)).Where(g => g.SeriNo == uretim.SeriNo).FirstOrDefault());
+            (await geri.ListeAsync(ct: ct)).Where(g => g.SeriNo == uretim.SeriNo).FirstOrDefault(), uretim.LotNo);
     }
 
     public async Task<NumaraAramaDto> NumaraAraAsync(string metin, CancellationToken ct = default)
@@ -113,13 +113,24 @@ public class IzlemeServisi(AppDbContext db) : IIzlemeServisi
             return new("lot", lot, []);
         if (await db.Uretimler.Where(u => u.SeriNo == m).Select(u => u.SeriNo).FirstOrDefaultAsync(ct) is { } seri)
             return new("seri", seri, []);
+        if (await db.Uretimler.Where(u => u.LotNo == m).Select(u => u.LotNo).FirstOrDefaultAsync(ct) is { } urunLot)
+            return new("urunlot", urunLot, []);
         if (await db.Parcalar.Where(p => p.Kod == m).Select(p => p.Kod).FirstOrDefaultAsync(ct) is { } kod)
             return new("parca", kod, []);
+        // Tedarikçinin lot numarası: tek girişe aitse o giriş, birden fazlaysa hepsi aday
+        var tedarikciLotu = await db.StokLotlari.Where(l => l.TedarikciLotNo == m).OrderBy(l => l.LotNo)
+            .Select(l => l.LotNo).Take(10).ToListAsync(ct);
+        if (tedarikciLotu.Count == 1)
+            return new("lot", tedarikciLotu[0], []);
+        if (tedarikciLotu.Count > 1)
+            return new(null, null, [.. tedarikciLotu.Select(x => new AdayDto("lot", x))]);
 
         var adaylar = (await db.StokLotlari.Where(l => EF.Functions.Like(l.LotNo, Arama.Desen(m))).OrderBy(l => l.LotNo)
                 .Select(l => l.LotNo).Take(10).ToListAsync(ct)).Select(x => new AdayDto("lot", x))
             .Concat((await db.Uretimler.Where(u => EF.Functions.Like(u.SeriNo, Arama.Desen(m))).OrderBy(u => u.SeriNo)
                 .Select(u => u.SeriNo).Take(10).ToListAsync(ct)).Select(x => new AdayDto("seri", x)))
+            .Concat((await db.Uretimler.Where(u => EF.Functions.Like(u.LotNo, Arama.Desen(m))).Select(u => u.LotNo)
+                .Distinct().OrderBy(x => x).Take(10).ToListAsync(ct)).Select(x => new AdayDto("urunlot", x)))
             .ToList();
         return adaylar.Count == 1 ? new(adaylar[0].Tur, adaylar[0].Deger, []) : new(null, null, adaylar);
     }
@@ -139,12 +150,16 @@ public class IzlemeServisi(AppDbContext db) : IIzlemeServisi
         // Tek seferde yapılan üretimler aynı Tarih'i taşır → (ürün, tarih) grubu tek satır
         var uretimler = await db.Uretimler.AsNoTracking()
             .OrderByDescending(u => u.Tarih).ThenByDescending(u => u.Id).Take(adet * 20)
-            .Select(u => new { u.Id, u.UrunId, UrunAd = u.Urun!.Ad, u.Tarih, u.SeriNo }).ToListAsync(ct);
+            .Select(u => new { u.Id, u.UrunId, UrunAd = u.Urun!.Ad, u.Tarih, u.SeriNo, u.LotNo }).ToListAsync(ct);
         foreach (var g in uretimler.GroupBy(u => (u.UrunId, u.Tarih)).Take(adet))
         {
             var seriler = g.Select(u => u.SeriNo).Order().ToList();
-            hareketler.Add((new HareketDto("uretim", Zaman.YerelTarih(g.Key.Tarih), $"{g.First().UrunAd} · {seriler.Count} adet",
-                Aralik(seriler), seriler[0], "seri"), 1, g.Max(u => u.Id)));
+            var lotNo = g.First().LotNo;
+            hareketler.Add((lotNo.Length > 0
+                ? new HareketDto("uretim", Zaman.YerelTarih(g.Key.Tarih),
+                    $"{g.First().UrunAd} · {seriler.Count} adet · {Aralik(seriler)}", lotNo, lotNo, "urunlot")
+                : new HareketDto("uretim", Zaman.YerelTarih(g.Key.Tarih), $"{g.First().UrunAd} · {seriler.Count} adet",
+                    Aralik(seriler), seriler[0], "seri"), 1, g.Max(u => u.Id)));
         }
 
         var satislar = await db.Satislar.AsNoTracking()
@@ -176,7 +191,7 @@ public class IzlemeServisi(AppDbContext db) : IIzlemeServisi
         var no = (lotNo ?? "").Trim();
         var aciklama = (istek.Aciklama ?? "").Trim();
         if (istek.Sorunlu && aciklama.Length == 0)
-            throw new IsKuraliHatasi("Hatalı lotta açıklama zorunludur.");
+            throw new IsKuraliHatasi("Açıklama girin.");
         return Islem.CalistirAsync(db, async () =>
         {
             var admin = await Kullanicilar.AdminGetirAsync(db, kullaniciId, "Hatalı lot işaretleme", ct);
@@ -187,32 +202,30 @@ public class IzlemeServisi(AppDbContext db) : IIzlemeServisi
             if (istek.Sorunlu)
             {
                 if (!lot.Sorunlu)
-                {
-                    var zaman = Zaman.Simdi();
-                    (lot.SorunZamani, lot.SorunIsaretleyen) = (zaman, admin);
-                    // Bu lottan parça taşıyan ürünler kendiliğinden geri çağrılır
-                    var uretimler = await db.UretimTuketimleri.Where(t => t.StokLotuId == lot.Id)
-                        .Select(t => t.Uretim!)
-                        .Where(u => u.Hurda == null && !u.GeriCagirmalar.Any(g => g.KapanmaZamani == null))
-                        .Distinct().OrderBy(u => u.SeriNo).ToListAsync(ct);
-                    foreach (var u in uretimler)
-                    {
-                        db.UrunGeriCagirmalari.Add(new UrunGeriCagirma
-                        {
-                            UretimId = u.Id, StokLotuId = lot.Id, Aciklama = $"{lot.LotNo} hatalı: {aciklama}",
-                            OlusturanKullanici = admin, OlusturmaZamani = zaman,
-                        });
-                    }
-                    geriCagrilan = [.. uretimler.Select(u => u.SeriNo)];
-                }
+                    (lot.SorunZamani, lot.SorunIsaretleyen) = (Zaman.Simdi(), admin);
                 (lot.Sorunlu, lot.SorunAciklama, lot.GeriCagrildi) = (true, aciklama, !istek.UretimdeKullan);
+                await db.SaveChangesAsync(ct);  // RowVersion: aynı anda üretim olursa yeniden denenir
+
+                // Ürünler kendiliğinden geri çağrılmaz; yalnız seçilenler (bu lottan parça taşıyanlardan)
+                var secilen = SeriListesi.Temizle(istek.GeriCagrilacaklar);
+                if (secilen.Count > 0)
+                {
+                    var bulunan = await db.UretimTuketimleri
+                        .Where(t => t.StokLotuId == lot.Id && secilen.Contains(t.Uretim!.SeriNo))
+                        .Select(t => t.Uretim!.SeriNo).Distinct().ToListAsync(ct);
+                    var yabanci = secilen.Where(s => !bulunan.Contains(s, StringComparer.OrdinalIgnoreCase)).ToList();
+                    if (yabanci.Count > 0)
+                        throw new IsKuraliHatasi($"Bu girişle ilgisi yok: {string.Join(", ", yabanci)}");
+                    geriCagrilan = [.. (await geri.GeriCagirAsync(
+                        new GeriCagirmaIstek(bulunan, $"{lot.LotNo} hatalı: {aciklama}", lot.LotNo), kullaniciId, ct)).Select(g => g.SeriNo)];
+                }
             }
             else
             {
                 (lot.Sorunlu, lot.SorunAciklama, lot.GeriCagrildi, lot.SorunZamani, lot.SorunIsaretleyenId) =
                     (false, "", false, null, null);
+                await db.SaveChangesAsync(ct);
             }
-            await db.SaveChangesAsync(ct);  // RowVersion: aynı anda üretim olursa yeniden denenir
             return new LotSorunSonucuDto(Donusum.Lot(lot), geriCagrilan);
         }, ct);
     }

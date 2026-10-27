@@ -23,8 +23,8 @@ public class SemaTestleri(TestVeritabani vt) : VeritabaniTesti(vt)
         var tablolar = await Db.Database.SqlQueryRaw<string>(
             "SELECT name AS Value FROM sys.tables WHERE name <> '__EFMigrationsHistory'").ToListAsync();
         Assert.Equal(
-            ["Kullanici", "Musteri", "Parca", "Satis", "SatisIade", "SatisKalemi", "StokDuzeltme", "StokLotu",
-             "Tedarikci", "Uretim", "UretimHurda", "UretimTuketim", "Urun", "UrunAgaci", "UrunGeriCagirma"],
+            ["Kullanici", "Musteri", "Parca", "Satis", "SatisIade", "SatisKalemi", "SifreSifirlama", "StokDuzeltme", "StokLotu",
+             "Tedarikci", "Uretim", "UretimHurda", "UretimTuketim", "Urun", "UrunAgaci", "UrunGeriCagirma", "UrunLotSorunu"],
             tablolar.Order());
     }
 
@@ -103,10 +103,13 @@ public class OrnekVeriTestleri(TestVeritabani vt) : VeritabaniTesti(vt)
         await uretim.HurdayaAyirAsync(new UretimHurdaIstek(["SN-IP-0005"], "Hurda", "x"), admin.Id);
         var satisId = await Db.SatisKalemleri.Where(k => k.Uretim!.SeriNo == "SN-IP-0001").Select(k => k.SatisId).SingleAsync();
         await new SatisServisi(Db).IadeAlAsync(satisId, new SatisIadeIstek(["SN-IP-0001"], "x"), admin.Id);
-        Assert.NotEmpty((await new IzlemeServisi(Db).LotSorunAsync("L-D-2601", new LotSorunIstek(true, false, "x"), admin.Id)).GeriCagrilanSeriNolar);
+        Assert.NotEmpty((await new IzlemeServisi(Db).LotSorunAsync("L-D-2601", new LotSorunIstek(true, false, "x", ["SN-IP-0003"]), admin.Id)).GeriCagrilanSeriNolar);
+        var urunLotu = await Db.Uretimler.Select(u => u.LotNo).FirstAsync();
+        await new UrunLotServisi(Db, new GeriCagirmaServisi(Db)).SorunAsync(urunLotu, new UrunLotSorunIstek(true, "x"), admin.Id);
         Db.ChangeTracker.Clear();
         var s = await OrnekVeri.Olustur(Db).YukleAsync(adminSifre: null, sifirla: true);
-        Assert.Equal(0, await Db.UrunGeriCagirmalari.CountAsync() + await Db.SatisIadeleri.CountAsync() + await Db.UretimHurdalari.CountAsync());
+        Assert.Equal(0, await Db.UrunGeriCagirmalari.CountAsync() + await Db.SatisIadeleri.CountAsync() + await Db.UretimHurdalari.CountAsync()
+                        + await Db.UrunLotSorunlari.CountAsync());
         Assert.Equal(9, s.Uretim);
         Assert.Equal(10, await Db.StokLotlari.CountAsync());
         Assert.Equal(1, await Db.Kullanicilar.CountAsync());  // kullanıcılar silinmez

@@ -36,10 +36,17 @@ namespace LotTakip.DataAccess.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
+                    b.Property<string>("Eposta")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
                     b.Property<string>("KullaniciAdi")
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
+
+                    b.Property<bool>("Onayli")
+                        .HasColumnType("bit");
 
                     b.Property<string>("Rol")
                         .IsRequired()
@@ -57,6 +64,10 @@ namespace LotTakip.DataAccess.Migrations
                         .HasColumnType("nvarchar(100)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("Eposta")
+                        .IsUnique()
+                        .HasFilter("[Eposta] IS NOT NULL");
 
                     b.HasIndex("KullaniciAdi")
                         .IsUnique();
@@ -77,10 +88,26 @@ namespace LotTakip.DataAccess.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
-                    b.Property<string>("Iletisim")
+                    b.Property<string>("Adres")
                         .IsRequired()
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("Eposta")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("Iletisim")
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("nvarchar(max)")
+                        .HasComputedColumnSql("CONCAT_WS(N' · ', NULLIF([Telefon], N''), NULLIF([Eposta], N''), NULLIF([Adres], N''))");
+
+                    b.Property<string>("Telefon")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.HasKey("Id");
 
@@ -211,6 +238,41 @@ namespace LotTakip.DataAccess.Migrations
                     b.ToTable("SatisKalemi", (string)null);
                 });
 
+            modelBuilder.Entity("LotTakip.Entity.SifreSifirlama", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("KodOzeti")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<int>("KullaniciId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset?>("KullanilmaZamani")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<DateTimeOffset>("OlusturmaZamani")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<DateTimeOffset>("SonGecerlilik")
+                        .HasColumnType("datetimeoffset");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("KodOzeti")
+                        .IsUnique();
+
+                    b.HasIndex("KullaniciId");
+
+                    b.ToTable("SifreSifirlama", (string)null);
+                });
+
             modelBuilder.Entity("LotTakip.Entity.StokDuzeltme", b =>
                 {
                     b.Property<int>("Id")
@@ -223,6 +285,9 @@ namespace LotTakip.DataAccess.Migrations
                         .IsRequired()
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
+
+                    b.Property<int>("HataliAdet")
+                        .HasColumnType("int");
 
                     b.Property<int>("Miktar")
                         .HasColumnType("int");
@@ -251,7 +316,9 @@ namespace LotTakip.DataAccess.Migrations
                         {
                             t.HasCheckConstraint("CK_StokDuzeltme_Aciklama", "LEN([Aciklama]) > 0");
 
-                            t.HasCheckConstraint("CK_StokDuzeltme_Miktar", "[Miktar] <> 0");
+                            t.HasCheckConstraint("CK_StokDuzeltme_HataliAdet", "[HataliAdet] >= 0");
+
+                            t.HasCheckConstraint("CK_StokDuzeltme_Miktar", "[Miktar] <> 0 OR [HataliAdet] > 0");
                         });
                 });
 
@@ -320,6 +387,11 @@ namespace LotTakip.DataAccess.Migrations
                     b.Property<int>("TedarikciId")
                         .HasColumnType("int");
 
+                    b.Property<string>("TedarikciLotNo")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
                     b.HasKey("Id");
 
                     b.HasIndex("LotNo")
@@ -330,6 +402,8 @@ namespace LotTakip.DataAccess.Migrations
                     b.HasIndex("SorunIsaretleyenId");
 
                     b.HasIndex("TedarikciId");
+
+                    b.HasIndex("TedarikciLotNo");
 
                     b.HasIndex("ParcaId", "GeriCagrildi", "SiparisTarihi", "Id");
 
@@ -354,10 +428,26 @@ namespace LotTakip.DataAccess.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
-                    b.Property<string>("Iletisim")
+                    b.Property<string>("Adres")
                         .IsRequired()
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("Eposta")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("Iletisim")
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("nvarchar(max)")
+                        .HasComputedColumnSql("CONCAT_WS(N' · ', NULLIF([Telefon], N''), NULLIF([Eposta], N''), NULLIF([Adres], N''))");
+
+                    b.Property<string>("Telefon")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.HasKey("Id");
 
@@ -374,6 +464,11 @@ namespace LotTakip.DataAccess.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("LotNo")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<int>("OlusturanKullaniciId")
                         .HasColumnType("int");
@@ -393,6 +488,8 @@ namespace LotTakip.DataAccess.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("LotNo");
 
                     b.HasIndex("OlusturanKullaniciId");
 
@@ -542,6 +639,9 @@ namespace LotTakip.DataAccess.Migrations
                     b.Property<int?>("KapatanKullaniciId")
                         .HasColumnType("int");
 
+                    b.Property<bool>("MusteriyeVerildi")
+                        .HasColumnType("bit");
+
                     b.Property<int>("OlusturanKullaniciId")
                         .HasColumnType("int");
 
@@ -569,6 +669,53 @@ namespace LotTakip.DataAccess.Migrations
                     b.ToTable("UrunGeriCagirma", null, t =>
                         {
                             t.HasCheckConstraint("CK_UrunGeriCagirma_Aciklama", "LEN([Aciklama]) > 0");
+                        });
+                });
+
+            modelBuilder.Entity("LotTakip.Entity.UrunLotSorunu", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Aciklama")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<int>("HataliAdet")
+                        .HasColumnType("int");
+
+                    b.Property<string>("LotNo")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<int>("OlusturanKullaniciId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("OlusturmaZamani")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int>("UrunId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LotNo")
+                        .IsUnique();
+
+                    b.HasIndex("OlusturanKullaniciId");
+
+                    b.HasIndex("UrunId");
+
+                    b.ToTable("UrunLotSorunu", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_UrunLotSorunu_Aciklama", "LEN([Aciklama]) > 0");
+
+                            t.HasCheckConstraint("CK_UrunLotSorunu_HataliAdet", "[HataliAdet] >= 0");
                         });
                 });
 
@@ -635,6 +782,17 @@ namespace LotTakip.DataAccess.Migrations
                     b.Navigation("Satis");
 
                     b.Navigation("Uretim");
+                });
+
+            modelBuilder.Entity("LotTakip.Entity.SifreSifirlama", b =>
+                {
+                    b.HasOne("LotTakip.Entity.Kullanici", "Kullanici")
+                        .WithMany()
+                        .HasForeignKey("KullaniciId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Kullanici");
                 });
 
             modelBuilder.Entity("LotTakip.Entity.StokDuzeltme", b =>
@@ -797,6 +955,25 @@ namespace LotTakip.DataAccess.Migrations
                     b.Navigation("StokLotu");
 
                     b.Navigation("Uretim");
+                });
+
+            modelBuilder.Entity("LotTakip.Entity.UrunLotSorunu", b =>
+                {
+                    b.HasOne("LotTakip.Entity.Kullanici", "OlusturanKullanici")
+                        .WithMany()
+                        .HasForeignKey("OlusturanKullaniciId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("LotTakip.Entity.Urun", "Urun")
+                        .WithMany()
+                        .HasForeignKey("UrunId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("OlusturanKullanici");
+
+                    b.Navigation("Urun");
                 });
 
             modelBuilder.Entity("LotTakip.Entity.Musteri", b =>

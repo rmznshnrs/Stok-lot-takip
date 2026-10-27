@@ -9,13 +9,24 @@ public class GeriCagirmaTestleri(TestVeritabani vt) : IsKuraliTesti(vt)
     private GeriCagirmaServisi Geri => new(Db);
 
     [Fact]
-    public async Task Hatali_lot_isaretlenince_urunler_kendiliginden_geri_cagrilir()
+    public async Task Hatali_lot_isaretlenince_yalniz_secilen_urunler_geri_cagrilir()
     {
         await Uretim.UretAsync(Urun.Id, 4, Kullanici.Id);  // 0001-0003 diyot ESKI, 0004 YENI lottan
         await Satis.SatAsync(new SatisIstek("Atlas", ["SN-IP-0001", "SN-IP-0002"], new(2026, 5, 1)), Kullanici.Id);
-        await Uretim.HurdayaAyirAsync(new UretimHurdaIstek(["SN-IP-0003"], "Hurda", "Kırık"), Admin.Id);  // hurda çağrılmaz
+        await Uretim.HurdayaAyirAsync(new UretimHurdaIstek(["SN-IP-0003"], "Hurda", "Kırık"), Admin.Id);  // hurda çağrılamaz
 
-        var sonuc = await Izleme.LotSorunAsync("L-D-ESKI", new LotSorunIstek(true, false, "Diyot kısa devre"), Admin.Id);
+        // Seçim yoksa hiçbir ürün geri çağrılmaz; yanlış seçimde hiçbir şey değişmez
+        Assert.Empty((await Izleme.LotSorunAsync("L-D-ESKI", new LotSorunIstek(true, false, "Diyot kısa devre"), Admin.Id)).GeriCagrilanSeriNolar);
+        Assert.Equal(0, await Db.UrunGeriCagirmalari.CountAsync());
+        var hata = await Assert.ThrowsAsync<IsKuraliHatasi>(() => Izleme.LotSorunAsync("L-D-ESKI",
+            new LotSorunIstek(true, false, "Diyot kısa devre", ["SN-IP-0001", "SN-IP-0004"]), Admin.Id));
+        Assert.Contains("SN-IP-0004", hata.Message);
+        await Assert.ThrowsAsync<IsKuraliHatasi>(() => Izleme.LotSorunAsync("L-D-ESKI",
+            new LotSorunIstek(true, false, "Diyot kısa devre", ["SN-IP-0003"]), Admin.Id));
+        Assert.Equal(0, await Db.UrunGeriCagirmalari.CountAsync());
+
+        var sonuc = await Izleme.LotSorunAsync("L-D-ESKI",
+            new LotSorunIstek(true, false, "Diyot kısa devre", ["sn-ip-0002", "SN-IP-0001"]), Admin.Id);
         Assert.Equal(["SN-IP-0001", "SN-IP-0002"], sonuc.GeriCagrilanSeriNolar);
         var kayit = await Geri.ListeAsync();
         Assert.Equal(["SN-IP-0001", "SN-IP-0002"], kayit.Select(k => k.SeriNo).Order());

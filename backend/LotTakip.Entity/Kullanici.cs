@@ -15,4 +15,8 @@ public class Kullanici
     /// <summary>BCrypt özeti; şifrenin kendisi saklanmaz.</summary>
     public required string SifreHash { get; set; }
     public KullaniciRolu Rol { get; set; } = KullaniciRolu.Kullanici;
+    /// <summary>Şifre sıfırlama bağlantısının gideceği adres (isteğe bağlı, tekil).</summary>
+    public string? Eposta { get; set; }
+    /// <summary>Kendi kaydolan kullanıcı yönetici onaylayana kadar false; giriş yapamaz.</summary>
+    public bool Onayli { get; set; } = true;
 }

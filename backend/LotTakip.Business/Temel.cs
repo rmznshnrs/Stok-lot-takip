@@ -36,6 +36,25 @@ public class GeriCagrilanLotOnayiGerekliHatasi(IReadOnlyList<SatisUyarisiDto> uy
 
 // --- Transaction ve yeniden deneme -----------------------------------------------
 
+/// <summary>Önek + sıra biçimindeki numaralar (SG-0001, U1-0001, U1-L001).</summary>
+internal static class Sira
+{
+    /// <summary>Önekten sonrası yalnız rakam olan numaraların en büyüğü; hiç yoksa 0.</summary>
+    public static int EnBuyuk(IEnumerable<string> numaralar, string onek) => numaralar
+        .Where(s => s.StartsWith(onek, StringComparison.OrdinalIgnoreCase))
+        .Select(s => s[onek.Length..])
+        .Where(son => son.Length > 0 && son.All(char.IsAsciiDigit))
+        .Select(son => int.TryParse(son, out var n) ? n : 0)
+        .DefaultIfEmpty(0).Max();
+}
+
+internal static class SeriListesi
+{
+    /// <summary>Boşları atar, kırpar, büyük/küçük harf farkıyla tekrarları birleştirir.</summary>
+    public static List<string> Temizle(IEnumerable<string?>? seriler) =>
+        [.. (seriler ?? []).Select(s => (s ?? "").Trim()).Where(s => s.Length > 0).Distinct(StringComparer.OrdinalIgnoreCase)];
+}
+
 internal static class Islem
 {
     private const int DenemeSayisi = 3;
@@ -117,7 +136,7 @@ internal static class Donusum
     /// <summary>Lot → DTO. Lotun Parca ve Tedarikci'si yüklenmiş olmalı.</summary>
     public static LotDto Lot(StokLotu l, bool sirada = false) => new(
         l.Id, l.LotNo, l.ParcaId, l.Parca!.Kod, l.Parca.Ad, l.Tedarikci!.Ad, l.SiparisTarihi, l.SiparisNo,
-        l.GirisAdet, l.KalanAdet, l.GeriCagrildi, l.GirisZamani, sirada, l.Sorunlu, l.SorunAciklama);
+        l.GirisAdet, l.KalanAdet, l.GeriCagrildi, l.GirisZamani, sirada, l.Sorunlu, l.SorunAciklama, l.TedarikciLotNo);
 
     /// <summary>Ad ve kodlarda baştaki/sondaki ve ardışık boşlukları temizler.</summary>
     public static string Sadelestir(string? metin) => string.Join(' ', (metin ?? "").Split(' ', StringSplitOptions.RemoveEmptyEntries)).Trim();
@@ -135,7 +154,7 @@ internal static class Kullanicilar
     {
         var k = await GetirAsync(db, kullaniciId, ct);
         if (k.Rol != KullaniciRolu.Admin)
-            throw new YetkiHatasi($"{islem} yalnızca Admin yetkisiyle yapılabilir.");
+            throw new YetkiHatasi($"{islem} için yönetici yetkisi gerekir.");
         return k;
     }
 }

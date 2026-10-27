@@ -100,22 +100,26 @@ public class TanimServisi(AppDbContext db, IStokServisi stok) : ITanimServisi
     {
         var kod = (istek.Kod ?? "").Trim();
         var ad = Donusum.Sadelestir(istek.Ad);
-        var onek = (istek.SeriOneki ?? "").Trim();
-        if (kod.Length == 0 || ad.Length == 0 || onek.Length == 0)
-            throw new IsKuraliHatasi("Ürün kodu, adı ve seri no öneki boş olamaz.");
+        var verilenOnek = (istek.SeriOneki ?? "").Trim();
+        if (kod.Length == 0 || ad.Length == 0)
+            throw new IsKuraliHatasi("Ürün kodu ve adı boş olamaz.");
 
         var urunId = await Islem.CalistirAsync(db, async () =>
         {
             var urun = id is null
-                ? db.Urunler.Add(new Urun { Kod = kod, Ad = ad, SeriOneki = onek }).Entity
+                ? db.Urunler.Add(new Urun { Kod = kod, Ad = ad, SeriOneki = "" }).Entity
                 : await db.Urunler.SingleOrDefaultAsync(u => u.Id == id, ct) ?? throw new BulunamadiHatasi("Ürün bulunamadı.");
+            // Önek verilmezse: yeni üründe ürün kodu + "-" (U1 → U1-0001), var olan üründe olduğu gibi kalır
+            var onek = verilenOnek.Length > 0 ? verilenOnek : id is null ? kod + "-" : urun.SeriOneki;
             if (await db.Urunler.AnyAsync(u => u.Kod == kod && u.Id != urun.Id, ct))
                 throw new IsKuraliHatasi("Bu kodla bir ürün zaten var.");
             if (await db.Urunler.AnyAsync(u => u.SeriOneki == onek && u.Id != urun.Id, ct))
-                throw new IsKuraliHatasi("Bu seri no öneki başka bir üründe kullanılıyor.");
+                throw new IsKuraliHatasi(verilenOnek.Length > 0
+                    ? "Bu seri no öneki başka bir üründe kullanılıyor."
+                    : "Bu ürün kodu daha önce kullanılmış.");
             if (id is not null && !string.Equals(urun.SeriOneki, onek, StringComparison.OrdinalIgnoreCase)
                 && await db.Uretimler.AnyAsync(u => u.UrunId == urun.Id, ct))
-                throw new IsKuraliHatasi("Bu üründen üretim yapıldığı için seri no öneki değiştirilemez.");
+                throw new IsKuraliHatasi("Üretim yapıldığı için seri no öneki değişemez.");
             (urun.Kod, urun.Ad, urun.SeriOneki) = (kod, ad, onek);
             await db.SaveChangesAsync(ct);
             return urun.Id;
@@ -161,14 +165,16 @@ public class TanimServisi(AppDbContext db, IStokServisi stok) : ITanimServisi
     // --- Listeler (seçim kutuları için) --------------------------------------------
 
     public Task<List<IletisimDto>> TedarikcilerAsync(CancellationToken ct = default) =>
-        db.Tedarikciler.AsNoTracking().OrderBy(t => t.Ad).Select(t => new IletisimDto(t.Id, t.Ad, t.Iletisim)).ToListAsync(ct);
+        db.Tedarikciler.AsNoTracking().OrderBy(t => t.Ad)
+            .Select(t => new IletisimDto(t.Id, t.Ad, t.Iletisim, t.Telefon, t.Eposta, t.Adres)).ToListAsync(ct);
 
     public Task<List<IletisimDto>> MusterilerAsync(CancellationToken ct = default) =>
-        db.Musteriler.AsNoTracking().OrderBy(m => m.Ad).Select(m => new IletisimDto(m.Id, m.Ad, m.Iletisim)).ToListAsync(ct);
+        db.Musteriler.AsNoTracking().OrderBy(m => m.Ad)
+            .Select(m => new IletisimDto(m.Id, m.Ad, m.Iletisim, m.Telefon, m.Eposta, m.Adres)).ToListAsync(ct);
 
     public Task<IletisimDto> MusteriKaydetAsync(int? id, IletisimIstek istek, CancellationToken ct = default)
     {
-        var (ad, iletisim) = IletisimKontrol(istek);
+        var (ad, telefon, eposta, adres) = IletisimKontrol(istek);
         return Islem.CalistirAsync(db, async () =>
         {
             var m = id is null
@@ -176,15 +182,15 @@ public class TanimServisi(AppDbContext db, IStokServisi stok) : ITanimServisi
                 : await db.Musteriler.SingleOrDefaultAsync(x => x.Id == id, ct) ?? throw new BulunamadiHatasi("Müşteri bulunamadı.");
             if (await db.Musteriler.AnyAsync(x => x.Ad == ad && x.Id != m.Id, ct))
                 throw new IsKuraliHatasi("Bu adla bir müşteri zaten var.");
-            (m.Ad, m.Iletisim) = (ad, iletisim);
+            (m.Ad, m.Telefon, m.Eposta, m.Adres) = (ad, telefon, eposta, adres);
             await db.SaveChangesAsync(ct);
-            return new IletisimDto(m.Id, m.Ad, m.Iletisim);
+            return new IletisimDto(m.Id, m.Ad, m.Iletisim, m.Telefon, m.Eposta, m.Adres);
         }, ct);
     }
 
     public Task<IletisimDto> TedarikciKaydetAsync(int? id, IletisimIstek istek, CancellationToken ct = default)
     {
-        var (ad, iletisim) = IletisimKontrol(istek);
+        var (ad, telefon, eposta, adres) = IletisimKontrol(istek);
         return Islem.CalistirAsync(db, async () =>
         {
             var t = id is null
@@ -192,20 +198,25 @@ public class TanimServisi(AppDbContext db, IStokServisi stok) : ITanimServisi
                 : await db.Tedarikciler.SingleOrDefaultAsync(x => x.Id == id, ct) ?? throw new BulunamadiHatasi("Tedarikçi bulunamadı.");
             if (await db.Tedarikciler.AnyAsync(x => x.Ad == ad && x.Id != t.Id, ct))
                 throw new IsKuraliHatasi("Bu adla bir tedarikçi zaten var.");
-            (t.Ad, t.Iletisim) = (ad, iletisim);
+            (t.Ad, t.Telefon, t.Eposta, t.Adres) = (ad, telefon, eposta, adres);
             await db.SaveChangesAsync(ct);
-            return new IletisimDto(t.Id, t.Ad, t.Iletisim);
+            return new IletisimDto(t.Id, t.Ad, t.Iletisim, t.Telefon, t.Eposta, t.Adres);
         }, ct);
     }
 
-    private static (string Ad, string Iletisim) IletisimKontrol(IletisimIstek istek)
+    private static (string Ad, string Telefon, string Eposta, string Adres) IletisimKontrol(IletisimIstek istek)
     {
         var ad = Donusum.Sadelestir(istek.Ad);
-        var iletisim = (istek.Iletisim ?? "").Trim();
+        var ayri = istek.Telefon is not null || istek.Eposta is not null || istek.Adres is not null;
+        var telefon = Donusum.Sadelestir(istek.Telefon);
+        var eposta = (istek.Eposta ?? "").Trim();
+        var adres = ((ayri ? istek.Adres : istek.Iletisim) ?? "").Trim();
         if (ad.Length == 0)
             throw new IsKuraliHatasi("Ad boş olamaz.");
-        if (ad.Length > 200 || iletisim.Length > 500)
-            throw new IsKuraliHatasi("Ad en çok 200, iletişim en çok 500 karakter olabilir.");
-        return (ad, iletisim);
+        if (ad.Length > 200 || telefon.Length > 50 || eposta.Length > 200 || adres.Length > 500)
+            throw new IsKuraliHatasi("Ad 200, telefon 50, e-posta 200, adres 500 karakteri geçemez.");
+        if (eposta.Length > 0 && (!System.Net.Mail.MailAddress.TryCreate(eposta, out var e) || e.Address != eposta))
+            throw new IsKuraliHatasi("Geçerli bir e-posta girin.");
+        return (ad, telefon, eposta, adres);
     }
 }

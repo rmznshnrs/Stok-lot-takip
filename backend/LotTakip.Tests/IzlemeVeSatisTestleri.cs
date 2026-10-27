@@ -9,7 +9,7 @@ public class LotIzlemeTestleri(TestVeritabani vt) : IsKuraliTesti(vt)
     [Fact]
     public async Task Uretimler_ve_musteriler()
     {
-        await Db.Musteriler.Where(m => m.Id == Musteri.Id).ExecuteUpdateAsync(s => s.SetProperty(m => m.Iletisim, "atlas@ornek.example"));
+        await Db.Musteriler.Where(m => m.Id == Musteri.Id).ExecuteUpdateAsync(s => s.SetProperty(m => m.Eposta, "atlas@ornek.example"));
         Db.ChangeTracker.Clear();
         await Uretim.UretAsync(Urun.Id, 5, Kullanici.Id);  // 0001-0003 ESKI, 0004-0005 YENI
         await Satis.SatAsync(new SatisIstek("Atlas", ["SN-IP-0001", "SN-IP-0002"], new(2026, 5, 12)), Kullanici.Id);
@@ -145,8 +145,8 @@ public class SatisTestleri(TestVeritabani vt) : IsKuraliTesti(vt)
     [Theory]
     [InlineData(new[] { "SN-IP-9999" }, "Bulunamayan")]
     [InlineData(new[] { "SN-IP-0001", "sn-ip-0001" }, "tekrarlanan")]
-    [InlineData(new string[0], "En az bir")]
-    [InlineData(new[] { "  " }, "En az bir")]
+    [InlineData(new string[0], "Seri no girin")]
+    [InlineData(new[] { "  " }, "Seri no girin")]
     public async Task Bilinmeyen_tekrarlanan_ve_bos_liste(string[] seriler, string mesaj)
     {
         var hata = await Assert.ThrowsAsync<SatisHatasi>(() => Satis.SatAsync(new SatisIstek("Atlas", seriler), Kullanici.Id));

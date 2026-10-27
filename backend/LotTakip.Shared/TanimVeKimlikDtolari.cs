@@ -30,7 +30,8 @@ public record KullaniciGuncelleIstek([Required] string Ad, [Required] string Soy
 
 public record ParcaIstek([Required] string Kod, [Required] string Ad, string Birim = "adet", int MinStok = 0);
 
-public record UrunIstek([Required] string Kod, [Required] string Ad, [Required] string SeriOneki);
+/// <summary>SeriOneki boşsa yeni üründe "Kod-" olur, var olan üründe değişmez.</summary>
+public record UrunIstek([Required] string Kod, [Required] string Ad, string? SeriOneki = null);
 
 public record UrunAgaciSatiriIstek(int ParcaId, int Adet);
 
@@ -43,10 +44,12 @@ public record UrunAgaciSatiriDto(int ParcaId, string ParcaKod, string ParcaAd, s
 public record UrunDetayDto(int Id, string Kod, string Ad, string SeriOneki, bool SeriOnekiDegistirilebilir,
                            IReadOnlyList<UrunAgaciSatiriDto> Agac);
 
-public record IletisimDto(int Id, string Ad, string Iletisim);
+/// <summary>Iletisim: telefon · e-posta · adres tek satırda (görüntüleme için).</summary>
+public record IletisimDto(int Id, string Ad, string Iletisim, string Telefon = "", string Eposta = "", string Adres = "");
 
 /// <summary>Müşteri veya tedarikçi: ad zorunlu ve tekil, iletişim serbest metin.</summary>
-public record IletisimIstek(string Ad, string? Iletisim);
+/// <summary>Telefon / Eposta / Adres ayrı ayrı. Yalnız Iletisim gelirse (eski istemciler) adres sayılır.</summary>
+public record IletisimIstek(string Ad, string? Iletisim = null, string? Telefon = null, string? Eposta = null, string? Adres = null);
 
 // --- İşlem istekleri ---------------------------------------------------------------
 
@@ -54,3 +57,19 @@ public record UretimIstek(int UrunId, int Adet);
 
 
 public record SatisUyarilariIstek(IReadOnlyList<string> SeriNolar);
+
+// --- Hesap: kayıt ol, şifremi unuttum -------------------------------------------
+
+public record KayitIstek(
+    [Required] string Ad, [Required] string Soyad, [Required] string KullaniciAdi, [Required] string Eposta,
+    [Required] string Sifre);
+
+public record OnayBekleyenDto(int Id, string Ad, string Soyad, string KullaniciAdi, string? Eposta);
+
+public record SifreUnuttumIstek([Required] string KullaniciAdiVeyaEposta);
+
+public record SifreSifirlaIstek([Required] string Kod, [Required] string YeniSifre);
+
+public record EpostaIstek(string? Eposta);
+
+public record EpostaDto(string? Eposta);

@@ -19,6 +19,8 @@ namespace LotTakip.Tests;
 public sealed class ApiFabrikasi : WebApplicationFactory<Program>
 {
     public const string JwtAnahtar = "test-icin-en-az-otuz-iki-karakterlik-jwt-anahtari";
+    /// <summary>SMTP ayarlı olmadığından e-postalar bu klasöre .eml olarak yazılır.</summary>
+    public static readonly string PostaKlasoru = Path.Combine(Path.GetTempPath(), "lot-takip-test-posta");
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
@@ -29,6 +31,8 @@ public sealed class ApiFabrikasi : WebApplicationFactory<Program>
             ["Jwt:Anahtar"] = JwtAnahtar,
             ["Jwt:Yayinci"] = "LotTakip",
             ["Jwt:Hedef"] = "LotTakip",
+            ["Posta:Klasor"] = PostaKlasoru,
+            ["Posta:WebAdresi"] = "http://web.test",
         }));
     }
 }
@@ -302,9 +306,9 @@ public class ApiTestleri(TestVeritabani vt) : IAsyncLifetime
     }
 
     [Fact]
-    public async Task Hatali_lot_urunlerini_geri_cagirir_ve_satisi_engeller()
+    public async Task Hatali_lot_secilen_urunleri_geri_cagirir_ve_satisi_engeller()
     {
-        var y = await (await Admin()).PostAsJsonAsync("/api/izleme/lot/L-D-2601/sorun", new LotSorunIstek(true, false, "Kısa devre"));
+        var y = await (await Admin()).PostAsJsonAsync("/api/izleme/lot/L-D-2601/sorun", new LotSorunIstek(true, false, "Kısa devre", ["SN-IP-0003"]));
         var sonuc = (await y.Content.ReadFromJsonAsync<LotSorunSonucuDto>())!;
         Assert.True(sonuc.Lot.Sorunlu && sonuc.Lot.UretimeKapali);
         Assert.Contains("SN-IP-0003", sonuc.GeriCagrilanSeriNolar);
@@ -385,5 +389,38 @@ public class ApiTestleri(TestVeritabani vt) : IAsyncLifetime
     {
         await using var db = vt.YeniContext();
         return await db.StokLotlari.Where(l => l.LotNo == lotNo).Select(l => l.Id).SingleAsync();
+    }
+
+    [Fact]
+    public async Task Kayit_onay_ve_sifre_sifirlama_uctan_uca()
+    {
+        var c = Istemci();
+        var y = await c.PostAsJsonAsync("/api/hesap/kayit", new KayitIstek("Ali", "Veli", "ali", "ali@ornek.com", "ali-sifresi-1"));
+        Assert.Equal(HttpStatusCode.OK, y.StatusCode);
+        var kayit = (await y.Content.ReadFromJsonAsync<OnayBekleyenDto>())!;
+
+        y = await c.PostAsJsonAsync("/api/kimlik/giris", new GirisIstek("ali", "ali-sifresi-1"));
+        Assert.Equal(HttpStatusCode.Forbidden, y.StatusCode);
+        Assert.Contains("onaylanmadı", (await Problem(y)).GetProperty("detail").GetString());
+
+        Assert.Equal(HttpStatusCode.Forbidden, (await (await Depo()).PostAsync($"/api/hesap/{kayit.Id}/onayla", null)).StatusCode);
+        var admin = await Admin();
+        Assert.Equal(["ali"], (await admin.GetFromJsonAsync<List<OnayBekleyenDto>>("/api/hesap/onay-bekleyenler"))!.Select(k => k.KullaniciAdi));
+        Assert.Equal(HttpStatusCode.NoContent, (await admin.PostAsync($"/api/hesap/{kayit.Id}/onayla", null)).StatusCode);
+        await GirisYap("ali", "ali-sifresi-1");
+
+        if (Directory.Exists(ApiFabrikasi.PostaKlasoru))
+            Directory.Delete(ApiFabrikasi.PostaKlasoru, recursive: true);
+        Assert.Equal(HttpStatusCode.NoContent,
+            (await c.PostAsJsonAsync("/api/hesap/sifre-unuttum", new SifreUnuttumIstek("ali"))).StatusCode);
+        Assert.Equal(HttpStatusCode.NoContent,
+            (await c.PostAsJsonAsync("/api/hesap/sifre-unuttum", new SifreUnuttumIstek("olmayan"))).StatusCode);
+        var eml = await File.ReadAllTextAsync(Assert.Single(Directory.GetFiles(ApiFabrikasi.PostaKlasoru, "*.eml")));
+        var kod = System.Text.RegularExpressions.Regex.Match(eml.Replace("=\r\n", "").Replace("=\n", ""),
+            @"http://web\.test/sifre-sifirla\?kod=([A-Za-z0-9_\-]+)").Groups[1].Value;
+        Assert.NotEmpty(kod);
+        Assert.Equal(HttpStatusCode.NoContent,
+            (await c.PostAsJsonAsync("/api/hesap/sifre-sifirla", new SifreSifirlaIstek(kod, "yeni-sifre-99"))).StatusCode);
+        await GirisYap("ali", "yeni-sifre-99");
     }
 }

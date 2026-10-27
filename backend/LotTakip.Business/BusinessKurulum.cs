@@ -12,10 +12,12 @@ public static class BusinessKurulum
         services.AddScoped<IUretimServisi, UretimServisi>();
         services.AddScoped<IIslemGecmisiServisi, IslemGecmisiServisi>();
         services.AddScoped<IGeriCagirmaServisi, GeriCagirmaServisi>();
+        services.AddScoped<IUrunLotServisi, UrunLotServisi>();
         services.AddScoped<IIzlemeServisi, IzlemeServisi>();
         services.AddScoped<ISatisServisi, SatisServisi>();
         services.AddScoped<ITanimServisi, TanimServisi>();
         services.AddScoped<IKullaniciServisi, KullaniciServisi>();
+        services.AddScoped<IHesapServisi, HesapServisi>();
         services.AddScoped<OrnekVeri>();
         return services;
     }

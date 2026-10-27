@@ -14,6 +14,8 @@ builder.Services.AddDataAccess(sp =>
         "appsettings.Development.json olarak kopyalayın."));
 builder.Services.AddBusiness();
 builder.Services.AddSingleton(TimeProvider.System);
+builder.Services.Configure<PostaAyarlari>(builder.Configuration.GetSection("Posta"));
+builder.Services.AddScoped<IPostaGonderici, PostaGonderici>();
 builder.Services.AddKimlik();
 builder.Services.AddControllers();
 builder.Services.AddProblemDetails();

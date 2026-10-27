@@ -46,3 +46,6 @@ secrets.json
 *.p12
 *.key
 *.pem
+
+# SMTP ayarlı değilken API'nin dosyaya yazdığı e-postalar
+posta/

@@ -89,9 +89,20 @@ public class TanimTestleri(TestVeritabani vt) : IsKuraliTesti(vt)
         await Uretim.UretAsync(Urun.Id, 1, Kullanici.Id);
         var hata = await Assert.ThrowsAsync<IsKuraliHatasi>(
             () => Tanim.UrunGuncelleAsync(Urun.Id, new UrunIstek("IP", "Panel v2", "SN-YENI-")));
-        Assert.Contains("seri no öneki değiştirilemez", hata.Message);
+        Assert.Contains("seri no öneki değişemez", hata.Message);
         u = await Tanim.UrunGuncelleAsync(Urun.Id, new UrunIstek("IP", "Panel v2", "SN-PNL-"));
         Assert.Equal(("Panel v2", "SN-PNL-"), (u.Ad, u.SeriOneki));
+    }
+
+    [Fact]
+    public async Task Onek_verilmezse_urun_kodundan_olusur_guncellemede_degismez()
+    {
+        var u = await Tanim.UrunOlusturAsync(new UrunIstek("U7", "Ürün 7"));
+        Assert.Equal("U7-", u.SeriOneki);
+        u = await Tanim.UrunGuncelleAsync(u.Id, new UrunIstek("U8", "Ürün 8"));
+        Assert.Equal(("U8", "U7-"), (u.Kod, u.SeriOneki));
+        var hata = await Assert.ThrowsAsync<IsKuraliHatasi>(() => Tanim.UrunOlusturAsync(new UrunIstek("U7", "Başka")));
+        Assert.Contains("daha önce kullanılmış", hata.Message);
     }
 
     [Fact]

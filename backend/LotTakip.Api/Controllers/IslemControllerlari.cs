@@ -30,6 +30,12 @@ public class StokController(IStokServisi stok, IStokDuzeltmeServisi duzeltme) : 
     [Authorize(Policy = Politikalar.Admin)]
     public Task<StokDuzeltmeSonucuDto> Duzelt(StokDuzeltmeIstek istek, CancellationToken ct) =>
         duzeltme.DuzeltAsync(istek, User.KullaniciId(), ct);
+
+    /// <summary>Hatalı parça kaydı (yalnız Admin): stoktan düşülerek ya da yalnız sayı olarak.</summary>
+    [HttpPost("hatali")]
+    [Authorize(Policy = Politikalar.Admin)]
+    public Task<StokDuzeltmeSonucuDto> Hatali(StokHataliIstek istek, CancellationToken ct) =>
+        duzeltme.HataliAsync(istek, User.KullaniciId(), ct);
 }
 
 /// <summary>Üretim: önizleme ve kayıt.</summary>
@@ -126,7 +132,7 @@ public class IzlemeController(IIzlemeServisi izleme) : ControllerBase
     public Task<List<HareketDto>> Hareketler([FromQuery] int adet = 8, CancellationToken ct = default) =>
         izleme.SonHareketlerAsync(Math.Clamp(adet, 1, 100), ct);
 
-    /// <summary>Lotu hatalı işaretler / hatayı kaldırır (yalnız Admin). Kullanıldığı ürünler kendiliğinden geri çağrılır.</summary>
+    /// <summary>Lotu hatalı işaretler / hatayı kaldırır (yalnız Admin). Yalnız seçilen ürünler geri çağrılır.</summary>
     [HttpPost("lot/{lotNo}/sorun")]
     [Authorize(Policy = Politikalar.Admin)]
     public Task<LotSorunSonucuDto> Sorun(string lotNo, LotSorunIstek istek, CancellationToken ct) =>
@@ -156,4 +162,23 @@ public class GeriCagirmaController(IGeriCagirmaServisi geri) : ControllerBase
     [HttpPost("{id:int}/satisa-ac")]
     [Authorize(Policy = Politikalar.Admin)]
     public Task<GeriCagirmaDto> SatisaAc(int id, CancellationToken ct) => geri.SatisaAcAsync(id, User.KullaniciId(), ct);
+
+    /// <summary>Sorun yok: ürün müşteriye geri verilir; geri çağırma kapanır.</summary>
+    [HttpPost("{id:int}/musteriye-ver")]
+    [Authorize(Policy = Politikalar.Admin)]
+    public Task<GeriCagirmaDto> MusteriyeVer(int id, CancellationToken ct) => geri.MusteriyeVerAsync(id, User.KullaniciId(), ct);
+}
+
+/// <summary>Ürün lotları (aynı anda üretilenler). Liste herkese, hata işareti yalnız Admin.</summary>
+[ApiController]
+[Route("api/urun-lot")]
+public class UrunLotController(IUrunLotServisi lotlar) : ControllerBase
+{
+    [HttpGet]
+    public Task<List<UrunLotDto>> Liste([FromQuery] int? urunId, CancellationToken ct) => lotlar.ListeAsync(urunId, ct);
+
+    [HttpPost("{lotNo}/sorun")]
+    [Authorize(Policy = Politikalar.Admin)]
+    public Task<UrunLotSorunSonucuDto> Sorun(string lotNo, UrunLotSorunIstek istek, CancellationToken ct) =>
+        lotlar.SorunAsync(lotNo, istek, User.KullaniciId(), ct);
 }

@@ -1,4 +1,5 @@
 using LotTakip.DataAccess;
+using LotTakip.Entity;
 using LotTakip.Shared;
 using Microsoft.EntityFrameworkCore;
 
@@ -90,12 +91,15 @@ public class IslemGecmisiServisi(AppDbContext db) : IIslemGecmisiServisi
                 .OrderByDescending(d => d.OlusturmaZamani).Take(adet)
                 .Select(d => new
                 {
-                    d.OlusturmaZamani, d.Miktar, d.Tur, d.Aciklama, d.StokLotu!.LotNo, ParcaAd = d.StokLotu.Parca!.Ad,
+                    d.OlusturmaZamani, d.Miktar, d.HataliAdet, d.Tur, d.Aciklama, d.StokLotu!.LotNo, ParcaAd = d.StokLotu.Parca!.Ad,
                     Kisi = d.OlusturanKullanici!.Ad + " " + d.OlusturanKullanici.Soyad,
                 })
                 .ToListAsync(ct);
             liste.AddRange(duzeltmeler.Select(d => new IslemDto(d.OlusturmaZamani, "duzeltme", d.Kisi,
-                $"{d.ParcaAd} · {(d.Miktar > 0 ? "+" : "")}{d.Miktar} · {DuzeltmeAdi(d.Tur.ToString())} · {d.Aciklama}", d.LotNo, "lot")));
+                d.Tur == StokDuzeltmeTuru.Hatali
+                    ? $"{d.ParcaAd} · {d.HataliAdet} hatalı · {(d.Miktar < 0 ? "stoktan düşüldü" : "stokta bırakıldı")} · {d.Aciklama}"
+                    : $"{d.ParcaAd} · {(d.Miktar > 0 ? "+" : "")}{d.Miktar} · {DuzeltmeAdi(d.Tur.ToString())} · {d.Aciklama}",
+                d.LotNo, "lot")));
         }
 
         if (Al("hurda"))
@@ -119,6 +123,12 @@ public class IslemGecmisiServisi(AppDbContext db) : IIslemGecmisiServisi
                 .Select(l => new IslemDto(l.SorunZamani!.Value, "sorun", l.SorunIsaretleyen!.Ad + " " + l.SorunIsaretleyen.Soyad,
                     l.Parca!.Ad + " · " + l.SorunAciklama + (l.GeriCagrildi ? " · üretime kapalı" : " · üretimde kullanılabilir"),
                     l.LotNo, "lot"))
+                .ToListAsync(ct));
+            liste.AddRange(await db.UrunLotSorunlari.AsNoTracking()
+                .Where(s => s.OlusturmaZamani < sinir && (yapanId == null || s.OlusturanKullaniciId == yapanId))
+                .OrderByDescending(s => s.OlusturmaZamani).Take(adet)
+                .Select(s => new IslemDto(s.OlusturmaZamani, "sorun", s.OlusturanKullanici!.Ad + " " + s.OlusturanKullanici.Soyad,
+                    s.Urun!.Ad + " · " + s.Aciklama + (s.HataliAdet > 0 ? " · " + s.HataliAdet + " hatalı" : ""), s.LotNo, "urunlot"))
                 .ToListAsync(ct));
         }
 

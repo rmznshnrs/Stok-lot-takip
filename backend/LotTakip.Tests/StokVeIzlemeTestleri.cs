@@ -58,7 +58,6 @@ public class StokTestleri(TestVeritabani vt) : IsKuraliTesti(vt)
     [InlineData("L-LED", 1)]
     [InlineData("l-led", 1)]
     [InlineData("L-Z", 0)]
-    [InlineData("", 1)]
     public async Task Mal_girisi_hatalari(string lotNo, int adet)
     {
         await Assert.ThrowsAsync<IsKuraliHatasi>(
@@ -200,7 +199,7 @@ public class IzlemeYardimciTestleri(TestVeritabani vt) : IsKuraliTesti(vt)
         Assert.Equal("L-D-ESKI", (await Izleme.NumaraAraAsync("ESKI")).Deger);  // tek aday → doğrudan
         var s = await Izleme.NumaraAraAsync("SN-IP");
         Assert.Null(s.Tur);
-        Assert.Equal([("seri", "SN-IP-0001"), ("seri", "SN-IP-0002")], s.Adaylar.Select(a => (a.Tur, a.Deger)));
+        Assert.Equal([("seri", "SN-IP-0001"), ("seri", "SN-IP-0002"), ("urunlot", "SN-IP-L001")], s.Adaylar.Select(a => (a.Tur, a.Deger)));
         Assert.Equal([("lot", "L-D-ESKI"), ("lot", "L-D-GERI"), ("lot", "L-D-YENI")],
                      (await Izleme.NumaraAraAsync("L-D")).Adaylar.Select(a => (a.Tur, a.Deger)));
     }
@@ -222,7 +221,8 @@ public class IzlemeYardimciTestleri(TestVeritabani vt) : IsKuraliTesti(vt)
         Assert.Equal(["satis", "uretim"], h.Take(2).Select(x => x.Tur));
         Assert.Equal("SN-IP-0001 … SN-IP-0002", h[0].Numara);
         Assert.Contains("Atlas", h[0].Aciklama);
-        Assert.Equal(("İndikatör Paneli · 3 adet", "SN-IP-0001 … SN-IP-0003", "SN-IP-0001"), (h[1].Aciklama, h[1].Numara, h[1].NumaraIlk));
+        Assert.Equal(("İndikatör Paneli · 3 adet · SN-IP-0001 … SN-IP-0003", "SN-IP-L001", "urunlot"),
+                     (h[1].Aciklama, h[1].Numara, h[1].NumaraTuru));
         Assert.Equal(4, h.Count(x => x.Tur == "giris"));
     }
 

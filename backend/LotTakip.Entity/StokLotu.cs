@@ -1,6 +1,9 @@
 namespace LotTakip.Entity;
 
-/// <summary>Bir parçanın tek bir mal girişi. FIFO sırası SiparisTarihi'ne göredir.</summary>
+/// <summary>
+/// Bir parçanın tek bir mal girişi. FIFO sırası SiparisTarihi'ne göredir.
+/// LotNo: sistemin verdiği stok giriş numarası (SG-0001); TedarikciLotNo: tedarikçinin pakete yazdığı lot no.
+/// </summary>
 public class StokLotu : IDenetimli
 {
     public int Id { get; set; }
@@ -10,6 +13,7 @@ public class StokLotu : IDenetimli
     public Tedarikci? Tedarikci { get; set; }
 
     public required string LotNo { get; set; }
+    public string TedarikciLotNo { get; set; } = "";
     public DateOnly SiparisTarihi { get; set; }
     public string SiparisNo { get; set; } = "";
     public int GirisAdet { get; set; }

@@ -19,6 +19,12 @@ public interface IGeriCagirmaServisi
     /// <summary>Yalnız Admin: depodaki geri çağrılmış ürün yeniden satışa açılır; geri çağırma kapanır.</summary>
     Task<GeriCagirmaDto> SatisaAcAsync(int id, int kullaniciId, CancellationToken ct = default);
 
+    /// <summary>
+    /// Yalnız Admin: sorun yok, ürün müşteriye geri verilir; geri çağırma kapanır. Müşterideyse orada kalır;
+    /// bu geri çağırmayla geri alınmışsa aynı müşteriye bugünkü tarihle yeni satış yapılır.
+    /// </summary>
+    Task<GeriCagirmaDto> MusteriyeVerAsync(int id, int kullaniciId, CancellationToken ct = default);
+
     /// <summary>Geri çağırmalar (yeniden eskiye). acik=true: yalnız sonuçlanmamışlar (müşteride, depoda, geri alındı).</summary>
     Task<List<GeriCagirmaDto>> ListeAsync(bool acik = false, string? arama = null, CancellationToken ct = default);
 }
@@ -29,11 +35,11 @@ public class GeriCagirmaServisi(AppDbContext db) : IGeriCagirmaServisi
     {
         var aciklama = (istek.Aciklama ?? "").Trim();
         if (aciklama.Length == 0)
-            throw new IsKuraliHatasi("Geri çağırmada açıklama zorunludur.");
+            throw new IsKuraliHatasi("Açıklama girin.");
         var seriler = (istek.SeriNolar ?? []).Select(s => (s ?? "").Trim()).Where(s => s.Length > 0)
             .Distinct(StringComparer.OrdinalIgnoreCase).ToList();
         if (seriler.Count == 0)
-            throw new IsKuraliHatasi("Geri çağrılacak en az bir seri no seçilmeli.");
+            throw new IsKuraliHatasi("Seri no seçin.");
 
         return Islem.CalistirAsync(db, async () =>
         {
@@ -53,7 +59,7 @@ public class GeriCagirmaServisi(AppDbContext db) : IGeriCagirmaServisi
                 throw new IsKuraliHatasi($"Bulunamayan seri no: {string.Join(", ", bulunamayan)}");
             var hurda = uretimler.Where(u => u.Hurda is not null).Select(u => u.SeriNo).Order().ToList();
             if (hurda.Count > 0)
-                throw new IsKuraliHatasi($"Hurdaya / kayba ayrılmış ürün geri çağrılamaz: {string.Join(", ", hurda)}");
+                throw new IsKuraliHatasi($"Hurdaya ayrılmış: {string.Join(", ", hurda)}");
             var acik = uretimler.Where(u => u.GeriCagirmalar.Any(g => g.KapanmaZamani == null)).Select(u => u.SeriNo).Order().ToList();
             if (acik.Count > 0)
                 throw new IsKuraliHatasi($"Zaten geri çağrılmış: {string.Join(", ", acik)}");
@@ -76,7 +82,7 @@ public class GeriCagirmaServisi(AppDbContext db) : IGeriCagirmaServisi
             var admin = await Kullanicilar.AdminGetirAsync(db, kullaniciId, "Geri alma", ct);
             var g = await AcikGetirAsync(id, ct);
             var kalem = await db.SatisKalemleri.SingleOrDefaultAsync(k => k.UretimId == g.UretimId, ct)
-                        ?? throw new IsKuraliHatasi("Bu ürün müşteride değil; zaten depoda.");
+                        ?? throw new IsKuraliHatasi("Ürün zaten depoda.");
             var zaman = Zaman.Simdi();
             db.SatisIadeleri.Add(new SatisIade
             {
@@ -95,8 +101,32 @@ public class GeriCagirmaServisi(AppDbContext db) : IGeriCagirmaServisi
             var admin = await Kullanicilar.AdminGetirAsync(db, kullaniciId, "Satışa açma", ct);
             var g = await AcikGetirAsync(id, ct);
             if (await db.SatisKalemleri.AnyAsync(k => k.UretimId == g.UretimId, ct))
-                throw new IsKuraliHatasi("Ürün hâlâ müşteride; önce geri alın.");
+                throw new IsKuraliHatasi("Ürün müşteride; önce iade alın.");
             (g.KapanmaZamani, g.KapatanKullanici) = (Zaman.Simdi(), admin);
+            await db.SaveChangesAsync(ct);
+            return await Sorgu().Where(x => x.Id == id).Select(Donustur).SingleAsync(ct);
+        }, ct);
+
+    public Task<GeriCagirmaDto> MusteriyeVerAsync(int id, int kullaniciId, CancellationToken ct = default) =>
+        Islem.CalistirAsync(db, async () =>
+        {
+            var admin = await Kullanicilar.AdminGetirAsync(db, kullaniciId, "Müşteriye geri verme", ct);
+            var g = await AcikGetirAsync(id, ct);
+            var zaman = Zaman.Simdi();
+            if (!await db.SatisKalemleri.AnyAsync(k => k.UretimId == g.UretimId, ct))
+            {
+                if (g.GeriAlinmaZamani is null)
+                    throw new IsKuraliHatasi("Ürün hiç müşteriden alınmamış.");
+                var musteriId = await db.SatisIadeleri.Where(i => i.UretimId == g.UretimId)
+                    .OrderByDescending(i => i.OlusturmaZamani).ThenByDescending(i => i.Id)
+                    .Select(i => i.Satis!.MusteriId).FirstAsync(ct);
+                db.Satislar.Add(new Satis
+                {
+                    MusteriId = musteriId, Tarih = Zaman.Bugun(), OlusturanKullanici = admin, OlusturmaZamani = zaman,
+                    Kalemler = [new SatisKalemi { UretimId = g.UretimId }],
+                });
+            }
+            (g.KapanmaZamani, g.KapatanKullanici, g.MusteriyeVerildi) = (zaman, admin, true);
             await db.SaveChangesAsync(ct);
             return await Sorgu().Where(x => x.Id == id).Select(Donustur).SingleAsync(ct);
         }, ct);
@@ -121,20 +151,21 @@ public class GeriCagirmaServisi(AppDbContext db) : IGeriCagirmaServisi
                     .SingleOrDefaultAsync(x => x.Id == id, ct)
                 ?? throw new BulunamadiHatasi("Geri çağırma bulunamadı.");
         if (g.KapanmaZamani is not null)
-            throw new IsKuraliHatasi("Bu geri çağırma kapanmış; ürün satışa açılmış.");
+            throw new IsKuraliHatasi("Geri çağırma kapanmış.");
         if (g.Uretim!.Hurda is not null)
-            throw new IsKuraliHatasi("Ürün hurdaya / kayba ayrılmış.");
+            throw new IsKuraliHatasi("Ürün hurdaya ayrılmış.");
         return g;
     }
 
     private IQueryable<UrunGeriCagirma> Sorgu() => db.UrunGeriCagirmalari.AsNoTracking();
 
-    /// <summary>Durum: musteride, geri_alindi, depoda, hurda, satisa_acildi.</summary>
+    /// <summary>Durum: musteride, geri_alindi, depoda, hurda, satisa_acildi, musteriye_verildi.</summary>
     private static readonly System.Linq.Expressions.Expression<Func<UrunGeriCagirma, GeriCagirmaDto>> Donustur = g =>
         new GeriCagirmaDto(
             g.Id, g.Uretim!.SeriNo, g.Uretim.Urun!.Ad, g.StokLotu == null ? null : g.StokLotu.LotNo, g.Aciklama, g.OlusturmaZamani,
             g.OlusturanKullanici!.Ad + " " + g.OlusturanKullanici.Soyad,
             g.Uretim.Hurda != null ? "hurda"
+                : g.KapanmaZamani != null && g.MusteriyeVerildi ? "musteriye_verildi"
                 : g.KapanmaZamani != null ? "satisa_acildi"
                 : g.Uretim.SatisKalemi != null ? "musteride"
                 : g.GeriAlinmaZamani != null ? "geri_alindi"
