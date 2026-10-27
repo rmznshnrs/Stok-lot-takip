@@ -1,6 +1,5 @@
 import Link from "next/link";
 import type { UrunDetay } from "@/lib/api";
-import UrunDepo from "./UrunDepo";
 
 /** Seçili ürünün salt okunur görünümü; değiştirmek için "Düzenle". */
 export default function UrunBilgisi({ urun, uretimSayisi }: { urun: UrunDetay; uretimSayisi?: number }) {
@@ -13,7 +12,6 @@ export default function UrunBilgisi({ urun, uretimSayisi }: { urun: UrunDetay; u
 
       <dl className="urun-bilgi">
         <div><dt>Ürün kodu</dt><dd className="mono">{urun.kod}</dd></div>
-        <div><dt>Seri no öneki</dt><dd className="mono">{urun.seriOneki}</dd></div>
         {uretimSayisi !== undefined && <div><dt>Üretilen</dt><dd>{uretimSayisi} adet</dd></div>}
         <div><dt>Parça çeşidi</dt><dd>{urun.agac.length}</dd></div>
       </dl>
@@ -32,7 +30,7 @@ export default function UrunBilgisi({ urun, uretimSayisi }: { urun: UrunDetay; u
           </thead>
           <tbody>
             {urun.agac.length === 0 && (
-              <tr className="bos"><td colSpan={4}>Ürün ağacı boş. Parça eklemek için Düzenle&apos;ye basın.</td></tr>
+              <tr className="bos"><td colSpan={4}>Ürün ağacı boş.</td></tr>
             )}
             {urun.agac.map((s) => (
               <tr key={s.parcaId}>
@@ -44,12 +42,6 @@ export default function UrunBilgisi({ urun, uretimSayisi }: { urun: UrunDetay; u
             ))}
           </tbody>
         </table>
-      </div>
-
-      <UrunDepo urunId={urun.id} />
-
-      <div className="kart-alt">
-        <Link href={`/uretim?urun=${urun.id}`} className="not--buyuk">Bu üründen üret →</Link>
       </div>
     </>
   );

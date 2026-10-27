@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { hatirla } from "@/components/Oturum";
@@ -58,6 +59,7 @@ export default function GirisFormu() {
           value={sifre}
           onChange={(e) => setSifre(e.target.value)}
         />
+        <Link href="/sifremi-unuttum" className="giris-unuttum">Şifremi unuttum</Link>
       </div>
 
       {hata && <div className="mesaj mesaj--error" role="alert">{hata}</div>}
@@ -65,6 +67,7 @@ export default function GirisFormu() {
       <button className="btn btn--tam-alt" type="submit" disabled={bekliyor}>
         {bekliyor ? "Giriş yapılıyor…" : "Giriş yap"}
       </button>
+      <p className="giris-alt">Hesabınız yok mu? <Link href="/kayit">Kayıt ol</Link></p>
     </form>
   );
 }

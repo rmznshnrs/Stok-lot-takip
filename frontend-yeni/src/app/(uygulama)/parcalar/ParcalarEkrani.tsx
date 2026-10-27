@@ -3,10 +3,9 @@
 import Link from "next/link";
 import { useState, type FormEvent } from "react";
 import Mesaj, { type MesajBilgisi } from "@/components/Mesaj";
-import { useAdminMi } from "@/components/Oturum";
 import { ApiHatasi, parcalar, type ParcaStok } from "@/lib/api";
+import { useSayfalama } from "@/components/Sayfalama";
 import { useGecikmeli, useVeri } from "@/lib/kancalar";
-import ParcaAdetDuzeltme from "./ParcaAdetDuzeltme";
 
 const BOS_FORM = { kod: "", ad: "", birim: "adet", minStok: "0" };
 
@@ -14,18 +13,16 @@ export default function ParcalarEkrani() {
   const [arama, setArama] = useState("");
   const aranan = useGecikmeli(arama.trim());
   const { veri: liste, hata: listeHatasi, yenile } = useVeri(() => parcalar.listele(aranan), [aranan]);
+  const { gorunen, cubuk } = useSayfalama(liste, aranan);
 
   const [form, setForm] = useState(BOS_FORM);
   const [duzenlenen, setDuzenlenen] = useState<ParcaStok | null>(null);
   const [mesaj, setMesaj] = useState<MesajBilgisi | null>(null);
   const [yeniId, setYeniId] = useState<number | null>(null);
   const [bekliyor, setBekliyor] = useState(false);
-  const admin = useAdminMi();
-  const [duzeltilen, setDuzeltilen] = useState<ParcaStok | null>(null);
   const [formAcik, setFormAcik] = useState(false);
 
   function duzenle(p: ParcaStok) {
-    setDuzeltilen(null);
     setDuzenlenen(p);
     setForm({ kod: p.kod, ad: p.ad, birim: p.birim, minStok: String(p.minStok) });
     setMesaj(null);
@@ -46,7 +43,7 @@ export default function ParcalarEkrani() {
     const istek = { kod: form.kod.trim(), ad: form.ad.trim(), birim: form.birim.trim() || "adet", minStok: Number(form.minStok) || 0 };
     try {
       const p = duzenlenen ? await parcalar.guncelle(duzenlenen.id, istek) : await parcalar.olustur(istek);
-      setMesaj({ tur: "success", metin: `${p.kod} – ${p.ad} ${duzenlenen ? "güncellendi" : "kaydedildi"}.` });
+      setMesaj({ tur: "success", metin: `${p.kod} kaydedildi.` });
       setYeniId(duzenlenen ? null : p.id);
       setDuzenlenen(null);
       setForm(BOS_FORM);
@@ -79,7 +76,6 @@ export default function ParcalarEkrani() {
           className="btn"
           aria-expanded={formAcik && !duzenlenen}
           onClick={() => {
-            setDuzeltilen(null);
             if (formAcik && !duzenlenen) vazgec();
             else {
               setDuzenlenen(null);
@@ -93,15 +89,9 @@ export default function ParcalarEkrani() {
         </button>
       </div>
 
-      {!formAcik && !duzeltilen && <Mesaj mesaj={mesaj} />}
+      {!formAcik && <Mesaj mesaj={mesaj} />}
 
-      {duzeltilen && (
-        <section className="acilir-form">
-          <ParcaAdetDuzeltme key={duzeltilen.id} parca={duzeltilen} kapat={() => setDuzeltilen(null)} kaydedildi={yenile} />
-        </section>
-      )}
-
-      {formAcik && !duzeltilen && (
+      {formAcik && (
         <section className="acilir-form">
           <h3>{duzenlenen ? `${duzenlenen.kod} parçasını düzenle` : "Yeni parça"}</h3>
           <form className="form-dikey" onSubmit={kaydet}>
@@ -144,7 +134,7 @@ export default function ParcalarEkrani() {
                 <th>Ad</th>
                 <th>Birim</th>
                 <th className="sag">Kullanılabilir stok</th>
-                <th className="sag" title="Kalanı olan lot sayısı">Lot sayısı</th>
+                <th className="sag">Hatalı</th>
                 <th>Kullanıldığı ürünler</th>
                 <th className="sutun-ikon"><span className="gorunmez">İşlem</span></th>
               </tr>
@@ -155,29 +145,27 @@ export default function ParcalarEkrani() {
               )}
               {liste?.length === 0 && (
                 <tr className="bos">
-                  <td colSpan={7}>{aranan ? `“${aranan}” için parça bulunamadı.` : "Henüz parça tanımlanmadı."}</td>
+                  <td colSpan={7}>{aranan ? "Sonuç yok." : "Parça yok."}</td>
                 </tr>
               )}
-              {liste?.map((p) => (
+              {gorunen?.map((p) => (
                 <ParcaSatiri
                   key={p.id}
                   p={p}
                   yeni={p.id === yeniId}
                   duzenle={() => duzenle(p)}
-                  adetDuzelt={admin ? () => { vazgec(); setDuzeltilen(p); } : undefined}
                 />
               ))}
             </tbody>
           </table>
         </div>
+        {cubuk}
       </section>
     </main>
   );
 }
 
-function ParcaSatiri({ p, yeni, duzenle, adetDuzelt }: {
-  p: ParcaStok; yeni: boolean; duzenle: () => void; adetDuzelt?: () => void;
-}) {
+function ParcaSatiri({ p, yeni, duzenle }: { p: ParcaStok; yeni: boolean; duzenle: () => void }) {
   const ipucu = `Kullanılabilir ${p.kullanilabilirStok} · toplam ${p.toplamStok} · minimum ${p.minStok}`;
   const stokAdresi = `/stok?parca=${encodeURIComponent(p.kod)}`;
   return (
@@ -196,18 +184,13 @@ function ParcaSatiri({ p, yeni, duzenle, adetDuzelt }: {
       ) : (
         <td className="sag soluk">0</td>
       )}
-      <td className={`sag${p.lotSayisi ? "" : " soluk"}`}>{p.lotSayisi}</td>
+      <td className={`sag${p.hataliAdet ? " uyari-metin" : " soluk"}`}>{p.hataliAdet}</td>
       {p.kullanildigiUrunler.length ? (
         <td>{p.kullanildigiUrunler.join(", ")}</td>
       ) : (
         <td className="soluk">Henüz hiçbir ürün ağacında yok</td>
       )}
       <td className="ikon-hucre">
-        {adetDuzelt && (
-          <button type="button" className="btn-ikon" title="Adet düzelt" aria-label={`${p.kod} adet düzelt`} onClick={adetDuzelt}>
-            ±
-          </button>
-        )}
         <button type="button" className="btn-ikon" title="Düzenle" aria-label={`${p.kod} düzenle`} onClick={duzenle}>
           ✎
         </button>

@@ -28,7 +28,8 @@ export default function Barkod({ deger, yukseklik = 40 }: { deger: string; yukse
 }
 
 /**
- * GS1 karekod (DataMatrix, ilaç kutularındaki gibi). İçinde birden fazla bilgi taşır.
+ * Karekod (QR). İçinde birden fazla bilgi GS1 yazımıyla taşınır: "(240)U1(21)U1-0001(11)260727".
+ * Telefon kamerası bu yazıyı olduğu gibi gösterir; uygulama ve okuyucular içinden seri / stok giriş no'yu ayıklar.
  * Çizilemezse (geçersiz veri) bir uyarı gösterilir.
  */
 export function Karekod({ alanlar }: { alanlar: Gs1Alan[] }) {
@@ -36,8 +37,7 @@ export function Karekod({ alanlar }: { alanlar: Gs1Alan[] }) {
   const sonuc = useMemo(() => {
     try {
       // Yalnız kare modüllerden oluşan bir SVG döner (metin içermez).
-      // dontlint: GS1 normalde (240)/(21)/(10) ile birlikte bir GTIN (01) ister; firmanın GTIN'i yok.
-      const secenek = { bcid: "gs1datamatrix", text: metin, scale: 3, paddingwidth: 0, paddingheight: 0, dontlint: true };
+      const secenek = { bcid: "qrcode", text: metin, eclevel: "M", scale: 3, paddingwidth: 0, paddingheight: 0 };
       return { svg: bwipjs.toSVG(secenek as Parameters<typeof bwipjs.toSVG>[0]) };
     } catch {
       return { hata: "Karekod çizilemedi." };

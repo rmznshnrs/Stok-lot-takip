@@ -4,16 +4,18 @@ import Link from "next/link";
 import { useState } from "react";
 import { hurdaAdi, uretim, urunler } from "@/lib/api";
 import { tarih, tarihSaat } from "@/lib/bicim";
+import { useSayfalama } from "@/components/Sayfalama";
 import { useGecikmeli, useVeri } from "@/lib/kancalar";
-import { seriAdresi } from "@/lib/adres";
+import { seriAdresi, urunLotAdresi } from "@/lib/adres";
 
 /** Üretilen seri numaraları: ürün, tarih, depoda / satıldı / hurda, geri çağırma ve hatalı lot uyarısı. */
-export default function UretimGecmisi() {
-  const [arama, setArama] = useState("");
+export default function UretimGecmisi({ ilkArama = "" }: { ilkArama?: string }) {
+  const [arama, setArama] = useState(ilkArama);
   const [urunId, setUrunId] = useState("");
   const aranan = useGecikmeli(arama.trim());
   const { veri: liste, hata } = useVeri(() => uretim.gecmis(aranan, Number(urunId) || undefined), [aranan, urunId]);
   const { veri: tumUrunler } = useVeri(() => urunler.listele(), []);
+  const { gorunen, cubuk } = useSayfalama(liste, `${aranan}|${urunId}`);
   const depoda = liste?.filter((u) => !u.musteriAd && !u.hurda).length ?? 0;
   const ayrilan = liste?.filter((u) => u.hurda).length ?? 0;
 
@@ -45,23 +47,25 @@ export default function UretimGecmisi() {
             <thead>
               <tr>
                 <th>Seri No</th>
+                <th>Lot No</th>
                 <th>Ürün</th>
                 <th>Üretim tarihi</th>
                 <th>Durum</th>
               </tr>
             </thead>
             <tbody>
-              {liste === null && !hata && <tr className="bos"><td colSpan={4}>Yükleniyor…</td></tr>}
+              {liste === null && !hata && <tr className="bos"><td colSpan={5}>Yükleniyor…</td></tr>}
               {liste?.length === 0 && (
                 <tr className="bos">
-                  <td colSpan={4}>{aranan || urunId ? "Aramaya uyan üretim bulunamadı." : "Henüz üretim yok."}</td>
+                  <td colSpan={5}>{aranan || urunId ? "Aramaya uyan üretim bulunamadı." : "Henüz üretim yok."}</td>
                 </tr>
               )}
-              {liste?.map((u) => (
+              {gorunen?.map((u) => (
                 <tr key={u.uretimId}>
                   <td className="mono">
                     <Link href={seriAdresi(u.seriNo)}>{u.seriNo}</Link>
                   </td>
+                  <td className="mono">{u.lotNo && <Link href={urunLotAdresi(u.lotNo)} replace>{u.lotNo}</Link>}</td>
                   <td>{u.urunAd}</td>
                   <td>{tarihSaat(u.tarih)}</td>
                   <td>
@@ -90,6 +94,7 @@ export default function UretimGecmisi() {
             </tbody>
           </table>
         </div>
+        {cubuk}
       </section>
     </main>
   );

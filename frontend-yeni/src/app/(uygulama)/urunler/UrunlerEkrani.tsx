@@ -65,13 +65,12 @@ export default function UrunlerEkrani() {
               <span className="liste-oge-ad">{u.ad}</span>
               <span className="liste-oge-alt">
                 Kod: <span className="mono">{u.kod}</span>
-                {secili && <> · seri öneki <span className="mono">{u.seriOneki}</span></>}
               </span>
             </Link>
           );
         })}
         {liste?.length === 0 && (
-          <p className="not">{aranan ? `“${aranan}” için ürün bulunamadı.` : "Henüz ürün yok."}</p>
+          <p className="not">{aranan ? "Sonuç yok." : "Ürün yok."}</p>
         )}
       </section>
 

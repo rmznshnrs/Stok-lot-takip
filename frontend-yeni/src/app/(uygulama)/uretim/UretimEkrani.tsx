@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import { ApiHatasi, uretim, urunler, type UretimSonucu } from "@/lib/api";
 import { ETIKET_TURLERI, etiketTuruKaydet, kayitliEtiketTuru, type EtiketTuru } from "@/lib/etiket";
 import { useGecikmeli, useVeri } from "@/lib/kancalar";
-import { seriAdresi } from "@/lib/adres";
+import { seriAdresi, urunLotAdresi } from "@/lib/adres";
 
 const EN_COK = 999;
 
@@ -89,7 +89,7 @@ export default function UretimEkrani() {
           </Link>
         ))}
         {liste?.length === 0 && (
-          <p className="not">{aranan ? `“${aranan}” için ürün bulunamadı.` : "Henüz ürün yok."}</p>
+          <p className="not">{aranan ? "Sonuç yok." : "Ürün yok."}</p>
         )}
         <Link href="/urunler?yeni=1" className="liste-ekle">+ Yeni ürün tanımla</Link>
       </section>
@@ -97,7 +97,10 @@ export default function UretimEkrani() {
       <section className="kart kart--genis kart--bosluklu">
         {sonuc && (
           <div className="sonuc-kutu" role="status">
-            <div className="sonuc-baslik">Üretim kaydedildi: {sonuc.seriNolar.length} adet {sonuc.urunAd}</div>
+            <div className="sonuc-baslik">
+              Üretim kaydedildi: {sonuc.seriNolar.length} adet {sonuc.urunAd} · Lot no{" "}
+              <Link href={urunLotAdresi(sonuc.lotNo)} className="mono">{sonuc.lotNo}</Link>
+            </div>
             <div className="seri-listesi">
               {sonuc.seriNolar.map((s) => (
                 <Link key={s} href={seriAdresi(s)} className="seri-cip">{s}</Link>
@@ -134,7 +137,7 @@ export default function UretimEkrani() {
 
         {liste?.length === 0 && !aranan ? (
           <p className="not not--buyuk">
-            Üretim için önce bir <Link href="/urunler?yeni=1">ürün tanımlayın</Link>.
+            Ürün yok. <Link href="/urunler?yeni=1">Ürün ekle</Link>
           </p>
         ) : urunId ? (
           <>
@@ -165,7 +168,7 @@ export default function UretimEkrani() {
 
             {onizlemeHatasi ? (
               <div className="mesaj mesaj--warning">
-                {onizlemeHatasi} <Link href={`/urunler?urun=${urunId}&duzenle=1`}>Ürün ağacına parça ekleyin.</Link>
+                {onizlemeHatasi} <Link href={`/urunler?urun=${urunId}&duzenle=1`}>Ürün ağacını düzenle</Link>
               </div>
             ) : !guncel ? (
               <p className="yukleniyor">Kontrol ediliyor…</p>
@@ -178,7 +181,7 @@ export default function UretimEkrani() {
                         <th>Parça</th>
                         <th className="sag">Gereken</th>
                         <th className="sag">Kullanılabilir</th>
-                        <th>Kullanılacak lotlar</th>
+                        <th>Kullanılacak stok girişleri</th>
                         <th>Durum</th>
                       </tr>
                     </thead>
@@ -193,7 +196,7 @@ export default function UretimEkrani() {
                               p.lotlar.map((d, i) => (
                                 <span key={d.lotId}>
                                   {i > 0 && " · "}
-                                  <span className={d.sorunlu ? "uyari-metin" : undefined}>{d.lotNo} × {d.adet}</span>
+                                  <span className={d.sorunlu ? "uyari-metin" : undefined}>{d.lotNo} · {d.adet} adet</span>
                                   {d.sorunlu && <span className="lot-etiket lot-etiket--uyari"> hatalı</span>}
                                 </span>
                               ))
@@ -213,17 +216,16 @@ export default function UretimEkrani() {
                 </div>
                 {guncel.atlananLotlar.length > 0 && (
                   <div className="not">
-                    Üretime kapalı hatalı lotlar (
+                    Atlanan hatalı lotlar:{" "}
                     {guncel.atlananLotlar.map((l, i) => (
                       <span key={l}>{i > 0 && ", "}<span className="mono">{l}</span></span>
                     ))}
-                    ) atlandı.
                   </div>
                 )}
                 {guncel.sorunluKullanilanLotlar.length > 0 && (
                   <div className="mesaj mesaj--warning">
-                    Bu üretimde hatalı lot kullanılacak:{" "}
-                    <span className="mono">{guncel.sorunluKullanilanLotlar.join(", ")}</span>. Kullanılmasına izin verilmiş.
+                    Hatalı lot kullanılacak:{" "}
+                    <span className="mono">{guncel.sorunluKullanilanLotlar.join(", ")}</span>
                   </div>
                 )}
 

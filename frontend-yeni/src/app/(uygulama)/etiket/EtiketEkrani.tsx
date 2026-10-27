@@ -1,6 +1,6 @@
 "use client";
 
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import Barkod, { Karekod } from "@/components/Barkod";
 import { izleme } from "@/lib/api";
@@ -31,6 +31,7 @@ function liste(deger: string | null) {
 /** Adres: /etiket?seri=SN-IP-0001,SN-IP-0002 veya /etiket?lot=L-D-2601; &tur=yok|cizgili|karekod */
 export default function EtiketEkrani() {
   const params = useSearchParams();
+  const router = useRouter();
   const seriler = liste(params.get("seri"));
   const lotlar = liste(params.get("lot"));
   const [kopya, setKopya] = useState(1);
@@ -86,11 +87,17 @@ export default function EtiketEkrani() {
       <section className="kart etiket-ayar">
         <div className="bas-satir">
           <h2>Etiket yazdır</h2>
-          <button type="button" className="btn" disabled={!basilacak.length} onClick={() => window.print()}>
-            Yazdır
-          </button>
+          <span className="dugme-grup">
+            {/* Doğrudan açıldıysa (geçmiş yoksa) ana sayfaya döner */}
+            <button type="button" className="btn btn--ikincil" onClick={() => (window.history.length > 1 ? router.back() : router.push("/"))}>
+              Vazgeç
+            </button>
+            <button type="button" className="btn" disabled={!basilacak.length} onClick={() => window.print()}>
+              Yazdır
+            </button>
+          </span>
         </div>
-        {!seriler.length && !lotlar.length && <p className="not">Yazdırılacak seri veya lot numarası seçilmedi.</p>}
+        {!seriler.length && !lotlar.length && <p className="not">Numara seçilmedi.</p>}
         <div className="izgara-3">
           <div className="alan">
             <label htmlFor="tur">Barkod</label>

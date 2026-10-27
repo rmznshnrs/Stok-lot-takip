@@ -3,7 +3,7 @@
 import { useState, type FormEvent } from "react";
 import Mesaj, { type MesajBilgisi } from "@/components/Mesaj";
 import { useKullanici } from "@/components/Oturum";
-import { ApiHatasi, kullanicilar, type Kullanici, type Rol } from "@/lib/api";
+import { ApiHatasi, hesap, kullanicilar, rolAdi, type Kullanici, type Rol } from "@/lib/api";
 import { useVeri } from "@/lib/kancalar";
 import SifreKutusu from "@/components/SifreKutusu";
 
@@ -11,7 +11,10 @@ const BOS = { ad: "", soyad: "", kullaniciAdi: "", sifre: "", rol: "Kullanici" a
 
 export default function Kullanicilar() {
   const ben = useKullanici();
-  const { veri: liste, hata, yenile } = useVeri(() => kullanicilar.listele(), []);
+  const { veri: tumu, hata, yenile } = useVeri(() => kullanicilar.listele(), []);
+  const { veri: bekleyenler, yenile: bekleyenleriYenile } = useVeri(() => hesap.onayBekleyenler(), []);
+  // Onay bekleyenler ayrı bölümde; listede yalnız açılmış hesaplar
+  const liste = tumu && bekleyenler ? tumu.filter((k) => !bekleyenler.some((b) => b.id === k.id)) : null;
   const [form, setForm] = useState(BOS);
   const [duzenlenen, setDuzenlenen] = useState<Kullanici | null>(null);
   const [mesaj, setMesaj] = useState<MesajBilgisi | null>(null);
@@ -42,7 +45,7 @@ export default function Kullanicilar() {
             ad: form.ad.trim(), soyad: form.soyad.trim(), rol: form.rol, yeniSifre: form.sifre || undefined,
           })
         : await kullanicilar.olustur({ ...form, ad: form.ad.trim(), soyad: form.soyad.trim(), kullaniciAdi: form.kullaniciAdi.trim() });
-      setMesaj({ tur: "success", metin: `${k.kullaniciAdi} ${duzenlenen ? "güncellendi" : "oluşturuldu"}.` });
+      setMesaj({ tur: "success", metin: `${k.kullaniciAdi} kaydedildi.` });
       setDuzenlenen(null);
       setForm(BOS);
       setFormAcik(false);
@@ -84,6 +87,18 @@ export default function Kullanicilar() {
 
       {!formAcik && <Mesaj mesaj={mesaj} />}
 
+      {bekleyenler && bekleyenler.length > 0 && (
+        <OnayBekleyenler
+          bekleyenler={bekleyenler}
+          degisti={(metin) => {
+            setMesaj({ tur: "success", metin });
+            bekleyenleriYenile();
+            yenile();
+          }}
+          hata={(metin) => setMesaj({ tur: "error", metin })}
+        />
+      )}
+
       {formAcik && (
         <section className="acilir-form">
           <h3>{duzenlenen ? `${duzenlenen.kullaniciAdi} düzenleniyor` : "Yeni kullanıcı"}</h3>
@@ -105,14 +120,14 @@ export default function Kullanicilar() {
               <div className="alan">
                 <label htmlFor="k-rol">Rol</label>
                 <select id="k-rol" className="girdi" value={form.rol} onChange={(e) => setForm({ ...form, rol: e.target.value as Rol })}>
-                  <option value="Kullanici">Kullanıcı</option>
+                  <option value="Kullanici">Çalışan</option>
                   <option value="Admin">Yönetici</option>
                 </select>
               </div>
               <div className="alan">
                 <label htmlFor="k-sifre">{duzenlenen ? "Yeni şifre" : "Şifre"}</label>
                 <SifreKutusu required={!duzenlenen} minLength={8} autoComplete="new-password" {...alan("sifre")} />
-                {duzenlenen && <span className="yardim">Boş bırakılırsa şifre değişmez.</span>}
+                {duzenlenen && <span className="yardim">Boşsa değişmez</span>}
               </div>
             </div>
             <div className="dugme-grup">
@@ -141,7 +156,7 @@ export default function Kullanicilar() {
                 <tr key={k.id}>
                   <td>{k.ad} {k.soyad}{k.id === ben.id && <span className="soluk"> · siz</span>}</td>
                   <td className="mono">{k.kullaniciAdi}</td>
-                  <td>{k.rol === "Admin" ? "Yönetici" : "Kullanıcı"}</td>
+                  <td>{rolAdi(k.rol)}</td>
                   <td>
                     <button type="button" className="btn-ikon" title="Düzenle" aria-label={`${k.kullaniciAdi} düzenle`} onClick={() => duzenle(k)}>
                       ✎
@@ -154,5 +169,70 @@ export default function Kullanicilar() {
         </div>
       </section>
     </>
+  );
+}
+
+/** Kendi kaydolup yönetici onayı bekleyen hesaplar: onayla (Çalışan olarak açılır) ya da reddet (silinir). */
+function OnayBekleyenler({ bekleyenler, degisti, hata }: {
+  bekleyenler: { id: number; ad: string; soyad: string; kullaniciAdi: string; eposta: string | null }[];
+  degisti: (mesaj: string) => void;
+  hata: (mesaj: string) => void;
+}) {
+  const [bekliyor, setBekliyor] = useState(false);
+
+  async function yap(is: () => Promise<void>, mesaj: string) {
+    setBekliyor(true);
+    try {
+      await is();
+      degisti(mesaj);
+    } catch (err) {
+      hata(err instanceof ApiHatasi ? err.message : "İşlem yapılamadı.");
+    } finally {
+      setBekliyor(false);
+    }
+  }
+
+  return (
+    <section className="panel">
+      <div className="panel-bas">
+        <div className="baslik-grup">
+          <h2>Onay bekleyen kayıtlar</h2>
+        </div>
+      </div>
+      <div className="tablo-kap">
+        <table className="tablo">
+          <thead>
+            <tr>
+              <th>Ad soyad</th>
+              <th>Kullanıcı adı</th>
+              <th>E-posta</th>
+              <th><span className="gorunmez">İşlem</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            {bekleyenler.map((b) => (
+              <tr key={b.id}>
+                <td>{b.ad} {b.soyad}</td>
+                <td className="mono">{b.kullaniciAdi}</td>
+                <td>{b.eposta}</td>
+                <td className="sag">
+                  <span className="dugme-grup dugme-grup--sag">
+                    <button type="button" className="btn btn--kucuk" disabled={bekliyor}
+                      onClick={() => yap(() => hesap.onayla(b.id), `${b.kullaniciAdi} onaylandı.`)}>
+                      Onayla
+                    </button>
+                    <button type="button" className="btn btn--ikincil btn--kucuk" disabled={bekliyor}
+                      onClick={() => window.confirm(`${b.kullaniciAdi} reddedilsin mi?`)
+                        && yap(() => hesap.reddet(b.id), `${b.kullaniciAdi} reddedildi.`)}>
+                      Reddet
+                    </button>
+                  </span>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
   );
 }

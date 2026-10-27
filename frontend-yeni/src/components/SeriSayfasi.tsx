@@ -5,7 +5,7 @@ import { useState, type FormEvent } from "react";
 import GeriCagirmaEylemleri, { DURUM_ADI, acikMi } from "@/components/GeriCagirmaEylemleri";
 import { useAdminMi } from "@/components/Oturum";
 import { ApiHatasi, geriCagirma, hurdaAdi, izleme, type SeriIz } from "@/lib/api";
-import { lotAdresi } from "@/lib/adres";
+import { lotAdresi, urunLotAdresi } from "@/lib/adres";
 import { tarih, tarihSaat } from "@/lib/bicim";
 import { useVeri } from "@/lib/kancalar";
 
@@ -28,7 +28,7 @@ export default function SeriSayfasi({ seriNo, geri }: { seriNo: string; geri: st
       {hata && <div className="mesaj mesaj--error">{hata}</div>}
       {iz === null && !hata && <p className="yukleniyor">Yükleniyor…</p>}
       {iz === undefined && (
-        <section className="kart kart--genis"><p className="not not--buyuk"><span className="mono">{seriNo}</span> seri numarası bulunamadı.</p></section>
+        <section className="kart kart--genis"><p className="not not--buyuk"><span className="mono">{seriNo}</span> bulunamadı.</p></section>
       )}
       {iz && <SeriDetayi iz={iz} degisti={yenile} />}
     </main>
@@ -45,6 +45,9 @@ function SeriDetayi({ iz, degisti }: { iz: SeriIz; degisti: () => void }) {
         <div className="buyuk-numara">{iz.seriNo}</div>
         <div className="iz-ad">{iz.urunAd}</div>
         <div className="bilgi-liste">
+          {iz.lotNo && (
+            <div className="bilgi"><span>Ürün lot no</span><Link href={urunLotAdresi(iz.lotNo)} className="mono">{iz.lotNo}</Link></div>
+          )}
           <div className="bilgi"><span>Üretim tarihi</span><span>{tarihSaat(iz.tarih)}</span></div>
           <div className="bilgi"><span>Durum</span><span>{iz.satis ? "Satıldı" : iz.hurda ? hurdaAdi(iz.hurda.tur) : "Depoda"}</span></div>
           {iz.hurda && (
@@ -81,7 +84,7 @@ function SeriDetayi({ iz, degisti }: { iz: SeriIz; degisti: () => void }) {
           </div>
         )}
         {iz.geriCagrilanLotlar.length > 0 && (
-          <div className="uyari-kutu alt-not">Bu üründe hatalı lot var: <span className="mono">{iz.geriCagrilanLotlar.join(", ")}</span></div>
+          <div className="uyari-kutu alt-not">Hatalı lot: <span className="mono">{iz.geriCagrilanLotlar.join(", ")}</span></div>
         )}
         {admin && !g && !iz.hurda && <TekGeriCagir seriNo={iz.seriNo} degisti={degisti} />}
         <Link href={`/etiket?seri=${encodeURIComponent(iz.seriNo)}`} className="btn btn--ikincil btn--tam">Etiket yazdır</Link>
@@ -95,7 +98,7 @@ function SeriDetayi({ iz, degisti }: { iz: SeriIz; degisti: () => void }) {
               <tr>
                 <th>Parça</th>
                 <th className="sag">Adet</th>
-                <th>Lot No</th>
+                <th>Stok giriş no</th>
                 <th>Tedarikçi</th>
                 <th>Sipariş tarihi</th>
               </tr>

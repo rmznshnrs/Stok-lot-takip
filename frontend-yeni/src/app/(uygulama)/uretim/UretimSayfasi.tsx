@@ -12,6 +12,7 @@ export default function UretimSayfasi() {
   const params = useSearchParams();
   const sekme = params.get("sekme");
   const seri = params.get("seri")?.trim();
+  const ara = params.get("ara")?.trim() ?? "";
   const gecmis = sekme === "gecmis";
   const geri = sekme === "geri";
   return (
@@ -33,7 +34,7 @@ export default function UretimSayfasi() {
       {seri ? (
         <SeriSayfasi seriNo={seri} geri={geri ? "/uretim?sekme=geri" : "/uretim?sekme=gecmis"} />
       ) : gecmis ? (
-        <UretimGecmisi />
+        <UretimGecmisi key={ara} ilkArama={ara} />
       ) : geri ? (
         <GeriCagirmalar />
       ) : (

@@ -8,7 +8,7 @@ import { bugun } from "@/lib/bicim";
 import { numaraAyikla } from "@/lib/gs1";
 import { useVeri } from "@/lib/kancalar";
 
-const bosForm = () => ({ parcaId: "", tedarikci: "", lotNo: "", adet: "", siparisTarihi: bugun(), siparisNo: "" });
+const bosForm = () => ({ parcaId: "", tedarikci: "", tedarikciLotNo: "", adet: "", siparisTarihi: bugun(), siparisNo: "" });
 
 export default function MalGirisiFormu({ parcalar, kaydedildi }: { parcalar: ParcaStok[]; kaydedildi: () => void }) {
   const { veri: tedarikciListesi, yenile: tedarikcileriYenile } = useVeri(() => tedarikciler(), []);
@@ -32,14 +32,13 @@ export default function MalGirisiFormu({ parcalar, kaydedildi }: { parcalar: Par
       const s = await stok.giris({
         parcaId: Number(form.parcaId),
         tedarikciAdi: form.tedarikci.trim(),
-        // Tedarikçinin GS1 karekodu okutulduysa içinden lot numarası alınır
-        lotNo: numaraAyikla(form.lotNo, "lot"),
+        // Stok giriş no sistemce verilir. Tedarikçinin GS1 karekodu okutulduysa içinden lot numarası alınır
+        tedarikciLotNo: numaraAyikla(form.tedarikciLotNo, "lot"),
         adet: Number(form.adet),
         siparisTarihi: form.siparisTarihi,
         siparisNo: form.siparisNo.trim(),
       });
-      const ek = s.yeniTedarikci ? ` ${s.lot.tedarikciAd} yeni tedarikçi olarak eklendi.` : "";
-      setMesaj({ tur: "success", metin: `${s.lot.lotNo} · ${s.lot.parcaKod} · ${s.lot.girisAdet} ${parcaBirimi(parcalar, s.lot.parcaId)} stoğa eklendi.${ek}` });
+      setMesaj({ tur: "success", metin: `${s.lot.lotNo} kaydedildi.` });
       setSonLot(s.lot.lotNo);
       setForm({ ...bosForm(), parcaId: form.parcaId, tedarikci: form.tedarikci, siparisTarihi: form.siparisTarihi });
       if (s.yeniTedarikci) tedarikcileriYenile();
@@ -85,8 +84,8 @@ export default function MalGirisiFormu({ parcalar, kaydedildi }: { parcalar: Par
             />
           </div>
           <div className="alan">
-            <label htmlFor="lotNo">Lot numarası</label>
-            <input className="girdi girdi--mono" required maxLength={100} {...alan("lotNo")} />
+            <label htmlFor="tedarikciLotNo">Tedarikçi lot no (isteğe bağlı)</label>
+            <input className="girdi girdi--mono" maxLength={100} {...alan("tedarikciLotNo")} />
           </div>
           <div className="alan">
             <label htmlFor="adet">Adet</label>
@@ -110,8 +109,4 @@ export default function MalGirisiFormu({ parcalar, kaydedildi }: { parcalar: Par
       </form>
     </section>
   );
-}
-
-function parcaBirimi(parcalar: ParcaStok[], id: number) {
-  return parcalar.find((p) => p.id === id)?.birim ?? "adet";
 }

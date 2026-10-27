@@ -52,12 +52,12 @@ export default function FirmaListesi({ tur, kok }: { tur: Tur; kok: string }) {
               aria-current={aktif ? "page" : undefined}
             >
               <span className="liste-oge-ad">{f.ad}</span>
-              <span className="liste-oge-alt">{f.iletisim || "İletişim bilgisi yok"}</span>
+              <span className="liste-oge-alt">{f.telefon || f.eposta || "—"}</span>
             </Link>
           );
         })}
         {liste && gorunen.length === 0 && (
-          <p className="not">{arama.trim() ? "Aramaya uyan kayıt yok." : `Henüz ${ad.toLocaleLowerCase("tr")} yok.`}</p>
+          <p className="not">{arama.trim() ? "Sonuç yok." : `${ad} yok.`}</p>
         )}
       </section>
 
@@ -74,10 +74,7 @@ export default function FirmaListesi({ tur, kok }: { tur: Tur; kok: string }) {
           />
         ) : (
           <p className="not not--buyuk">
-            Düzenlemek için soldan bir {ad.toLocaleLowerCase("tr")} seçin ya da yenisini ekleyin.
-            {tur === "musteri"
-              ? " Satışta yeni bir müşteri adı yazıldığında da kendiliğinden eklenir."
-              : " Mal girişinde yeni bir tedarikçi adı yazıldığında da kendiliğinden eklenir."}
+            Soldan seçin.
           </p>
         )}
       </section>
@@ -87,7 +84,9 @@ export default function FirmaListesi({ tur, kok }: { tur: Tur; kok: string }) {
 
 function FirmaFormu({ tur, firma, kaydedildi }: { tur: Tur; firma: Iletisim | null; kaydedildi: (f: Iletisim) => void }) {
   const [ad, setAd] = useState(firma?.ad ?? "");
-  const [iletisim, setIletisim] = useState(firma?.iletisim ?? "");
+  const [telefon, setTelefon] = useState(firma?.telefon ?? "");
+  const [eposta, setEposta] = useState(firma?.eposta ?? "");
+  const [adresMetni, setAdresMetni] = useState(firma?.adres ?? "");
   const [mesaj, setMesaj] = useState<MesajBilgisi | null>(null);
   const [bekliyor, setBekliyor] = useState(false);
   const baslik = tur === "musteri" ? "müşteri" : "tedarikçi";
@@ -97,7 +96,7 @@ function FirmaFormu({ tur, firma, kaydedildi }: { tur: Tur; firma: Iletisim | nu
     setMesaj(null);
     setBekliyor(true);
     try {
-      const istek = { ad: ad.trim(), iletisim: iletisim.trim() };
+      const istek = { ad: ad.trim(), telefon: telefon.trim(), eposta: eposta.trim(), adres: adresMetni.trim() };
       const f =
         tur === "musteri"
           ? await (firma ? firmalar.musteriGuncelle(firma.id, istek) : firmalar.musteriEkle(istek))
@@ -118,19 +117,23 @@ function FirmaFormu({ tur, firma, kaydedildi }: { tur: Tur; firma: Iletisim | nu
       <div className="alan">
         <label htmlFor="firma-ad">Ad</label>
         <input id="firma-ad" className="girdi" required maxLength={200} value={ad} onChange={(e) => setAd(e.target.value)} />
-        {firma && <span className="yardim">Ad değişirse geçmiş satış ve girişlerde de yeni ad görünür.</span>}
+      </div>
+      <div className="izgara-2">
+        <div className="alan">
+          <label htmlFor="firma-telefon">Telefon</label>
+          <input id="firma-telefon" type="tel" className="girdi" maxLength={50} autoComplete="off"
+            value={telefon} onChange={(e) => setTelefon(e.target.value)} />
+        </div>
+        <div className="alan">
+          <label htmlFor="firma-eposta">E-posta</label>
+          <input id="firma-eposta" type="email" className="girdi" maxLength={200} autoComplete="off"
+            value={eposta} onChange={(e) => setEposta(e.target.value)} />
+        </div>
       </div>
       <div className="alan">
-        <label htmlFor="firma-iletisim">İletişim</label>
-        <textarea
-          id="firma-iletisim"
-          className="girdi girdi--cok-satir"
-          maxLength={500}
-          rows={4}
-          value={iletisim}
-          onChange={(e) => setIletisim(e.target.value)}
-        />
-        <span className="yardim">Telefon, e-posta, adres, yetkili kişi.</span>
+        <label htmlFor="firma-adres">Adres</label>
+        <textarea id="firma-adres" className="girdi girdi--cok-satir" maxLength={500} rows={3}
+          value={adresMetni} onChange={(e) => setAdresMetni(e.target.value)} />
       </div>
       <div className="kart-alt">
         <span />

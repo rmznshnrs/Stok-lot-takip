@@ -5,10 +5,11 @@ import { useSearchParams } from "next/navigation";
 import { Fragment, useState, type FormEvent } from "react";
 import { useAdminMi } from "@/components/Oturum";
 import Mesaj, { type MesajBilgisi } from "@/components/Mesaj";
+import { useSayfalama } from "@/components/Sayfalama";
 import { ApiHatasi, satis, type SatisGecmisi } from "@/lib/api";
 import { tarih } from "@/lib/bicim";
 import { useGecikmeli, useVeri } from "@/lib/kancalar";
-import { seriAdresi } from "@/lib/adres";
+import { seriAdresi, urunLotAdresi } from "@/lib/adres";
 import SatisFormu from "./SatisFormu";
 
 
@@ -17,6 +18,7 @@ export default function SatisEkrani() {
   const [arama, setArama] = useState("");
   const aranan = useGecikmeli(arama.trim());
   const { veri: gecmis, hata, yenile } = useVeri(() => satis.gecmis(aranan), [aranan]);
+  const { gorunen, cubuk } = useSayfalama(gecmis, aranan);
   const [iadeSatiri, setIadeSatiri] = useState<string | null>(null);
   const [mesaj, setMesaj] = useState<MesajBilgisi | null>(null);
   const sutun = admin ? 6 : 5;
@@ -54,7 +56,7 @@ export default function SatisEkrani() {
                 <th>Tarih</th>
                 <th>Müşteri</th>
                 <th>Ürün</th>
-                <th>Seri No</th>
+                <th>Lot / seri no</th>
                 <th className="sag">Adet</th>
                 {admin && <th className="sutun-ikon"><span className="gorunmez">İade</span></th>}
               </tr>
@@ -66,7 +68,7 @@ export default function SatisEkrani() {
                   <td colSpan={sutun}>{aranan ? `“${aranan}” için satış bulunamadı.` : "Henüz satış yok."}</td>
                 </tr>
               )}
-              {gecmis?.map((s) => {
+              {gorunen?.map((s) => {
                 const anahtar = `${s.satisId}-${s.urunAd}`;
                 return (
                   <Fragment key={anahtar}>
@@ -75,11 +77,16 @@ export default function SatisEkrani() {
                       <td>{s.musteriAd}</td>
                       <td>{s.urunAd}</td>
                       <td className="mono">
-                        {s.seriNolar.map((seri, i) => (
-                          <span key={seri}>
-                            {i > 0 && ", "}
-                            <Link href={seriAdresi(seri)}>{seri}</Link>
-                          </span>
+                        {lotGruplari(s).map(([lot, seriler]) => (
+                          <div key={lot} className="satis-lot">
+                            {lot && <><Link href={urunLotAdresi(lot)} className="satis-lot-no">{lot}</Link>: </>}
+                            {seriler.map((seri, i) => (
+                              <span key={seri}>
+                                {i > 0 && ", "}
+                                <Link href={seriAdresi(seri)}>{seri}</Link>
+                              </span>
+                            ))}
+                          </div>
                         ))}
                         {s.iadeEdilenler.length > 0 && (
                           <div className="yardim">
@@ -133,6 +140,7 @@ export default function SatisEkrani() {
             </tbody>
           </table>
         </div>
+        {cubuk}
       </section>
     </main>
   );
@@ -147,15 +155,15 @@ function IadeFormu({ s, kapat, alindi }: { s: SatisGecmisi; kapat: () => void; a
 
   async function kaydet(e: FormEvent) {
     e.preventDefault();
-    if (!secili.length) return setHata("İade alınacak seri numaralarını seçin.");
-    if (!window.confirm(`${s.musteriAd}: ${secili.join(", ")} iade alınacak ve depoya dönecek. Onaylıyor musunuz?`)) return;
+    if (!secili.length) return setHata("Seri no seçin.");
+    if (!window.confirm(`${secili.join(", ")} iade alınsın mı?`)) return;
     setBekliyor(true);
     setHata("");
     try {
       const r = await satis.iade(s.satisId, secili, aciklama.trim());
-      alindi(`${r.seriNolar.join(", ")} iade alındı, depoya döndü.`);
+      alindi(`${r.seriNolar.join(", ")} iade alındı.`);
     } catch (err) {
-      setHata(err instanceof ApiHatasi ? err.message : "İade kaydedilemedi.");
+      setHata(err instanceof ApiHatasi ? err.message : "Kaydedilemedi.");
       setBekliyor(false);
     }
   }
@@ -188,4 +196,12 @@ function IadeFormu({ s, kapat, alindi }: { s: SatisGecmisi; kapat: () => void; a
       {hata && <span className="hata">{hata}</span>}
     </form>
   );
+}
+
+/** Satılan seri numaraları ürün lotuna göre gruplanır (lot sırası korunur). */
+function lotGruplari(s: SatisGecmisi): [string, string[]][] {
+  const kalemler = s.kalemler ?? s.seriNolar.map((seriNo) => ({ seriNo, lotNo: "" }));
+  const gruplar = new Map<string, string[]>();
+  for (const k of kalemler) gruplar.set(k.lotNo, [...(gruplar.get(k.lotNo) ?? []), k.seriNo]);
+  return [...gruplar.entries()];
 }

@@ -15,7 +15,6 @@ interface Props {
 export default function UrunFormu({ urun, parcalar, kaydedildi }: Props) {
   const [kod, setKod] = useState(urun?.kod ?? "");
   const [ad, setAd] = useState(urun?.ad ?? "");
-  const [seriOneki, setSeriOneki] = useState(urun?.seriOneki ?? "");
   const [agac, setAgac] = useState<UrunAgaciSatiri[]>(urun?.agac ?? []);
   const [yeniParca, setYeniParca] = useState("");
   const [yeniAdet, setYeniAdet] = useState("");
@@ -49,14 +48,14 @@ export default function UrunFormu({ urun, parcalar, kaydedildi }: Props) {
     e.preventDefault();
     setMesaj(null);
     if (agac.some((s) => !Number.isInteger(s.adet) || s.adet < 1)) {
-      return setMesaj({ tur: "error", metin: "Ürün ağacındaki adetler en az 1 olmalı." });
+      return setMesaj({ tur: "error", metin: "Adet en az 1 olmalı." });
     }
     setBekliyor(true);
     try {
-      const bilgi = { kod: kod.trim(), ad: ad.trim(), seriOneki: seriOneki.trim() };
+      const bilgi = { kod: kod.trim(), ad: ad.trim() };
       const kayitli = urun ? await urunler.guncelle(urun.id, bilgi) : await urunler.olustur(bilgi);
       await urunler.agacKaydet(kayitli.id, agac.map((s) => ({ parcaId: s.parcaId, adet: s.adet })));
-      kaydedildi(kayitli.id, `${kayitli.kod} – ${kayitli.ad} kaydedildi.`);
+      kaydedildi(kayitli.id, `${kayitli.kod} kaydedildi.`);
     } catch (err) {
       setMesaj({ tur: "error", metin: err instanceof ApiHatasi ? err.message : "Kaydedilemedi." });
     } finally {
@@ -77,19 +76,6 @@ export default function UrunFormu({ urun, parcalar, kaydedildi }: Props) {
           <label htmlFor="kod">Ürün kodu</label>
           <input id="kod" className="girdi girdi--mono" required maxLength={50} value={kod} onChange={(e) => setKod(e.target.value)} />
         </div>
-        <div className="alan">
-          <label htmlFor="seriOneki">Seri no öneki</label>
-          <input
-            id="seriOneki"
-            className="girdi girdi--mono"
-            required
-            maxLength={20}
-            value={seriOneki}
-            disabled={urun ? !urun.seriOnekiDegistirilebilir : false}
-            onChange={(e) => setSeriOneki(e.target.value)}
-          />
-          {urun && !urun.seriOnekiDegistirilebilir && <span className="yardim">Üretim yapıldığı için değiştirilemez.</span>}
-        </div>
       </div>
 
       <h3>Ürün ağacı</h3>
@@ -107,7 +93,7 @@ export default function UrunFormu({ urun, parcalar, kaydedildi }: Props) {
           </thead>
           <tbody>
             {agac.length === 0 && (
-              <tr className="bos"><td colSpan={5}>Ürün ağacı boş. Aşağıdan parça ekleyin.</td></tr>
+              <tr className="bos"><td colSpan={5}>Ürün ağacı boş.</td></tr>
             )}
             {agac.map((s) => (
               <tr key={s.parcaId}>

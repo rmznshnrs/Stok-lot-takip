@@ -6,17 +6,21 @@ import GeriCagirmaEylemleri, { DURUM_ADI, acikMi } from "@/components/GeriCagirm
 import { useAdminMi } from "@/components/Oturum";
 import { geriCagirma } from "@/lib/api";
 import { tarihSaat } from "@/lib/bicim";
+import { useSayfalama } from "@/components/Sayfalama";
 import { useGecikmeli, useVeri } from "@/lib/kancalar";
 import { lotAdresi, seriAdresi } from "@/lib/adres";
 
 /** Geri çağrılan ürünler (seri no): müşteride / geri alındı / depoda / hurda / satışa açıldı. */
 export default function GeriCagirmalar() {
   const admin = useAdminMi();
-  const [hepsi, setHepsi] = useState(false);
   const [arama, setArama] = useState("");
   const aranan = useGecikmeli(arama.trim());
-  const { veri: liste, hata, yenile } = useVeri(() => geriCagirma.liste(!hepsi, aranan), [hepsi, aranan]);
-  const musteride = liste?.filter((g) => g.durum === "musteride").length ?? 0;
+  const { veri: hamListe, hata, yenile } = useVeri(() => geriCagirma.liste(false, aranan), [aranan]);
+  // Tek liste: açık olanlar üstte, sonuçlananlar altta (her grup kendi içinde yeniden eskiye)
+  const liste = hamListe && [...hamListe.filter(acikMi), ...hamListe.filter((g) => !acikMi(g))];
+  const { gorunen, cubuk } = useSayfalama(liste, aranan);
+  const acik = hamListe?.filter(acikMi).length ?? 0;
+  const musteride = hamListe?.filter((g) => g.durum === "musteride").length ?? 0;
   const sutun = admin ? 6 : 5;
 
   return (
@@ -25,13 +29,9 @@ export default function GeriCagirmalar() {
         <div className="panel-bas">
           <div className="baslik-grup">
             <h2>Geri çağrılan ürünler</h2>
-            {liste && !hepsi && <span className="ozet">{liste.length} açık · {musteride} hâlâ müşteride</span>}
+            {liste && <span className="ozet">{acik} açık · {musteride} müşteride · {liste.length - acik} kapandı</span>}
           </div>
           <div className="arama-satiri">
-            <nav className="sekmeler" aria-label="Durum">
-              <button type="button" className={`sekme${hepsi ? "" : " sekme--aktif"}`} onClick={() => setHepsi(false)}>Açık olanlar</button>
-              <button type="button" className={`sekme${hepsi ? " sekme--aktif" : ""}`} onClick={() => setHepsi(true)}>Hepsi</button>
-            </nav>
             <input
               type="search"
               className="girdi girdi--ara"
@@ -57,9 +57,9 @@ export default function GeriCagirmalar() {
             <tbody>
               {liste === null && !hata && <tr className="bos"><td colSpan={sutun}>Yükleniyor…</td></tr>}
               {liste?.length === 0 && (
-                <tr className="bos"><td colSpan={sutun}>{hepsi || aranan ? "Kayıt yok." : "Açık geri çağırma yok."}</td></tr>
+                <tr className="bos"><td colSpan={sutun}>{aranan ? "Aramaya uyan kayıt yok." : "Henüz geri çağırma yok."}</td></tr>
               )}
-              {liste?.map((g) => (
+              {gorunen?.map((g) => (
                 <tr key={g.id} className={g.durum === "musteride" ? "uyari-satir" : undefined}>
                   <td className="mono">
                     <Link href={seriAdresi(g.seriNo)}>{g.seriNo}</Link>
@@ -85,6 +85,7 @@ export default function GeriCagirmalar() {
             </tbody>
           </table>
         </div>
+        {cubuk}
       </section>
     </main>
   );

@@ -1,12 +1,15 @@
 "use client";
 
+import { useState, type FormEvent } from "react";
+import Mesaj, { type MesajBilgisi } from "@/components/Mesaj";
 import { useKullanici } from "@/components/Oturum";
+import { ApiHatasi, hesap, rolAdi } from "@/lib/api";
+import { useVeri } from "@/lib/kancalar";
 
 /** Giriş yapmış kullanıcının bilgileri. Ad, soyad ve rolü yönetici değiştirir. */
 export default function ProfilBilgisi() {
   const k = useKullanici();
-  const yonetici = k.rol === "Admin";
-  const rol = yonetici ? "Yönetici" : "Kullanıcı";
+  const rol = rolAdi(k.rol);
   const satirlar = [
     { ad: "Ad", deger: k.ad },
     { ad: "Soyad", deger: k.soyad },
@@ -32,7 +35,49 @@ export default function ProfilBilgisi() {
         ))}
       </dl>
 
-      <p className="not">Ad, soyad veya rol değişecekse yöneticinize başvurun.</p>
+
+      <EpostaFormu />
     </section>
+  );
+}
+
+/** Şifre sıfırlama bağlantısının gideceği e-posta. */
+function EpostaFormu() {
+  const { veri } = useVeri(() => hesap.eposta(), []);
+  return veri ? <EpostaAlani ilk={veri.eposta ?? ""} /> : null;
+}
+
+function EpostaAlani({ ilk }: { ilk: string }) {
+  const [eposta, setEposta] = useState(ilk);
+  const [mesaj, setMesaj] = useState<MesajBilgisi | null>(null);
+  const [bekliyor, setBekliyor] = useState(false);
+
+  async function kaydet(e: FormEvent) {
+    e.preventDefault();
+    setMesaj(null);
+    setBekliyor(true);
+    try {
+      const s = await hesap.epostaAyarla(eposta.trim());
+      setEposta(s.eposta ?? "");
+      setMesaj({ tur: "success", metin: s.eposta ? "E-posta kaydedildi." : "E-posta kaldırıldı." });
+    } catch (err) {
+      setMesaj({ tur: "error", metin: err instanceof ApiHatasi ? err.message : "Kaydedilemedi." });
+    } finally {
+      setBekliyor(false);
+    }
+  }
+
+  return (
+    <form className="form-dikey" onSubmit={kaydet}>
+      <div className="alan">
+        <label htmlFor="profil-eposta">E-posta</label>
+        <input id="profil-eposta" type="email" className="girdi" maxLength={200} autoComplete="email"
+          value={eposta} onChange={(e) => setEposta(e.target.value)} />
+      </div>
+      <Mesaj mesaj={mesaj} />
+      <div className="dugme-grup">
+        <button type="submit" className="btn btn--ikincil" disabled={bekliyor}>E-postayı kaydet</button>
+      </div>
+    </form>
   );
 }

@@ -14,7 +14,7 @@ export default function YonetimEkrani() {
     return (
       <main className="icerik">
         <section className="kart kart--genis">
-          <p className="not not--buyuk">Bu sayfa yalnız yöneticiler içindir.</p>
+          <p className="not not--buyuk">Yetkiniz yok.</p>
         </section>
       </main>
     );

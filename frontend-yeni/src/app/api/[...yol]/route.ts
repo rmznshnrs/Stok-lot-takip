@@ -7,6 +7,9 @@ import { oturumYok, sunucuyaUlasilamadi } from "@/lib/vekil";
 
 type Baglam = { params: Promise<{ yol: string[] }> };
 
+// Oturumsuz çağrılabilen uçlar: kayıt ol, şifremi unuttum
+const ACIK_YOLLAR = ["hesap/kayit", "hesap/sifre-unuttum", "hesap/sifre-sifirla"];
+
 async function ilet(istek: NextRequest, { params }: Baglam) {
   const { yol } = await params;
   const yolMetni = yol.map(encodeURIComponent).join("/");
@@ -17,9 +20,11 @@ async function ilet(istek: NextRequest, { params }: Baglam) {
   }
 
   const token = istek.cookies.get(OTURUM_CEREZI)?.value;
-  if (!token) return oturumYok();
+  const acik = ACIK_YOLLAR.includes(yolMetni.toLowerCase());
+  if (!token && !acik) return oturumYok();
 
-  const basliklar = new Headers({ Authorization: `Bearer ${token}`, Accept: "application/json" });
+  const basliklar = new Headers({ Accept: "application/json" });
+  if (token) basliklar.set("Authorization", `Bearer ${token}`);
   const icerikTuru = istek.headers.get("Content-Type");
   if (icerikTuru) basliklar.set("Content-Type", icerikTuru);
 

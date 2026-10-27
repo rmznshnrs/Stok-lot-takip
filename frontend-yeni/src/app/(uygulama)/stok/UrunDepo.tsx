@@ -9,7 +9,7 @@ import { icerir, tarihSaat } from "@/lib/bicim";
 import { useVeri } from "@/lib/kancalar";
 import { seriAdresi } from "@/lib/adres";
 
-/** Ürünün depodaki seri numaraları; yönetici seçtiklerini hurdaya / kayba ayırabilir (açıklama zorunlu). */
+/** Ürünün depodaki seri numaraları; yönetici seçtiklerini hurdaya / kayba ayırıp stoktan düşer (açıklama zorunlu). */
 export default function UrunDepo({ urunId, degisti }: { urunId: number; degisti?: () => void }) {
   const admin = useAdminMi();
   const { veri: liste, hata, yenile } = useVeri(() => uretim.gecmis(undefined, urunId), [urunId]);
@@ -38,7 +38,7 @@ export default function UrunDepo({ urunId, degisti }: { urunId: number; degisti?
     e.preventDefault();
     if (!secili.length) return;
     const ad = tur === "Hurda" ? "hurdaya" : "kayba";
-    if (!window.confirm(`${secili.join(", ")} ${ad} ayrılacak; bu ürünler artık satılamaz. Onaylıyor musunuz?`)) return;
+    if (!window.confirm(`${secili.join(", ")} ${ad} ayrılsın mı?`)) return;
     setBekliyor(true);
     setMesaj(null);
     try {
@@ -58,14 +58,14 @@ export default function UrunDepo({ urunId, degisti }: { urunId: number; degisti?
   return (
     <div className="form-dikey">
       <div className="bas-satir">
-        <h3>Depodaki ürünler <span className="rozet rozet--kucuk rozet--mavi">{depoda.length}</span></h3>
+        <h3>Depodaki ürünler · stoktan düş <span className="rozet rozet--kucuk rozet--mavi">{depoda.length}</span></h3>
         {ayrilan > 0 && (
           <Link href="/uretim?sekme=gecmis" className="not">{ayrilan} hurda / kayıp</Link>
         )}
       </div>
       <Mesaj mesaj={mesaj} />
       {hata && <div className="mesaj mesaj--error">{hata}</div>}
-      {liste && depoda.length === 0 && <p className="not">Depoda bu üründen seri no yok.</p>}
+      {liste && depoda.length === 0 && <p className="not">Depoda ürün yok.</p>}
       {depoda.length > 0 && (
         <>
           <input
@@ -96,7 +96,7 @@ export default function UrunDepo({ urunId, degisti }: { urunId: number; degisti?
                 </Link>
               ),
             )}
-            {gorunen.length === 0 && <p className="not">Aramaya uyan seri no yok.</p>}
+            {gorunen.length === 0 && <p className="not">Sonuç yok.</p>}
           </div>
         </>
       )}

@@ -15,11 +15,11 @@ export default function SifreFormu() {
   async function kaydet(e: FormEvent) {
     e.preventDefault();
     setMesaj(null);
-    if (yeni !== tekrar) return setMesaj({ tur: "error", metin: "Yeni şifreler aynı değil." });
+    if (yeni !== tekrar) return setMesaj({ tur: "error", metin: "Şifreler aynı değil." });
     setBekliyor(true);
     try {
       await oturum.sifreDegistir(eski, yeni);
-      setMesaj({ tur: "success", metin: "Şifreniz değiştirildi." });
+      setMesaj({ tur: "success", metin: "Şifre değiştirildi." });
       setEski("");
       setYeni("");
       setTekrar("");

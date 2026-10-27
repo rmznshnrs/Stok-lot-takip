@@ -4,8 +4,9 @@ import Link from "next/link";
 import { useState } from "react";
 import { ApiHatasi, islemler, kullanicilar, type Islem, type IslemTuru } from "@/lib/api";
 import { tarihSaat } from "@/lib/bicim";
+import { useSayfalama } from "@/components/Sayfalama";
 import { useVeri } from "@/lib/kancalar";
-import { lotAdresi, seriAdresi } from "@/lib/adres";
+import { lotAdresi, seriAdresi, urunLotAdresi } from "@/lib/adres";
 
 const TURLER: { deger: IslemTuru; ad: string }[] = [
   { deger: "giris", ad: "Mal girişi" },
@@ -19,7 +20,8 @@ const TURLER: { deger: IslemTuru; ad: string }[] = [
 ];
 const turAdi = (t: IslemTuru) => TURLER.find((x) => x.deger === t)?.ad ?? t;
 const UYARI_TURLERI: IslemTuru[] = ["iade", "duzeltme", "hurda", "sorun", "geri"];
-const SAYFA = 50;
+// Bir seferde alınan kayıt; ekranda 25 / 50 / 100'lük sayfalara bölünür
+const SAYFA = 500;
 
 /** Yalnız Admin: kim, ne zaman, ne yaptı. Türe ve kişiye göre süzülür; "Daha eski" ile geriye gidilir. */
 export default function IslemGecmisi() {
@@ -36,6 +38,7 @@ export default function IslemGecmisi() {
   const [ekHata, setEkHata] = useState("");
   const [bekliyor, setBekliyor] = useState(false);
   const liste = ilk ? [...ilk, ...ekler] : null;
+  const { gorunen, cubuk } = useSayfalama(liste, `${tur}|${kisi}`);
   const devami = (sonDolu ?? ilk?.length === SAYFA) && liste !== null && liste.length > 0;
   const hata = ilkHata || ekHata;
 
@@ -58,7 +61,7 @@ export default function IslemGecmisi() {
       setEkler([...ekler, ...yeni]);
       setSonDolu(yeni.length === SAYFA);
     } catch (err) {
-      setEkHata(err instanceof ApiHatasi ? err.message : "İşlem geçmişi alınamadı.");
+      setEkHata(err instanceof ApiHatasi ? err.message : "Yüklenemedi.");
     } finally {
       setBekliyor(false);
     }
@@ -94,7 +97,7 @@ export default function IslemGecmisi() {
           <tbody>
             {liste === null && !hata && <tr className="bos"><td colSpan={5}>Yükleniyor…</td></tr>}
             {liste?.length === 0 && <tr className="bos"><td colSpan={5}>Kayıt yok.</td></tr>}
-            {liste?.map((i, n) => (
+            {gorunen?.map((i, n) => (
               <tr key={`${i.zaman}-${i.tur}-${n}`}>
                 <td className="hucre-dar">{tarihSaat(i.zaman)}</td>
                 <td>
@@ -106,7 +109,7 @@ export default function IslemGecmisi() {
                 <td>{i.aciklama}</td>
                 <td className="mono">
                   {i.numara && (
-                    <Link href={i.numaraTuru === "lot" ? lotAdresi(i.numara) : seriAdresi(i.numara)}>
+                    <Link href={i.numaraTuru === "lot" ? lotAdresi(i.numara) : i.numaraTuru === "urunlot" ? urunLotAdresi(i.numara) : seriAdresi(i.numara)}>
                       {i.numara}
                     </Link>
                   )}
@@ -116,11 +119,12 @@ export default function IslemGecmisi() {
           </tbody>
         </table>
       </div>
+      {cubuk}
       {devami && liste && (
         <div className="kart-alt">
           <span />
           <button type="button" className="btn btn--ikincil" disabled={bekliyor} onClick={dahaEski}>
-            Daha eski
+            Daha eski kayıtları yükle
           </button>
         </div>
       )}
