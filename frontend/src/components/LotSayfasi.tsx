@@ -36,7 +36,7 @@ export default function LotSayfasi({ lotNo, geri }: { lotNo: string; geri: strin
       {hata && <div className="mesaj mesaj--error">{hata}</div>}
       {iz === null && !hata && <p className="yukleniyor">Yükleniyor…</p>}
       {iz === undefined && (
-        <section className="kart kart--genis"><p className="not not--buyuk"><span className="mono">{lotNo}</span> lot numarası bulunamadı.</p></section>
+        <section className="kart kart--genis"><p className="not not--buyuk"><span className="mono">{lotNo}</span> stok giriş numarası bulunamadı.</p></section>
       )}
       {iz && <LotDetayi iz={iz} degisti={yenile} />}
     </main>
@@ -52,7 +52,7 @@ function LotDetayi({ iz, degisti }: { iz: LotIz; degisti: () => void }) {
   return (
     <div className="akis">
       <section className={`kart kart--iz${lot.sorunlu ? " kart--geri" : ""}`}>
-        <div className="adim-baslik">Parça lotu</div>
+        <div className="adim-baslik">Stok girişi</div>
         <div className="buyuk-numara">{lot.lotNo}</div>
         <div className="iz-ad">{lot.parcaAd} <span className="mono yardim">{lot.parcaKod}</span></div>
         {lot.sorunlu && (
@@ -65,6 +65,7 @@ function LotDetayi({ iz, degisti }: { iz: LotIz; degisti: () => void }) {
         <Mesaj mesaj={mesaj} />
         <div className="bilgi-izgara">
           <Bilgi ad="Tedarikçi">{lot.tedarikciAd}</Bilgi>
+          {lot.tedarikciLotNo && <Bilgi ad="Tedarikçi lot no"><span className="mono">{lot.tedarikciLotNo}</span></Bilgi>}
           <Bilgi ad="Sipariş tarihi">{tarih(lot.siparisTarihi)}</Bilgi>
           <Bilgi ad="Giriş zamanı">{tarihSaat(lot.girisZamani)}</Bilgi>
           <Bilgi ad="Gelen adet">{lot.girisAdet}</Bilgi>
@@ -107,7 +108,7 @@ function LotDetayi({ iz, degisti }: { iz: LotIz; degisti: () => void }) {
             <UrunDurumu u={u} />
           </Link>
         ))}
-        {!iz.uretimler.length && <p className="not">Bu lot henüz hiçbir üretimde kullanılmadı.</p>}
+        {!iz.uretimler.length && <p className="not">Bu girişin parçaları henüz hiçbir üretimde kullanılmadı.</p>}
       </section>
 
       <div className="akis-ok" aria-hidden="true">→</div>
@@ -125,7 +126,7 @@ function LotDetayi({ iz, degisti }: { iz: LotIz; degisti: () => void }) {
             {m.iletisim && <span className="not">{m.iletisim}</span>}
           </div>
         ))}
-        {!iz.musteriler.length && <p className="not">Bu lottan yapılan ürünlerden müşteride olan yok.</p>}
+        {!iz.musteriler.length && <p className="not">Bu girişin parçalarıyla yapılan ürünlerden müşteride olan yok.</p>}
         {iz.stoktakiUretimler.length > 0 && (
           <div className={`${lot.sorunlu ? "uyari-kutu" : "bilgi-kutu"} alt-not`}>
             Depodaki{" "}

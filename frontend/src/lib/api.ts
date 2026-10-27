@@ -16,6 +16,8 @@ export interface Lot {
   geriCagrildi: boolean;
   sorunlu: boolean; sorunAciklama: string;
   girisZamani: string; sirada: boolean;
+  /** Tedarikçinin pakete yazdığı lot no (lotNo: sistemin verdiği stok giriş no). */
+  tedarikciLotNo: string;
 }
 
 export interface SatisBilgisi { satisId: number; tarih: string; musteriId: number; musteriAd: string; musteriIletisim: string }
@@ -29,7 +31,9 @@ export interface ParcaStok {
 export interface StokGrubu { parca: ParcaStok; lotlar: Lot[]; siradaki: Lot | null }
 
 export interface MalGirisiIstek {
-  parcaId: number; tedarikciAdi: string; lotNo: string; adet: number; siparisTarihi: string; siparisNo?: string;
+  parcaId: number; tedarikciAdi: string; adet: number; siparisTarihi: string; siparisNo?: string;
+  /** Boş bırakılırsa stok giriş no sistemce verilir (SG-0001). */
+  lotNo?: string; tedarikciLotNo?: string;
 }
 export interface MalGirisiSonucu { lot: Lot; yeniTedarikci: boolean }
 
@@ -46,8 +50,10 @@ export interface UretimOnizleme {
   urunId: number; urunKod: string; urunAd: string; adet: number;
   parcalar: ParcaIhtiyaci[]; seriNolar: string[]; eksikler: ParcaIhtiyaci[]; yeterli: boolean; atlananLotlar: string[];
   sorunluKullanilanLotlar: string[];
+  /** Bu partiye verilecek ürün lot no. */
+  lotNo: string;
 }
-export interface UretimSonucu { urunId: number; urunAd: string; seriNolar: string[] }
+export interface UretimSonucu { urunId: number; urunAd: string; seriNolar: string[]; lotNo: string }
 
 export interface LotIzUretim {
   uretimId: number; seriNo: string; tarih: string; urunKod: string; urunAd: string; adet: number; satis: SatisBilgisi | null;
@@ -64,20 +70,24 @@ export interface SeriIz {
   uretimId: number; seriNo: string; tarih: string; urunKod: string; urunAd: string;
   parcalar: SeriIzParca[]; satis: SatisBilgisi | null; geriCagrilanLotlar: string[]; hurda: HurdaBilgisi | null; iadeler: IadeBilgisi[];
   geriCagirma: GeriCagirma | null;
+  /** Ürün lot no (aynı anda üretilenlerin ortak numarası). */
+  lotNo: string;
 }
 
-export type NumaraTuru = "lot" | "seri" | "parca";
+/** lot: stok giriş no, urunlot: ürün lot no. */
+export type NumaraTuru = "lot" | "seri" | "urunlot" | "parca";
 export interface Aday { tur: NumaraTuru; deger: string }
 export interface NumaraArama { tur: NumaraTuru | null; deger: string | null; adaylar: Aday[] }
 
 export interface Hareket {
-  tur: "giris" | "uretim" | "satis"; tarih: string; aciklama: string; numara: string; numaraIlk: string; numaraTuru: "lot" | "seri";
+  tur: "giris" | "uretim" | "satis"; tarih: string; aciklama: string; numara: string; numaraIlk: string; numaraTuru: "lot" | "seri" | "urunlot";
 }
 
 export interface UretimGecmisi {
   uretimId: number; seriNo: string; urunId: number; urunAd: string; tarih: string;
   musteriAd: string | null; satisTarihi: string | null; geriCagrilanLotlar: string[]; hurda: HurdaBilgisi | null;
   geriCagirmaDurumu: string | null;
+  lotNo: string;
 }
 export type HurdaTuru = "Hurda" | "Kayip";
 export interface HurdaBilgisi { tur: HurdaTuru; aciklama: string; zaman: string; kullaniciAd: string }

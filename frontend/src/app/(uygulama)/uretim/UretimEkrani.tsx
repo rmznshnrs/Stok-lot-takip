@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import { ApiHatasi, uretim, urunler, type UretimSonucu } from "@/lib/api";
 import { ETIKET_TURLERI, etiketTuruKaydet, kayitliEtiketTuru, type EtiketTuru } from "@/lib/etiket";
 import { useGecikmeli, useVeri } from "@/lib/kancalar";
-import { seriAdresi } from "@/lib/adres";
+import { seriAdresi, urunLotAdresi } from "@/lib/adres";
 
 const EN_COK = 999;
 
@@ -97,7 +97,10 @@ export default function UretimEkrani() {
       <section className="kart kart--genis kart--bosluklu">
         {sonuc && (
           <div className="sonuc-kutu" role="status">
-            <div className="sonuc-baslik">Üretim kaydedildi: {sonuc.seriNolar.length} adet {sonuc.urunAd}</div>
+            <div className="sonuc-baslik">
+              Üretim kaydedildi: {sonuc.seriNolar.length} adet {sonuc.urunAd} · Lot no{" "}
+              <Link href={urunLotAdresi(sonuc.lotNo)} className="mono">{sonuc.lotNo}</Link>
+            </div>
             <div className="seri-listesi">
               {sonuc.seriNolar.map((s) => (
                 <Link key={s} href={seriAdresi(s)} className="seri-cip">{s}</Link>
@@ -178,7 +181,7 @@ export default function UretimEkrani() {
                         <th>Parça</th>
                         <th className="sag">Gereken</th>
                         <th className="sag">Kullanılabilir</th>
-                        <th>Kullanılacak lotlar</th>
+                        <th>Kullanılacak stok girişleri</th>
                         <th>Durum</th>
                       </tr>
                     </thead>
@@ -230,7 +233,7 @@ export default function UretimEkrani() {
                 {kayitHatasi && <div className="mesaj mesaj--error" role="alert">{kayitHatasi}</div>}
 
                 <div className="kart-alt">
-                  <span />
+                  <span className="not">Ürün lot no: <span className="mono">{guncel.lotNo}</span></span>
                   <div className="kaydet-grup">
                     {!guncel.yeterli && <span className="uyari-not">Eksik parça var</span>}
                     <button type="button" className="btn" disabled={!guncel.yeterli || bekliyor} onClick={kaydet}>

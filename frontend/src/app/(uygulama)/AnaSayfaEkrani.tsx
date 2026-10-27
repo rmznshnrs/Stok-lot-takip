@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { ApiHatasi, izleme, type Aday, type NumaraArama, type NumaraTuru } from "@/lib/api";
-import { lotAdresi, seriAdresi } from "@/lib/adres";
+import { lotAdresi, seriAdresi, urunLotAdresi } from "@/lib/adres";
 import { tarih } from "@/lib/bicim";
 import { numaraAyikla } from "@/lib/gs1";
 import { useVeri } from "@/lib/kancalar";
@@ -13,6 +13,7 @@ function izAdresi(tur: NumaraTuru, deger: string) {
   const d = encodeURIComponent(deger);
   if (tur === "lot") return lotAdresi(deger);
   if (tur === "seri") return seriAdresi(deger);
+  if (tur === "urunlot") return urunLotAdresi(deger);
   return `/stok?parca=${d}`;
 }
 
@@ -76,7 +77,7 @@ export default function AnaSayfaEkrani() {
             <div className="seri-listesi">
               {sonuc.arama.adaylar.map((a: Aday) => (
                 <Link key={`${a.tur}-${a.deger}`} href={izAdresi(a.tur, a.deger)} className="seri-cip seri-cip--mavi">
-                  <span className="cip-tur">{a.tur === "lot" ? "lot" : a.tur === "seri" ? "seri" : "parça"}</span> {a.deger}
+                  <span className="cip-tur">{a.tur === "lot" ? "stok giriş" : a.tur === "seri" ? "seri" : a.tur === "urunlot" ? "ürün lot" : "parça"}</span> {a.deger}
                 </Link>
               ))}
             </div>

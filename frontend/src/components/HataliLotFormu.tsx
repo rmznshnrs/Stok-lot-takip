@@ -29,7 +29,7 @@ export default function HataliLotFormu({ lot, kapat, kaydedildi }: {
           ? `${lot.lotNo} artık hatalı sayılmıyor. Geri çağrılmış ürünler listede kalır.`
           : lot.sorunlu
             ? `${lot.lotNo} güncellendi.`
-            : `${lot.lotNo} hatalı işaretlendi. ${geri.length ? `${geri.length} ürün geri çağrıldı: ${geri.join(", ")}` : "Bu lottan yapılmış ürün yok."}`,
+            : `${lot.lotNo} hatalı işaretlendi. ${geri.length ? `${geri.length} ürün geri çağrıldı: ${geri.join(", ")}` : "Bu girişin parçalarıyla yapılmış ürün yok."}`,
       );
     } catch (err) {
       setHata(err instanceof ApiHatasi ? err.message : "İşlem yapılamadı.");

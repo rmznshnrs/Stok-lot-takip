@@ -18,8 +18,8 @@ type Gorunum = "urun" | "parca" | "lot" | "biten";
 const GORUNUMLER: { deger: Gorunum; ad: string }[] = [
   { deger: "urun", ad: "Ürün bazında" },
   { deger: "parca", ad: "Parça bazında" },
-  { deger: "lot", ad: "Lot bazında" },
-  { deger: "biten", ad: "Tükenen lotlar" },
+  { deger: "lot", ad: "Giriş bazında" },
+  { deger: "biten", ad: "Tükenen girişler" },
 ];
 
 export default function StokEkrani() {
@@ -182,7 +182,7 @@ function TukenenTablosu({ gruplar, aranan }: { gruplar: StokGrubu[] | null; aran
       <thead>
         <tr>
           <th>Parça</th>
-          <th>Lot No</th>
+          <th>Stok giriş no</th>
           <th>Tedarikçi</th>
           <th>Sipariş tarihi</th>
           <th className="sag">Gelen</th>
@@ -225,7 +225,7 @@ function LotTablosu({ gruplar, aranan, isaretlendi }: {
       <thead>
         <tr>
           <th>Parça</th>
-          <th>Lot No</th>
+          <th>Stok giriş no</th>
           <th>Tedarikçi</th>
           <th>Sipariş tarihi</th>
           <th className="sag">Gelen</th>
