@@ -12,7 +12,7 @@ koyu mod, şifre, sunucu adresi, çıkış). Lot ve seri numaraları kamerayla o
 ## Gerekenler
 
 - Flutter SDK (stable) ve Android Studio (Android SDK, NDK, emülatör)
-- Çalışan API (`backend/LotTakip.Api`)
+- Çalışan API (`backend/PresentationLayer`)
 
 ## Çalıştırma
 
@@ -24,7 +24,7 @@ flutter run
 ```
 
 Gerçek telefonda: telefon ile bilgisayar aynı ağda olmalı. API'yi ağa açık başlatın
-(`dotnet run --project backend/LotTakip.Api --urls http://0.0.0.0:5291`), uygulamada giriş
+(`dotnet run --project backend/PresentationLayer --urls http://0.0.0.0:5291`), uygulamada giriş
 ekranındaki "Sunucu" bağlantısından adresi bilgisayarın IP'si ile girin
 (ör. `http://192.168.1.20:5291`).
 

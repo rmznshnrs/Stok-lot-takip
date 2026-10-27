@@ -1,4 +1,4 @@
-# Lot Takip
+# Stok Lot Sistemi
 
 Elektronik ürün üreten bir firma için stok, üretim ve satış takibi; lot ve seri numarası
 bazında izlenebilirlik.
@@ -11,7 +11,7 @@ bazında izlenebilirlik.
 
 | Klasör | İçerik |
 |---|---|
-| `backend/` | .NET 10 Web API (katmanlar: Entity, DataAccess, Business, Shared, Api, Tests) |
+| `backend/` | .NET 10 Web API (katmanlar: EntityLayer, DataAccessLayer, BusinessLayer, SharedLayer, PresentationLayer, Tests) |
 | `frontend/` | Next.js web arayüzü |
 | `mobile/` | Flutter mobil uygulama |
 
@@ -28,7 +28,7 @@ Veritabanı SQL Server; şema EF Core migration'larıyla kurulur.
 1. Ayar dosyasını oluşturun:
 
    ```
-   copy backend\LotTakip.Api\appsettings.Development.example.json backend\LotTakip.Api\appsettings.Development.json
+   copy backend\PresentationLayer\appsettings.Development.example.json backend\PresentationLayer\appsettings.Development.json
    ```
 
    İçinde bağlantı cümlesini, `OrnekVeri:AdminSifre`'yi ve `Jwt:Anahtar`'ı (en az 32 karakter,
@@ -37,7 +37,7 @@ Veritabanı SQL Server; şema EF Core migration'larıyla kurulur.
 2. Veritabanını kurup örnek veriyi yükleyin (migration'lar da uygulanır):
 
    ```
-   dotnet run --project backend/LotTakip.Api -- ornek-veri
+   dotnet run --project backend/PresentationLayer -- ornek-veri
    ```
 
    `--sifirla` eklenirse mevcut veri silinip örnek veri baştan yüklenir.
@@ -48,7 +48,7 @@ Veritabanı SQL Server; şema EF Core migration'larıyla kurulur.
 API (http://localhost:5291, geliştirme ortamında Swagger: http://localhost:5291/swagger):
 
 ```
-dotnet run --project backend/LotTakip.Api
+dotnet run --project backend/PresentationLayer
 ```
 
 Web arayüzü (http://localhost:3000):
@@ -62,7 +62,7 @@ npm run dev
 ## Testler
 
 ```
-dotnet test LotTakip.sln
+dotnet test StokLotSistemi.sln
 ```
 
 Testler gerçek SQL Server'da ayrı bir veritabanında (`LotTakip_Test`) çalışır; her çalıştırmada
