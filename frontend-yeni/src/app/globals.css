@@ -21,7 +21,7 @@
   --btn-pasif: #E3EEEA;
   --golge: 0 2px 8px rgba(8, 80, 65, 0.08);
   --font: var(--font-govde), system-ui, sans-serif;
-  --mono: var(--font-kod), ui-monospace, monospace;
+  --mono: var(--font-govde), system-ui, sans-serif;  /* kodlar ve miktarlar da aynı yumuşak yazıyla; rakamlar eşit genişlikte */
 
   /* Durum etiketleri (yuvarlak) */
   --olumlu-zemin: #EAF3DE;  --olumlu: #27500A;   /* giriş, olumlu */
@@ -1541,7 +1541,8 @@ h1, h2, h3, .sayfa-bas h1, .ust-sekme-satiri h1 { color: var(--metin); }
   --ana: #635C70; --ana-koyu: #4A4553; --ana-acik: #EEECF1; --ana-acik-kenar: #DAD6E0; --baglanti: #5A5366; --baglanti-koyu: #433E4C;
 }
 
-body { font-size: 15px; }
+body { font-size: 15px; font-variant-numeric: tabular-nums; }
+.mono, .tablo td.mono, .buyuk-numara, .seri-cip, .etiket-numara, .girdi--mono { letter-spacing: 0.01em; }
 h1, h2, h3 { font-weight: 800; }
 
 /* Sol menü: zeminle aynı, hap biçimli bağlantılar, simge yerine renkli nokta */
