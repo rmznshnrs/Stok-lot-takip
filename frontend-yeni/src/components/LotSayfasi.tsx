@@ -142,7 +142,7 @@ function LotDetayi({ iz, degisti }: { iz: LotIz; degisti: () => void }) {
 }
 
 function UrunDurumu({ u }: { u: LotIzUretim }) {
-  if (u.hurdaTuru) return <span className="rozet">{hurdaAdi(u.hurdaTuru)}</span>;
+  if (u.hurdaTuru) return <span className="rozet rozet--hata">{hurdaAdi(u.hurdaTuru)}</span>;
   return (
     <span className="rozet-grup">
       {u.geriCagirmaDurumu && <span className="rozet rozet--uyari">Geri çağrıldı</span>}

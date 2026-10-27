@@ -71,7 +71,7 @@ export default function UretimGecmisi({ ilkArama = "" }: { ilkArama?: string }) 
                   <td>
                     {u.hurda ? (
                       <span title={`${u.hurda.kullaniciAd} · ${tarihSaat(u.hurda.zaman)}`}>
-                        <span className="rozet rozet--kucuk rozet--uyari">{hurdaAdi(u.hurda.tur)}</span>{" "}
+                        <span className="rozet rozet--kucuk rozet--hata">{hurdaAdi(u.hurda.tur)}</span>{" "}
                         <span className="not">{u.hurda.aciklama}</span>
                       </span>
                     ) : u.musteriAd ? (

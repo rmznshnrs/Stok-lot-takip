@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { IBM_Plex_Mono, IBM_Plex_Sans, Montserrat } from "next/font/google";
+import { IBM_Plex_Sans, JetBrains_Mono, Montserrat } from "next/font/google";
 import { TEMA_BETIGI } from "@/lib/tema";
 import "./globals.css";
 
@@ -9,8 +9,9 @@ const plexSans = IBM_Plex_Sans({
   weight: ["400", "500", "600", "700"],
 });
 
-const plexMono = IBM_Plex_Mono({
-  variable: "--font-plex-mono",
+// Lot / seri numaraları, kodlar ve miktarlar için
+const jetbrainsMono = JetBrains_Mono({
+  variable: "--font-jetbrains-mono",
   subsets: ["latin", "latin-ext"],
   weight: ["400", "500", "600"],
 });
@@ -29,7 +30,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     // data-tema, sayfa çizilmeden betikle atanır; sunucu çıktısıyla farkı beklenen bir durum
-    <html lang="tr" className={`${plexSans.variable} ${plexMono.variable} ${montserrat.variable}`} suppressHydrationWarning>
+    <html lang="tr" className={`${plexSans.variable} ${jetbrainsMono.variable} ${montserrat.variable}`} suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: TEMA_BETIGI }} />
       </head>

@@ -127,7 +127,7 @@ export default function AnaSayfaEkrani() {
               {hareketler?.map((h, i) => (
                 <tr key={i}>
                   <td>{tarih(h.tarih)}</td>
-                  <td>{HAREKET_ADI[h.tur]}</td>
+                  <td><span className={`rozet rozet--kucuk ${h.tur === "giris" ? "rozet--basari" : h.tur === "uretim" ? "rozet--mavi" : "rozet--uyari"}`}>{HAREKET_ADI[h.tur]}</span></td>
                   <td>{h.aciklama}</td>
                   <td className="sag mono"><Link href={izAdresi(h.numaraTuru, h.numaraIlk)}>{h.numara}</Link></td>
                 </tr>
