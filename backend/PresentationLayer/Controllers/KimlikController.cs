@@ -59,4 +59,12 @@ public class KullanicilarController(IKullaniciServisi kullanicilar) : Controller
     [HttpPut("{id:int}")]
     public Task<KullaniciDto> Guncelle(int id, KullaniciGuncelleIstek istek, CancellationToken ct) =>
         kullanicilar.GuncelleAsync(id, istek, User.KullaniciId(), ct);
+
+    /// <summary>Hiç işlemi yoksa siler; geçmişte işlemi varsa pasif yapar (giriş yapamaz, adı kayıtlarda kalır).</summary>
+    [HttpDelete("{id:int}")]
+    public Task<KullaniciSilSonucuDto> Sil(int id, CancellationToken ct) => kullanicilar.SilAsync(id, User.KullaniciId(), ct);
+
+    /// <summary>Pasif kullanıcıyı yeniden etkinleştirir.</summary>
+    [HttpPost("{id:int}/etkinlestir")]
+    public Task<KullaniciDto> Etkinlestir(int id, CancellationToken ct) => kullanicilar.EtkinlestirAsync(id, User.KullaniciId(), ct);
 }

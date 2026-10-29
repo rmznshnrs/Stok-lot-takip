@@ -89,9 +89,11 @@ public class SatisServisi(AppDbContext db) : ISatisServisi
 
             // Kalemler verilen sırayla
             var sirali = seriler.Select(s => uretimler.First(u => string.Equals(u.SeriNo, s, StringComparison.OrdinalIgnoreCase))).ToList();
+            // Saat verilmişse (ya da hiç tarih verilmemişse) satış saatiyle kaydedilir; yalnız tarih verilirse saat boş kalır
+            var an = istek.Zaman ?? (istek.Tarih is null ? Zaman.Simdi() : null);
             var satis = new Satis
             {
-                Musteri = musteri, Tarih = istek.Tarih ?? Zaman.Bugun(),
+                Musteri = musteri, Tarih = an is { } z ? Zaman.YerelTarih(z) : istek.Tarih!.Value, Zaman = an,
                 OlusturanKullanici = kullanici, OlusturmaZamani = Zaman.Simdi(),
             };
             satis.Kalemler = [.. sirali.Select(u => new SatisKalemi { Satis = satis, Uretim = u })];
@@ -112,10 +114,10 @@ public class SatisServisi(AppDbContext db) : ISatisServisi
             q = q.Where(s => EF.Functions.Like(s.Musteri!.Ad, Arama.Desen(arama))
                              || s.Kalemler.Any(k => EF.Functions.Like(k.Uretim!.SeriNo, Arama.Desen(arama)))
                              || s.Iadeler.Any(i => EF.Functions.Like(i.Uretim!.SeriNo, Arama.Desen(arama))));
-        var satislar = await q.OrderByDescending(s => s.Tarih).ThenByDescending(s => s.Id).Take(adet)
+        var satislar = await q.OrderByDescending(s => s.Tarih).ThenByDescending(s => s.Zaman).ThenByDescending(s => s.Id).Take(adet)
             .Select(s => new
             {
-                s.Id, s.Tarih, MusteriAd = s.Musteri!.Ad,
+                s.Id, s.Tarih, s.Zaman, MusteriAd = s.Musteri!.Ad,
                 Satilan = s.Kalemler.Select(k => new { k.Uretim!.SeriNo, k.Uretim.LotNo, UrunAd = k.Uretim.Urun!.Ad }).ToList(),
                 Iade = s.Iadeler.Select(i => new { i.Uretim!.SeriNo, UrunAd = i.Uretim.Urun!.Ad }).ToList(),
             }).ToListAsync(ct);
@@ -125,7 +127,7 @@ public class SatisServisi(AppDbContext db) : ISatisServisi
             .Select(g => new SatisGecmisiDto(s.Id, s.Tarih, s.MusteriAd, g.Key,
                 [.. g.Where(k => !k.Iade).Select(k => k.SeriNo).Order()],
                 [.. g.Where(k => k.Iade).Select(k => k.SeriNo).Distinct().Order()],
-                [.. g.Where(k => !k.Iade).OrderBy(k => k.SeriNo).Select(k => new SatisKalemiDto(k.SeriNo, k.LotNo))])))];
+                [.. g.Where(k => !k.Iade).OrderBy(k => k.SeriNo).Select(k => new SatisKalemiDto(k.SeriNo, k.LotNo))], s.Zaman)))];
     }
 
     public Task<SatisIadeSonucuDto> IadeAlAsync(int satisId, SatisIadeIstek istek, int kullaniciId, CancellationToken ct = default)

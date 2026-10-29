@@ -20,6 +20,8 @@ public class UrunGeriCagirma : IDenetimli
     public Kullanici? OlusturanKullanici { get; set; }
     public DateTimeOffset OlusturmaZamani { get; set; }
 
+    /// <summary>Müşteriye geri çağırma hakkında bilgi verildiği an.</summary>
+    public DateTimeOffset? BilgiVerildiZamani { get; set; }
     /// <summary>Müşteriden geri alındığı an (iade kaydı da oluşur).</summary>
     public DateTimeOffset? GeriAlinmaZamani { get; set; }
     /// <summary>Yeniden satışa açıldığı an; doluysa geri çağırma kapanmıştır.</summary>

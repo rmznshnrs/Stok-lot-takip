@@ -15,4 +15,7 @@ public interface IKullaniciServisi
     Task<KullaniciDto> OlusturAsync(KullaniciOlusturIstek istek, int islemYapanId, CancellationToken ct = default);
     /// <summary>Son Admin'in rolü Kullanici yapılamaz (sistem yöneticisiz kalmasın).</summary>
     Task<KullaniciDto> GuncelleAsync(int id, KullaniciGuncelleIstek istek, int islemYapanId, CancellationToken ct = default);
+    /// <summary>Hiç işlemi yoksa siler, varsa pasif yapar. Kendini ve son Admin'i silemez.</summary>
+    Task<KullaniciSilSonucuDto> SilAsync(int id, int islemYapanId, CancellationToken ct = default);
+    Task<KullaniciDto> EtkinlestirAsync(int id, int islemYapanId, CancellationToken ct = default);
 }

@@ -143,7 +143,7 @@ internal static class Kullanicilar
 {
     /// <summary>İşlemi yapan kullanıcıyı getirir; yoksa hata.</summary>
     public static async Task<Kullanici> GetirAsync(AppDbContext db, int kullaniciId, CancellationToken ct) =>
-        await db.Kullanicilar.SingleOrDefaultAsync(k => k.Id == kullaniciId, ct)
+        await db.Kullanicilar.SingleOrDefaultAsync(k => k.Id == kullaniciId && k.Aktif, ct)
         ?? throw new YetkiHatasi("İşlemi yapan kullanıcı bulunamadı.");
 
     /// <summary>Kullanıcı Admin değilse YetkiHatasi.</summary>

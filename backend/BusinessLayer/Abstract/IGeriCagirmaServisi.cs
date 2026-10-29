@@ -21,5 +21,9 @@ public interface IGeriCagirmaServisi
     Task<GeriCagirmaDto> MusteriyeVerAsync(int id, int kullaniciId, CancellationToken ct = default);
 
     /// <summary>Geri çağırmalar (yeniden eskiye). acik=true: yalnız sonuçlanmamışlar (müşteride, depoda, geri alındı).</summary>
+    /// <summary>Müşterideki ürün için müşteriye bilgi verildiğini işaretler.</summary>
+    Task<GeriCagirmaDto> BilgiVerildiAsync(int id, int kullaniciId, CancellationToken ct = default);
+    /// <summary>Ürünü hurdaya ayırır; müşterideyse önce iade alınır. Geri çağırma "hurda" olur.</summary>
+    Task<GeriCagirmaDto> HurdayaAyirAsync(int id, GeriCagirmaHurdaIstek istek, int kullaniciId, CancellationToken ct = default);
     Task<List<GeriCagirmaDto>> ListeAsync(bool acik = false, string? arama = null, CancellationToken ct = default);
 }

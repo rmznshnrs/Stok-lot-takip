@@ -41,7 +41,7 @@ export default function SifremiUnuttumSayfasi() {
             <h2>Şifremi unuttum</h2>
           </div>
           <div className="alan">
-            <label htmlFor="unuttum">Kullanıcı adı veya e-posta</label>
+            <label htmlFor="unuttum">Kullanıcı adı / e-posta</label>
             <input id="unuttum" className="girdi" required autoFocus autoComplete="username" value={deger} onChange={(e) => setDeger(e.target.value)} />
           </div>
           {hata && <div className="mesaj mesaj--error" role="alert">{hata}</div>}

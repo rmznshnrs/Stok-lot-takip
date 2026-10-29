@@ -12,13 +12,13 @@ public class KullaniciServisi(AppDbContext db) : IKullaniciServisi
     public async Task<KullaniciDto?> DogrulaAsync(string kullaniciAdi, string sifre, CancellationToken ct = default)
     {
         var ad = (kullaniciAdi ?? "").Trim();
-        var k = await db.Kullanicilar.AsNoTracking().SingleOrDefaultAsync(x => x.KullaniciAdi == ad, ct);
+        var k = await db.Kullanicilar.AsNoTracking().SingleOrDefaultAsync(x => x.KullaniciAdi == ad && x.Aktif, ct);
         var dogru = BCrypt.Net.BCrypt.Verify(sifre ?? "", k?.SifreHash ?? SahteOzet);
         return k is not null && dogru ? Dto(k) : null;
     }
 
     public async Task<KullaniciDto?> GetirAsync(int id, CancellationToken ct = default) =>
-        await db.Kullanicilar.AsNoTracking().Where(k => k.Id == id).Select(k => Dto(k)).SingleOrDefaultAsync(ct);
+        await db.Kullanicilar.AsNoTracking().Where(k => k.Id == id && k.Aktif).Select(k => Dto(k)).SingleOrDefaultAsync(ct);
 
     public Task SifreDegistirAsync(int kullaniciId, SifreDegistirIstek istek, CancellationToken ct = default)
     {
@@ -37,7 +37,8 @@ public class KullaniciServisi(AppDbContext db) : IKullaniciServisi
     public async Task<List<KullaniciDto>> ListeleAsync(int islemYapanId, CancellationToken ct = default)
     {
         await Kullanicilar.AdminGetirAsync(db, islemYapanId, "Kullanıcı yönetimi", ct);
-        return await db.Kullanicilar.AsNoTracking().OrderBy(k => k.KullaniciAdi).Select(k => Dto(k)).ToListAsync(ct);
+        return await db.Kullanicilar.AsNoTracking().OrderByDescending(k => k.Aktif).ThenBy(k => k.KullaniciAdi)
+            .Select(k => Dto(k)).ToListAsync(ct);
     }
 
     public Task<KullaniciDto> OlusturAsync(KullaniciOlusturIstek istek, int islemYapanId, CancellationToken ct = default)
@@ -83,7 +84,7 @@ public class KullaniciServisi(AppDbContext db) : IKullaniciServisi
             var k = await db.Kullanicilar.SingleOrDefaultAsync(x => x.Id == id, ct)
                     ?? throw new BulunamadiHatasi("Kullanıcı bulunamadı.");
             if (k.Rol == KullaniciRolu.Admin && rol != KullaniciRolu.Admin
-                && await db.Kullanicilar.CountAsync(x => x.Rol == KullaniciRolu.Admin, ct) == 1)
+                && await db.Kullanicilar.CountAsync(x => x.Rol == KullaniciRolu.Admin && x.Aktif, ct) == 1)
                 throw new IsKuraliHatasi("Son Admin'in yetkisi alınamaz; önce başka bir kullanıcıyı Admin yapın.");
             (k.Ad, k.Soyad, k.Rol) = (ad, soyad, rol);
             if (yeniSifre is not null)
@@ -93,7 +94,50 @@ public class KullaniciServisi(AppDbContext db) : IKullaniciServisi
         }, ct);
     }
 
-    private static KullaniciDto Dto(Kullanici k) => new(k.Id, k.Ad, k.Soyad, k.KullaniciAdi, k.Rol.ToString());
+    public Task<KullaniciSilSonucuDto> SilAsync(int id, int islemYapanId, CancellationToken ct = default) =>
+        Islem.CalistirAsync(db, async () =>
+        {
+            await Kullanicilar.AdminGetirAsync(db, islemYapanId, "Kullanıcı yönetimi", ct);
+            if (id == islemYapanId)
+                throw new IsKuraliHatasi("Kendi hesabınızı silemezsiniz.");
+            var k = await db.Kullanicilar.SingleOrDefaultAsync(x => x.Id == id, ct)
+                    ?? throw new BulunamadiHatasi("Kullanıcı bulunamadı.");
+            if (k.Rol == KullaniciRolu.Admin && k.Aktif
+                && await db.Kullanicilar.CountAsync(x => x.Rol == KullaniciRolu.Admin && x.Aktif, ct) == 1)
+                throw new IsKuraliHatasi("Son Admin silinemez.");
+
+            // Geçmişte kaydı olan kullanıcı silinirse "kim yaptı" bilgisi kaybolur; o yüzden pasif yapılır
+            var islemiVar = await db.StokLotlari.AnyAsync(x => x.OlusturanKullaniciId == id || x.SorunIsaretleyenId == id, ct)
+                || await db.Uretimler.AnyAsync(x => x.OlusturanKullaniciId == id, ct)
+                || await db.Satislar.AnyAsync(x => x.OlusturanKullaniciId == id, ct)
+                || await db.StokDuzeltmeleri.AnyAsync(x => x.OlusturanKullaniciId == id, ct)
+                || await db.UretimHurdalari.AnyAsync(x => x.OlusturanKullaniciId == id, ct)
+                || await db.SatisIadeleri.AnyAsync(x => x.OlusturanKullaniciId == id, ct)
+                || await db.UrunGeriCagirmalari.AnyAsync(x => x.OlusturanKullaniciId == id || x.KapatanKullaniciId == id, ct)
+                || await db.UrunLotSorunlari.AnyAsync(x => x.OlusturanKullaniciId == id, ct);
+            if (islemiVar)
+                k.Aktif = false;
+            else
+            {
+                db.SifreSifirlamalari.RemoveRange(db.SifreSifirlamalari.Where(s => s.KullaniciId == id));
+                db.Kullanicilar.Remove(k);
+            }
+            await db.SaveChangesAsync(ct);
+            return new KullaniciSilSonucuDto(!islemiVar);
+        }, ct);
+
+    public Task<KullaniciDto> EtkinlestirAsync(int id, int islemYapanId, CancellationToken ct = default) =>
+        Islem.CalistirAsync(db, async () =>
+        {
+            await Kullanicilar.AdminGetirAsync(db, islemYapanId, "Kullanıcı yönetimi", ct);
+            var k = await db.Kullanicilar.SingleOrDefaultAsync(x => x.Id == id, ct)
+                    ?? throw new BulunamadiHatasi("Kullanıcı bulunamadı.");
+            k.Aktif = true;
+            await db.SaveChangesAsync(ct);
+            return Dto(k);
+        }, ct);
+
+    private static KullaniciDto Dto(Kullanici k) => new(k.Id, k.Ad, k.Soyad, k.KullaniciAdi, k.Rol.ToString(), k.Aktif);
 
     private static void SifreKontrol(string? sifre)
     {

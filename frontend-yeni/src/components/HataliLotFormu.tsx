@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import SeriSecimi from "@/components/SeriSecimi";
+import SeriSecimi, { secimOzeti } from "@/components/SeriSecimi";
 import { ApiHatasi, izleme, type Lot } from "@/lib/api";
 import { useVeri } from "@/lib/kancalar";
 
@@ -24,7 +24,7 @@ export default function HataliLotFormu({ lot, kapat, kaydedildi }: {
   const adaylar = iz
     ? iz.uretimler
         .filter((u) => !u.hurdaTuru && !u.geriCagirmaDurumu)
-        .map((u) => ({ seriNo: u.seriNo, alt: u.satis ? u.satis.musteriAd : "depoda" }))
+        .map((u) => ({ seriNo: u.seriNo, alt: u.satis ? u.satis.musteriAd : "depoda", musteride: !!u.satis }))
     : null;
 
   async function gonder(sorunlu: boolean, uretimdeKullan: boolean) {
@@ -43,7 +43,7 @@ export default function HataliLotFormu({ lot, kapat, kaydedildi }: {
   function kaydet(e: FormEvent) {
     e.preventDefault();
     if (kullan === null) return setHata("Kullanılsın / kullanılmasın seçin.");
-    if (!window.confirm(`${lot.lotNo} hatalı işaretlensin mi?${secili.length ? ` ${secili.length} ürün geri çağrılacak.` : ""}`)) return;
+    if (!window.confirm(`${lot.lotNo} hatalı işaretlensin mi?${secili.length ? ` ${secimOzeti(adaylar, secili)}.` : ""}`)) return;
     gonder(true, kullan);
   }
 
@@ -60,7 +60,7 @@ export default function HataliLotFormu({ lot, kapat, kaydedildi }: {
         <label className="onay-etiket"><input type="radio" name={`kullan-${lot.id}`} checked={kullan === false} onChange={() => setKullan(false)} /> kullanılmasın</label>
       </div>
       <div className="alan">
-        <span className="etiket-metni">Geri çağrılacak ürünler (isteğe bağlı)</span>
+        <span className="etiket-metni">Bu lottan parça taşıyan ürünler (isteğe bağlı)</span>
         <SeriSecimi
           adaylar={adaylar}
           secili={secili}
@@ -82,7 +82,7 @@ export default function HataliLotFormu({ lot, kapat, kaydedildi }: {
           </button>
         )}
         <button type="submit" className="btn btn--geri btn--kucuk" disabled={bekliyor}>
-          {secili.length ? `Kaydet ve ${secili.length} ürünü geri çağır` : "Kaydet"}
+          {secili.length ? `Kaydet · ${secimOzeti(adaylar, secili)}` : "Kaydet"}
         </button>
       </div>
     </form>

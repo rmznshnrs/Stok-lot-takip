@@ -95,7 +95,7 @@ public class GeriCagirmaServisi(AppDbContext db) : IGeriCagirmaServisi
                     .Select(i => i.Satis!.MusteriId).FirstAsync(ct);
                 db.Satislar.Add(new Satis
                 {
-                    MusteriId = musteriId, Tarih = Zaman.Bugun(), OlusturanKullanici = admin, OlusturmaZamani = zaman,
+                    MusteriId = musteriId, Tarih = Zaman.YerelTarih(zaman), Zaman = zaman, OlusturanKullanici = admin, OlusturmaZamani = zaman,
                     Kalemler = [new SatisKalemi { UretimId = g.UretimId }],
                 });
             }
@@ -103,6 +103,50 @@ public class GeriCagirmaServisi(AppDbContext db) : IGeriCagirmaServisi
             await db.SaveChangesAsync(ct);
             return await Sorgu().Where(x => x.Id == id).Select(Donustur).SingleAsync(ct);
         }, ct);
+
+    public Task<GeriCagirmaDto> BilgiVerildiAsync(int id, int kullaniciId, CancellationToken ct = default) =>
+        Islem.CalistirAsync(db, async () =>
+        {
+            await Kullanicilar.AdminGetirAsync(db, kullaniciId, "Müşteriye bilgi verme", ct);
+            var g = await AcikGetirAsync(id, ct);
+            if (!await db.SatisKalemleri.AnyAsync(k => k.UretimId == g.UretimId, ct))
+                throw new IsKuraliHatasi("Ürün müşteride değil.");
+            g.BilgiVerildiZamani ??= Zaman.Simdi();
+            await db.SaveChangesAsync(ct);
+            return await Sorgu().Where(x => x.Id == id).Select(Donustur).SingleAsync(ct);
+        }, ct);
+
+    public Task<GeriCagirmaDto> HurdayaAyirAsync(int id, GeriCagirmaHurdaIstek istek, int kullaniciId, CancellationToken ct = default)
+    {
+        var aciklama = (istek.Aciklama ?? "").Trim();
+        if (aciklama.Length == 0)
+            throw new IsKuraliHatasi("Hurda nedenini girin.");
+        return Islem.CalistirAsync(db, async () =>
+        {
+            var admin = await Kullanicilar.AdminGetirAsync(db, kullaniciId, "Hurdaya ayırma", ct);
+            var g = await AcikGetirAsync(id, ct);
+            var zaman = Zaman.Simdi();
+            // Müşterideki ürün önce iade alınır (kime satıldığı iade kaydında kalır), sonra hurdaya ayrılır
+            var kalem = await db.SatisKalemleri.SingleOrDefaultAsync(k => k.UretimId == g.UretimId, ct);
+            if (kalem is not null)
+            {
+                db.SatisIadeleri.Add(new SatisIade
+                {
+                    SatisId = kalem.SatisId, UretimId = kalem.UretimId, Aciklama = $"Geri çağırma: {g.Aciklama}",
+                    OlusturanKullanici = admin, OlusturmaZamani = zaman,
+                });
+                db.SatisKalemleri.Remove(kalem);
+                g.GeriAlinmaZamani = zaman;
+            }
+            db.UretimHurdalari.Add(new UretimHurda
+            {
+                UretimId = g.UretimId, Tur = UretimHurdaTuru.Hurda, Aciklama = aciklama,
+                OlusturanKullanici = admin, OlusturmaZamani = zaman,
+            });
+            await db.SaveChangesAsync(ct);
+            return await Sorgu().Where(x => x.Id == id).Select(Donustur).SingleAsync(ct);
+        }, ct);
+    }
 
     public async Task<List<GeriCagirmaDto>> ListeAsync(bool acik = false, string? arama = null, CancellationToken ct = default)
     {
@@ -147,5 +191,5 @@ public class GeriCagirmaServisi(AppDbContext db) : IGeriCagirmaServisi
                 : g.GeriAlinmaZamani != null ? g.Uretim.Iadeler.OrderByDescending(i => i.OlusturmaZamani).Select(i => i.Satis!.Musteri!.Ad).FirstOrDefault()
                 : null,
             g.Uretim.SatisKalemi != null ? g.Uretim.SatisKalemi.Satis!.Musteri!.Iletisim : null,
-            g.GeriAlinmaZamani, g.KapanmaZamani);
+            g.GeriAlinmaZamani, g.KapanmaZamani, g.BilgiVerildiZamani);
 }

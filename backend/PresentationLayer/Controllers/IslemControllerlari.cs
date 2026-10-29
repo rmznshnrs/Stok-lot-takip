@@ -164,6 +164,17 @@ public class GeriCagirmaController(IGeriCagirmaServisi geri) : ControllerBase
     [HttpPost("{id:int}/musteriye-ver")]
     [Authorize(Policy = Politikalar.Admin)]
     public Task<GeriCagirmaDto> MusteriyeVer(int id, CancellationToken ct) => geri.MusteriyeVerAsync(id, User.KullaniciId(), ct);
+
+    /// <summary>Müşterideki ürün için müşteriye bilgi verildi.</summary>
+    [HttpPost("{id:int}/bilgi-verildi")]
+    [Authorize(Policy = Politikalar.Admin)]
+    public Task<GeriCagirmaDto> BilgiVerildi(int id, CancellationToken ct) => geri.BilgiVerildiAsync(id, User.KullaniciId(), ct);
+
+    /// <summary>Ürün hurdaya ayrılır; müşterideyse önce iade alınır.</summary>
+    [HttpPost("{id:int}/hurda")]
+    [Authorize(Policy = Politikalar.Admin)]
+    public Task<GeriCagirmaDto> Hurda(int id, GeriCagirmaHurdaIstek istek, CancellationToken ct) =>
+        geri.HurdayaAyirAsync(id, istek, User.KullaniciId(), ct);
 }
 
 /// <summary>Ürün lotları (aynı anda üretilenler). Liste herkese, hata işareti yalnız Admin.</summary>

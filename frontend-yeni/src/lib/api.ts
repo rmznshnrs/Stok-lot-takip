@@ -7,7 +7,7 @@ export type Rol = "Admin" | "Kullanici";
 /** Ekranda gösterilen rol adı (Kullanici rolü "Çalışan" olarak görünür). */
 export const rolAdi = (r: Rol) => (r === "Admin" ? "Yönetici" : "Çalışan");
 
-export interface Kullanici { id: number; ad: string; soyad: string; kullaniciAdi: string; rol: Rol }
+export interface Kullanici { id: number; ad: string; soyad: string; kullaniciAdi: string; rol: Rol; aktif?: boolean }
 
 export interface ParcaOzet { id: number; kod: string; ad: string; birim: string }
 
@@ -103,7 +103,7 @@ export interface UretimHurdaSonucu { seriNolar: string[]; tur: HurdaTuru; acikla
 export const hurdaAdi = (t: HurdaTuru) => (t === "Kayip" ? "Kayıp" : "Hurda");
 export interface Satilabilir { uretimId: number; seriNo: string; urunAd: string; geriCagrilanLotlar: string[] }
 export interface SatisUyarisi { seriNo: string; lotlar: string[] }
-export interface SatisIstek { musteriAdi: string; seriNolar: string[]; tarih?: string; geriCagrilanOnayi?: boolean }
+export interface SatisIstek { musteriAdi: string; seriNolar: string[]; tarih?: string; zaman?: string; geriCagrilanOnayi?: boolean }
 export interface SatisSonucu {
   satisId: number; musteriId: number; musteriAd: string; yeniMusteri: boolean; tarih: string;
   seriNolar: string[]; uyarilar: SatisUyarisi[];
@@ -113,6 +113,8 @@ export interface SatisSonucu {
 export interface SatisGecmisi {
   satisId: number; tarih: string; musteriAd: string; urunAd: string; seriNolar: string[]; iadeEdilenler: string[];
   kalemler: { seriNo: string; lotNo: string }[] | null;
+  /** Satışın saati; saat tutulmaya başlanmadan önceki satışlarda null. */
+  zaman: string | null;
 }
 export interface IadeBilgisi { musteriAd: string; satisTarihi: string; iadeZamani: string; aciklama: string; kullaniciAd: string }
 export type IslemTuru = "giris" | "uretim" | "satis" | "iade" | "duzeltme" | "hurda" | "sorun" | "geri";
@@ -120,6 +122,7 @@ export interface GeriCagirma {
   id: number; seriNo: string; urunAd: string; lotNo: string | null; aciklama: string; zaman: string; kullaniciAd: string;
   durum: "musteride" | "geri_alindi" | "depoda" | "hurda" | "satisa_acildi" | "musteriye_verildi";
   musteriAd: string | null; musteriIletisim: string | null; geriAlinmaZamani: string | null; kapanmaZamani: string | null;
+  bilgiVerildiZamani: string | null;
 }
 export interface Islem { zaman: string; tur: IslemTuru; kullaniciAd: string; aciklama: string; numara: string | null; numaraTuru: "lot" | "seri" | "urunlot" | null }
 
@@ -222,6 +225,7 @@ function oturumDustu() {
 const al = <T>(yol: string, sorgu?: Sorgu) => istek<T>("GET", adres(yol, sorgu));
 const gonder = <T>(yol: string, govde?: unknown) => istek<T>("POST", adres(yol), govde ?? {});
 const guncelle = <T>(yol: string, govde: unknown) => istek<T>("PUT", adres(yol), govde);
+const sil = <T>(yol: string) => istek<T>("DELETE", adres(yol));
 
 // --- Oturum ----------------------------------------------------------------------
 
@@ -307,6 +311,9 @@ export const geriCagirma = {
   geriAl: (id: number) => gonder<GeriCagirma>(`geri-cagirma/${id}/geri-al`),
   satisaAc: (id: number) => gonder<GeriCagirma>(`geri-cagirma/${id}/satisa-ac`),
   musteriyeVer: (id: number) => gonder<GeriCagirma>(`geri-cagirma/${id}/musteriye-ver`),
+  bilgiVerildi: (id: number) => gonder<GeriCagirma>(`geri-cagirma/${id}/bilgi-verildi`),
+  /** Müşterideyse önce iade alınır, sonra hurdaya ayrılır. */
+  hurda: (id: number, aciklama: string) => gonder<GeriCagirma>(`geri-cagirma/${id}/hurda`, { aciklama }),
 };
 
 export const urunLot = {
@@ -322,6 +329,9 @@ export const kullanicilar = {
   listele: () => al<Kullanici[]>("kullanicilar"),
   olustur: (k: KullaniciOlusturIstek) => gonder<Kullanici>("kullanicilar", k),
   guncelle: (id: number, k: KullaniciGuncelleIstek) => guncelle<Kullanici>(`kullanicilar/${id}`, k),
+  /** İşlemi yoksa siler (silindi: true), varsa pasif yapar. */
+  sil: (id: number) => sil<{ silindi: boolean }>(`kullanicilar/${id}`),
+  etkinlestir: (id: number) => gonder<Kullanici>(`kullanicilar/${id}/etkinlestir`),
 };
 
 // --- Hesap: kayıt ol, şifremi unuttum, e-posta, kayıt onayı ---------------------------

@@ -11,7 +11,7 @@ import { lotAdresi } from "@/lib/adres";
 import { parcalar, stok, type Lot, type StokGrubu } from "@/lib/api";
 import { tarih } from "@/lib/bicim";
 import { useGecikmeli, useVeri } from "@/lib/kancalar";
-import { AdetDuzeltFormu, HataliAdetFormu } from "./LotIslemFormlari";
+import { AdetDuzeltFormu } from "./LotIslemFormlari";
 import MalGirisiFormu from "./MalGirisiFormu";
 import UrunStokTablosu from "./UrunStokTablosu";
 
@@ -254,9 +254,9 @@ function TukenenTablosu({ gruplar, aranan }: { gruplar: StokGrubu[] | null; aran
   );
 }
 
-type LotIslemi = "hata" | "hataliAdet" | "duzelt";
+type LotIslemi = "hata" | "duzelt";
 
-/** Bir parçanın stok girişleri ve yönetici işlemleri (hatalı işaretle, hatalı adet, stoktan düş). */
+/** Bir parçanın stok girişleri ve yönetici işlemleri (hatalı işaretle, stoktan düş). */
 function GirisTablosu({ lotlar, minAltinda, degisti }: { lotlar: Lot[]; minAltinda: boolean; degisti: (mesaj: string) => void }) {
   const admin = useAdminMi();
   const [acik, setAcik] = useState<{ lotId: number; islem: LotIslemi } | null>(null);
@@ -303,7 +303,6 @@ function GirisTablosu({ lotlar, minAltinda, degisti }: { lotlar: Lot[]; minAltin
                     <span className="dugme-grup dugme-grup--sag">
                       {([
                         ["hata", lot.sorunlu ? "Hatayı düzenle" : "Hatalı işaretle"],
-                        ["hataliAdet", "Hatalı adet"],
                         ["duzelt", "Stoktan düş"],
                       ] as const).map(([islem, ad]) => (
                         <button
@@ -333,7 +332,6 @@ function GirisTablosu({ lotlar, minAltinda, degisti }: { lotlar: Lot[]; minAltin
                         },
                       };
                       return acik.islem === "hata" ? <HataliLotFormu {...ozellik} />
-                        : acik.islem === "hataliAdet" ? <HataliAdetFormu {...ozellik} />
                         : <AdetDuzeltFormu {...ozellik} />;
                     })()}
                   </td>

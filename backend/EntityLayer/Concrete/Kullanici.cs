@@ -19,4 +19,6 @@ public class Kullanici
     public string? Eposta { get; set; }
     /// <summary>Kendi kaydolan kullanıcı yönetici onaylayana kadar false; giriş yapamaz.</summary>
     public bool Onayli { get; set; } = true;
+    /// <summary>Silinen ama geçmişte işlemi olan kullanıcı pasif olur: giriş yapamaz, adı kayıtlarda kalır.</summary>
+    public bool Aktif { get; set; } = true;
 }

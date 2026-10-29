@@ -1,10 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { ApiHatasi, geriCagirma, uretim, type GeriCagirma } from "@/lib/api";
+import { ApiHatasi, geriCagirma, type GeriCagirma } from "@/lib/api";
 
 export const DURUM_ADI: Record<GeriCagirma["durum"], string> = {
-  musteride: "Müşteride, geri alınacak",
+  musteride: "Müşteriden geri istendi",
   geri_alindi: "Geri alındı, depoda",
   depoda: "Depoda, satışa kapalı",
   hurda: "Hurdaya ayrıldı",
@@ -15,8 +15,9 @@ export const DURUM_ADI: Record<GeriCagirma["durum"], string> = {
 export const acikMi = (g: GeriCagirma) => g.durum === "musteride" || g.durum === "geri_alindi" || g.durum === "depoda";
 
 /**
- * Yalnız yönetici: geri çağrılan ürün için sıradaki adım. Müşterideyse iade al ya da (sorun yoksa) müşteride
- * bırak; geri alınmışsa müşteriye geri ver, satışa aç ya da hurdaya ayır.
+ * Yalnız yönetici: geri çağrılan ürün için sıradaki adım.
+ * Müşterideki (ya da müşteriden geri alınmış) ürün: müşteriye bilgi verildi, sonra müşteriye geri ver ya da hurdaya ayır.
+ * Depodaki ürün: satışa aç ya da hurdaya ayır.
  */
 export default function GeriCagirmaEylemleri({ g, degisti }: { g: GeriCagirma; degisti: () => void }) {
   const [hata, setHata] = useState("");
@@ -39,60 +40,23 @@ export default function GeriCagirmaEylemleri({ g, degisti }: { g: GeriCagirma; d
   async function hurda() {
     const aciklama = window.prompt(`${g.seriNo} · hurda nedeni:`, g.aciklama);
     if (!aciklama?.trim()) return;
-    await yap(`${g.seriNo} hurdaya ayrılsın mı?`, () =>
-      uretim.hurda({ seriNolar: [g.seriNo], tur: "Hurda", aciklama: aciklama.trim() }));
+    await yap(`${g.seriNo} hurdaya ayrılsın mı?${g.durum === "musteride" ? " Ürün müşteriden geri alınmış sayılır." : ""}`,
+      () => geriCagirma.hurda(g.id, aciklama.trim()));
   }
 
   if (!acikMi(g)) return null;
+  const dugme = (yazi: string, tikla: () => void) => (
+    <button type="button" className="btn btn--ikincil btn--kucuk" disabled={bekliyor} onClick={tikla}>{yazi}</button>
+  );
+  const musteriyle = g.durum === "musteride" || g.durum === "geri_alindi";
   return (
     <span className="dugme-grup">
-      {g.durum === "musteride" ? (
-        <>
-          <button
-            type="button"
-            className="btn btn--ikincil btn--kucuk"
-            disabled={bekliyor}
-            onClick={() => yap(`${g.seriNo} iade alınsın mı?`,
-              () => geriCagirma.geriAl(g.id))}
-          >
-            İade al
-          </button>
-          <button
-            type="button"
-            className="btn btn--ikincil btn--kucuk"
-            disabled={bekliyor}
-            onClick={() => yap(`${g.seriNo} müşteride kalsın mı?`,
-              () => geriCagirma.musteriyeVer(g.id))}
-          >
-            Müşteride kalsın
-          </button>
-        </>
-      ) : (
-        <>
-          {g.durum === "geri_alindi" && (
-            <button
-              type="button"
-              className="btn btn--ikincil btn--kucuk"
-              disabled={bekliyor}
-              onClick={() => yap(`${g.seriNo} müşteriye geri verilsin mi?`,
-                () => geriCagirma.musteriyeVer(g.id))}
-            >
-              Müşteriye geri ver
-            </button>
-          )}
-          <button
-            type="button"
-            className="btn btn--ikincil btn--kucuk"
-            disabled={bekliyor}
-            onClick={() => yap(`${g.seriNo} satışa açılsın mı?`, () => geriCagirma.satisaAc(g.id))}
-          >
-            Satışa aç
-          </button>
-          <button type="button" className="btn btn--ikincil btn--kucuk" disabled={bekliyor} onClick={hurda}>
-            Hurdaya ayır
-          </button>
-        </>
-      )}
+      {g.durum === "musteride" && !g.bilgiVerildiZamani &&
+        dugme("Müşteriye bilgi verildi", () => yap(`${g.musteriAd ?? "Müşteri"} bilgilendirildi mi?`, () => geriCagirma.bilgiVerildi(g.id)))}
+      {musteriyle
+        ? dugme("Müşteriye geri ver", () => yap(`${g.seriNo} müşteriye geri verilsin mi? Geri çağırma kapanır.`, () => geriCagirma.musteriyeVer(g.id)))
+        : dugme("Satışa aç", () => yap(`${g.seriNo} satışa açılsın mı?`, () => geriCagirma.satisaAc(g.id)))}
+      {dugme("Hurdaya ayır", hurda)}
       {hata && <span className="hata">{hata}</span>}
     </span>
   );

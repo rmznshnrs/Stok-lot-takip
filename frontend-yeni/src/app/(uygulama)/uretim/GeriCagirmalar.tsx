@@ -29,7 +29,7 @@ export default function GeriCagirmalar() {
         <div className="panel-bas">
           <div className="baslik-grup">
             <h2>Geri çağrılan ürünler</h2>
-            {liste && <span className="ozet">{acik} açık · {musteride} müşteride · {liste.length - acik} kapandı</span>}
+            {liste && <span className="ozet">{acik} açık · {musteride} müşteriden geri istendi · {liste.length - acik} kapandı</span>}
           </div>
           <div className="arama-satiri">
             <input
@@ -67,6 +67,7 @@ export default function GeriCagirmalar() {
                   <td>{g.urunAd}</td>
                   <td>
                     <span className={`rozet rozet--kucuk ${acikMi(g) ? "rozet--uyari" : "rozet--basari"}`}>{DURUM_ADI[g.durum]}</span>
+                    {g.bilgiVerildiZamani && <div className="yardim">Bilgi verildi · {tarihSaat(g.bilgiVerildiZamani)}</div>}
                   </td>
                   <td>
                     {g.musteriAd ?? <span className="soluk">—</span>}

@@ -2,26 +2,21 @@
 
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { Fragment, useState, type FormEvent } from "react";
-import { useAdminMi } from "@/components/Oturum";
-import Mesaj, { type MesajBilgisi } from "@/components/Mesaj";
+import { Fragment, useState } from "react";
 import { useSayfalama } from "@/components/Sayfalama";
-import { ApiHatasi, satis, type SatisGecmisi } from "@/lib/api";
-import { tarih } from "@/lib/bicim";
+import { satis, type SatisGecmisi } from "@/lib/api";
+import { tarih, tarihSaat } from "@/lib/bicim";
 import { useGecikmeli, useVeri } from "@/lib/kancalar";
 import { seriAdresi, urunLotAdresi } from "@/lib/adres";
 import SatisFormu from "./SatisFormu";
 
 
 export default function SatisEkrani() {
-  const admin = useAdminMi();
   const [arama, setArama] = useState("");
   const aranan = useGecikmeli(arama.trim());
   const { veri: gecmis, hata, yenile } = useVeri(() => satis.gecmis(aranan), [aranan]);
   const { gorunen, cubuk } = useSayfalama(gecmis, aranan);
-  const [iadeSatiri, setIadeSatiri] = useState<string | null>(null);
-  const [mesaj, setMesaj] = useState<MesajBilgisi | null>(null);
-  const sutun = admin ? 6 : 5;
+  const sutun = 5;
   const [formAcik, setFormAcik] = useState(useSearchParams().get("yeni") === "1");
 
   return (
@@ -43,12 +38,7 @@ export default function SatisEkrani() {
 
       <section className="panel">
         <div className="panel-bas"><h3>Satış geçmişi</h3></div>
-        {(hata || mesaj) && (
-          <div className="panel-ic">
-            {hata && <div className="mesaj mesaj--error">{hata}</div>}
-            <Mesaj mesaj={mesaj} />
-          </div>
-        )}
+        {hata && <div className="panel-ic"><div className="mesaj mesaj--error">{hata}</div></div>}
         <div className="tablo-kap">
           <table className="tablo">
             <thead>
@@ -58,7 +48,6 @@ export default function SatisEkrani() {
                 <th>Ürün</th>
                 <th>Lot / seri no</th>
                 <th className="sag">Adet</th>
-                {admin && <th className="sutun-ikon"><span className="gorunmez">İade</span></th>}
               </tr>
             </thead>
             <tbody>
@@ -73,7 +62,7 @@ export default function SatisEkrani() {
                 return (
                   <Fragment key={anahtar}>
                     <tr>
-                      <td>{tarih(s.tarih)}</td>
+                      <td>{s.zaman ? tarihSaat(s.zaman) : tarih(s.tarih)}</td>
                       <td>{s.musteriAd}</td>
                       <td>{s.urunAd}</td>
                       <td className="mono">
@@ -101,39 +90,7 @@ export default function SatisEkrani() {
                         )}
                       </td>
                       <td className="sag">{s.seriNolar.length}</td>
-                      {admin && (
-                        <td>
-                          {s.seriNolar.length > 0 && (
-                            <button
-                              type="button"
-                              className="btn-baglanti"
-                              aria-expanded={iadeSatiri === anahtar}
-                              onClick={() => {
-                                setMesaj(null);
-                                setIadeSatiri(iadeSatiri === anahtar ? null : anahtar);
-                              }}
-                            >
-                              İade al
-                            </button>
-                          )}
-                        </td>
-                      )}
                     </tr>
-                    {iadeSatiri === anahtar && (
-                      <tr>
-                        <td colSpan={sutun}>
-                          <IadeFormu
-                            s={s}
-                            kapat={() => setIadeSatiri(null)}
-                            alindi={(metin) => {
-                              setIadeSatiri(null);
-                              setMesaj({ tur: "success", metin });
-                              yenile();
-                            }}
-                          />
-                        </td>
-                      </tr>
-                    )}
                   </Fragment>
                 );
               })}
@@ -143,58 +100,6 @@ export default function SatisEkrani() {
         {cubuk}
       </section>
     </main>
-  );
-}
-
-/** Satıştan seçilen seri numaralarını açıklamayla iade alır; ürünler depoya döner. */
-function IadeFormu({ s, kapat, alindi }: { s: SatisGecmisi; kapat: () => void; alindi: (metin: string) => void }) {
-  const [secili, setSecili] = useState<string[]>(s.seriNolar.length === 1 ? s.seriNolar : []);
-  const [aciklama, setAciklama] = useState("");
-  const [hata, setHata] = useState("");
-  const [bekliyor, setBekliyor] = useState(false);
-
-  async function kaydet(e: FormEvent) {
-    e.preventDefault();
-    if (!secili.length) return setHata("Seri no seçin.");
-    if (!window.confirm(`${secili.join(", ")} iade alınsın mı?`)) return;
-    setBekliyor(true);
-    setHata("");
-    try {
-      const r = await satis.iade(s.satisId, secili, aciklama.trim());
-      alindi(`${r.seriNolar.join(", ")} iade alındı.`);
-    } catch (err) {
-      setHata(err instanceof ApiHatasi ? err.message : "Kaydedilemedi.");
-      setBekliyor(false);
-    }
-  }
-
-  return (
-    <form className="iade-paneli" onSubmit={kaydet}>
-      <strong>{s.musteriAd} · {tarih(s.tarih)} satışından iade</strong>
-      <div className="iade-secim" role="group" aria-label="İade alınacak seri numaraları">
-        {s.seriNolar.map((seri) => (
-          <label key={seri}>
-            <input
-              type="checkbox"
-              checked={secili.includes(seri)}
-              onChange={() => setSecili(secili.includes(seri) ? secili.filter((x) => x !== seri) : [...secili, seri])}
-            />
-            <span className="mono">{seri}</span>
-          </label>
-        ))}
-      </div>
-      <div className="satir-ekle satir-ekle--alt">
-        <div className="alan girdi--esnek">
-          <label htmlFor={`iade-${s.satisId}`}>Açıklama</label>
-          <input id={`iade-${s.satisId}`} className="girdi" required maxLength={500} value={aciklama} onChange={(e) => setAciklama(e.target.value)} />
-        </div>
-        <button type="button" className="btn btn--ikincil" onClick={kapat}>Vazgeç</button>
-        <button type="submit" className="btn" disabled={bekliyor || !secili.length}>
-          {secili.length ? `${secili.length} ürünü iade al` : "Seri no seçin"}
-        </button>
-      </div>
-      {hata && <span className="hata">{hata}</span>}
-    </form>
   );
 }
 

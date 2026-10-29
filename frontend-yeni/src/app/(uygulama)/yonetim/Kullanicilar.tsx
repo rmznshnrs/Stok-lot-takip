@@ -57,6 +57,33 @@ export default function Kullanicilar() {
     }
   }
 
+  async function sil(k: Kullanici) {
+    if (!window.confirm(`${k.kullaniciAdi} silinsin mi?`)) return;
+    setMesaj(null);
+    try {
+      const r = await kullanicilar.sil(k.id);
+      setMesaj({
+        tur: "success",
+        metin: r.silindi ? `${k.kullaniciAdi} silindi.` : `${k.kullaniciAdi} pasif yapıldı (geçmişte işlemi olduğu için kayıtlarda adı kalır).`,
+      });
+      if (duzenlenen?.id === k.id) vazgec();
+      yenile();
+    } catch (err) {
+      setMesaj({ tur: "error", metin: err instanceof ApiHatasi ? err.message : "Silinemedi." });
+    }
+  }
+
+  async function etkinlestir(k: Kullanici) {
+    setMesaj(null);
+    try {
+      await kullanicilar.etkinlestir(k.id);
+      setMesaj({ tur: "success", metin: `${k.kullaniciAdi} yeniden etkin.` });
+      yenile();
+    } catch (err) {
+      setMesaj({ tur: "error", metin: err instanceof ApiHatasi ? err.message : "İşlem yapılamadı." });
+    }
+  }
+
   const alan = (ad: "ad" | "soyad" | "kullaniciAdi" | "sifre") => ({
     id: `k-${ad}`,
     value: form[ad],
@@ -153,14 +180,30 @@ export default function Kullanicilar() {
             <tbody>
               {liste === null && !hata && <tr className="bos"><td colSpan={4}>Yükleniyor…</td></tr>}
               {liste?.map((k) => (
-                <tr key={k.id}>
-                  <td>{k.ad} {k.soyad}{k.id === ben.id && <span className="soluk"> · siz</span>}</td>
+                <tr key={k.id} className={k.aktif === false ? "satir--pasif" : undefined}>
+                  <td>
+                    {k.ad} {k.soyad}{k.id === ben.id && <span className="soluk"> · siz</span>}
+                    {k.aktif === false && <span className="rozet rozet--kucuk rozet--uyari"> Pasif</span>}
+                  </td>
                   <td className="mono">{k.kullaniciAdi}</td>
                   <td>{rolAdi(k.rol)}</td>
-                  <td>
-                    <button type="button" className="btn-ikon" title="Düzenle" aria-label={`${k.kullaniciAdi} düzenle`} onClick={() => duzenle(k)}>
-                      ✎
-                    </button>
+                  <td className="sag">
+                    {k.aktif === false ? (
+                      <button type="button" className="btn btn--ikincil btn--kucuk" onClick={() => etkinlestir(k)}>
+                        Etkinleştir
+                      </button>
+                    ) : (
+                      <span className="dugme-grup dugme-grup--sag">
+                        <button type="button" className="btn-ikon" title="Düzenle" aria-label={`${k.kullaniciAdi} düzenle`} onClick={() => duzenle(k)}>
+                          ✎
+                        </button>
+                        {k.id !== ben.id && (
+                          <button type="button" className="btn-ikon" title="Sil" aria-label={`${k.kullaniciAdi} sil`} onClick={() => sil(k)}>
+                            ✕
+                          </button>
+                        )}
+                      </span>
+                    )}
                   </td>
                 </tr>
               ))}

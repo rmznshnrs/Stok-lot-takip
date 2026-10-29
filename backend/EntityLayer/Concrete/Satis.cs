@@ -6,6 +6,8 @@ public class Satis : IDenetimli
     public int MusteriId { get; set; }
     public Musteri? Musteri { get; set; }
     public DateOnly Tarih { get; set; }
+    /// <summary>Satışın saatiyle birlikte zamanı; saat tutulmaya başlanmadan önceki satışlarda boş.</summary>
+    public DateTimeOffset? Zaman { get; set; }
 
     public int OlusturanKullaniciId { get; set; }
     public Kullanici? OlusturanKullanici { get; set; }

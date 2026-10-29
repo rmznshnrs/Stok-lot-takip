@@ -30,6 +30,18 @@ export function sayi(n: number) {
   return n.toLocaleString("tr-TR");
 }
 
+/** Şu an (İstanbul) "YYYY-MM-DDTHH:MM" olarak; tarih-saat alanlarının varsayılanı. */
+export function simdi() {
+  return new Intl.DateTimeFormat("sv-SE", {
+    timeZone: "Europe/Istanbul", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit",
+  }).format(new Date()).replace(" ", "T");
+}
+
+/** Tarih-saat alanının değeri (İstanbul saati, UTC+3) → sunucuya giden ISO zaman. */
+export function istanbulZamani(deger: string) {
+  return `${deger}:00+03:00`;
+}
+
 /** Bugünün tarihi (İstanbul) "YYYY-MM-DD" olarak; tarih alanlarının varsayılanı. */
 export function bugun() {
   return new Intl.DateTimeFormat("sv-SE", { timeZone: "Europe/Istanbul" }).format(new Date());

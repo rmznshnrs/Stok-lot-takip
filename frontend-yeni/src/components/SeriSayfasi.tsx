@@ -78,6 +78,7 @@ function SeriDetayi({ iz, degisti }: { iz: SeriIz; degisti: () => void }) {
         {g && (
           <div className="uyari-kutu alt-not">
             <strong>Geri çağrıldı</strong> · {DURUM_ADI[g.durum]}
+            {g.bilgiVerildiZamani && <> · müşteriye bilgi verildi ({tarihSaat(g.bilgiVerildiZamani)})</>}
             <br />
             {g.aciklama} · {tarihSaat(g.zaman)}
             {admin && <div className="alt-not"><GeriCagirmaEylemleri g={g} degisti={degisti} /></div>}

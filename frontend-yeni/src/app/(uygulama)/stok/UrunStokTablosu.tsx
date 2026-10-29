@@ -115,7 +115,9 @@ function UrunAyrintisi({ urunId, lotlar, seriler, degisti }: {
   degisti: (mesaj?: string) => void;
 }) {
   const admin = useAdminMi();
+  // Açık lot: hatalı işaretleme formu ya da o lotun depodaki ürünleri (stoktan düşme)
   const [acikLot, setAcikLot] = useState<string | null>(null);
+  const [depoLot, setDepoLot] = useState<string | null>(null);
   const sutun = admin ? 8 : 7;
   return (
     <div className="form-dikey">
@@ -144,7 +146,14 @@ function UrunAyrintisi({ urunId, lotlar, seriler, degisti }: {
                   </td>
                   <td>{tarihSaat(l.tarih)}</td>
                   <td className="sag">{l.toplam}</td>
-                  <td className="sag">{l.depoda}</td>
+                  <td className="sag">
+                    {l.depoda > 0 ? (
+                      <button type="button" className="btn-baglanti" aria-expanded={depoLot === l.lotNo}
+                        title="Bu lotun depodaki ürünleri" onClick={() => setDepoLot(depoLot === l.lotNo ? null : l.lotNo)}>
+                        {l.depoda}
+                      </button>
+                    ) : l.depoda}
+                  </td>
                   <td className="sag">{l.satilan}</td>
                   <td className={`sag${l.hurdaKayip ? "" : " soluk"}`}>{l.hurdaKayip}</td>
                   <td className={l.sorunlu || l.acikGeriCagirma ? "uyari-metin" : "soluk"}>
@@ -166,6 +175,13 @@ function UrunAyrintisi({ urunId, lotlar, seriler, degisti }: {
                     </td>
                   )}
                 </tr>
+                {depoLot === l.lotNo && (
+                  <tr>
+                    <td colSpan={sutun}>
+                      <UrunDepo urunId={urunId} lotNo={l.lotNo} degisti={() => degisti()} />
+                    </td>
+                  </tr>
+                )}
                 {acikLot === l.lotNo && (
                   <tr>
                     <td colSpan={sutun}>
@@ -186,7 +202,6 @@ function UrunAyrintisi({ urunId, lotlar, seriler, degisti }: {
           </tbody>
         </table>
       </div>
-      <UrunDepo urunId={urunId} degisti={() => degisti()} />
     </div>
   );
 }

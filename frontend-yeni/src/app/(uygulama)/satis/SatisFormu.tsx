@@ -4,7 +4,8 @@ import { useState, type FormEvent } from "react";
 import Mesaj, { type MesajBilgisi } from "@/components/Mesaj";
 import SeriSecimi from "@/components/SeriSecimi";
 import { ApiHatasi, musteriler, satis, uretim, urunler } from "@/lib/api";
-import { bugun } from "@/lib/bicim";
+import { istanbulZamani, simdi } from "@/lib/bicim";
+import { numaraAyikla } from "@/lib/gs1";
 import { useVeri } from "@/lib/kancalar";
 
 /** Sepetteki bir ürün: hangi ürün, hangi ürün lotu; uyari: içindeki hatalı lotlar (varsa). */
@@ -18,7 +19,7 @@ export default function SatisFormu({ kaydedildi }: { kaydedildi: () => void }) {
   const { veri: musteriListesi, yenile: musterileriYenile } = useVeri(() => musteriler(), []);
   const { veri: urunListesi } = useVeri(() => urunler.listele(), []);
   const [musteri, setMusteri] = useState("");
-  const [satisTarihi, setSatisTarihi] = useState(bugun);
+  const [satisZamani, setSatisZamani] = useState(simdi);
   const [urunId, setUrunId] = useState("");
   const [lotNo, setLotNo] = useState("");
   const [adet, setAdet] = useState("1");
@@ -26,6 +27,7 @@ export default function SatisFormu({ kaydedildi }: { kaydedildi: () => void }) {
   const [secili, setSecili] = useState<string[]>([]);
   const [sepet, setSepet] = useState<Kalem[]>([]);
   const [onay, setOnay] = useState(false);
+  const [okunan, setOkunan] = useState("");
   const [mesaj, setMesaj] = useState<MesajBilgisi | null>(null);
   const [bekliyor, setBekliyor] = useState(false);
 
@@ -44,7 +46,7 @@ export default function SatisFormu({ kaydedildi }: { kaydedildi: () => void }) {
   const urunAd = urunListesi?.find((u) => String(u.id) === urunId)?.ad ?? "";
   const uyariVar = sepet.some((k) => k.uyari.length > 0);
 
-  async function ekle(seriler: string[]) {
+  async function ekle(seriler: string[], ad = urunAd, lot = lotNo) {
     if (!seriler.length) return;
     setMesaj(null);
     let uyarilar: { seriNo: string; lotlar: string[] }[] = [];
@@ -54,10 +56,31 @@ export default function SatisFormu({ kaydedildi }: { kaydedildi: () => void }) {
       return setMesaj({ tur: "error", metin: err instanceof ApiHatasi ? err.message : "Eklenemedi." });
     }
     setSepet([...sepet, ...seriler.map((s) => ({
-      seriNo: s, urunAd, lotNo, uyari: uyarilar.find((u) => u.seriNo === s)?.lotlar ?? [],
+      seriNo: s, urunAd: ad, lotNo: lot, uyari: uyarilar.find((u) => u.seriNo === s)?.lotlar ?? [],
     }))]);
     setSecili([]);
     setAdet("1");
+  }
+
+  /** Okutulan ya da yazılan seri no (GS1 karekodsa içinden ayıklanır) depodaysa sepete eklenir. */
+  async function seriOkut(ham: string) {
+    const seri = numaraAyikla(ham, "seri");
+    setOkunan("");
+    if (!seri) return;
+    setMesaj(null);
+    if (sepet.some((k) => k.seriNo.toLocaleUpperCase("tr") === seri.toLocaleUpperCase("tr")))
+      return setMesaj({ tur: "warning", metin: `${seri} zaten listede.` });
+    let u;
+    try {
+      u = (await uretim.gecmis(seri)).find((g) => g.seriNo.toLocaleUpperCase("tr") === seri.toLocaleUpperCase("tr"));
+    } catch (err) {
+      return setMesaj({ tur: "error", metin: err instanceof ApiHatasi ? err.message : "Seri no aranamadı." });
+    }
+    if (!u) return setMesaj({ tur: "error", metin: `${seri} bulunamadı.` });
+    if (u.musteriAd) return setMesaj({ tur: "error", metin: `${u.seriNo} satılmış: ${u.musteriAd}.` });
+    if (u.hurda) return setMesaj({ tur: "error", metin: `${u.seriNo} hurdaya / kayba ayrılmış.` });
+    if (u.geriCagirmaDurumu) return setMesaj({ tur: "error", metin: `${u.seriNo} geri çağrılmış, satılamaz.` });
+    await ekle([u.seriNo], u.urunAd, u.lotNo);
   }
 
   function adetleEkle() {
@@ -86,12 +109,13 @@ export default function SatisFormu({ kaydedildi }: { kaydedildi: () => void }) {
       const s = await satis.sat({
         musteriAdi: musteri.trim(),
         seriNolar: sepet.map((k) => k.seriNo),
-        tarih: satisTarihi,
+        zaman: istanbulZamani(satisZamani),
         geriCagrilanOnayi: onay,
       });
       setMesaj({ tur: "success", metin: `Satış kaydedildi: ${s.seriNolar.length} ürün.` });
       setSepet([]);
       setOnay(false);
+      setSatisZamani(simdi());
       setMusteri("");
       if (s.yeniMusteri) musterileriYenile();
       gecmisiYenile();
@@ -129,12 +153,21 @@ export default function SatisFormu({ kaydedildi }: { kaydedildi: () => void }) {
             </datalist>
           </div>
           <div className="alan">
-            <label htmlFor="tarih">Satış tarihi</label>
-            <input id="tarih" type="date" className="girdi" required value={satisTarihi} onChange={(e) => setSatisTarihi(e.target.value)} />
+            <label htmlFor="tarih">Satış zamanı</label>
+            <input id="tarih" type="datetime-local" className="girdi" required value={satisZamani} onChange={(e) => setSatisZamani(e.target.value)} />
           </div>
         </div>
 
         <div className="satis-secim">
+          <div className="alan">
+            <label htmlFor="seri-okut">Seri no okut</label>
+            <div className="satir-ekle">
+              <input id="seri-okut" className="girdi girdi--mono girdi--esnek" autoComplete="off" maxLength={200}
+                value={okunan} onChange={(e) => setOkunan(e.target.value)}
+                onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); seriOkut(okunan); } }} />
+              <button type="button" className="btn btn--ikincil" disabled={!okunan.trim()} onClick={() => seriOkut(okunan)}>Ekle</button>
+            </div>
+          </div>
           <div className="izgara-form">
             <div className="alan">
               <label htmlFor="satis-urun">Ürün</label>

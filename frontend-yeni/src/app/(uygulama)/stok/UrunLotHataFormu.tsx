@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import SeriSecimi from "@/components/SeriSecimi";
+import SeriSecimi, { secimOzeti } from "@/components/SeriSecimi";
 import { ApiHatasi, urunLot, type UretimGecmisi, type UrunLot } from "@/lib/api";
 
 /**
@@ -21,7 +21,7 @@ export default function UrunLotHataFormu({ lot, seriler, kapat, kaydedildi }: {
   const [bekliyor, setBekliyor] = useState(false);
   const adaylar = seriler
     .filter((g) => g.lotNo === lot.lotNo && !g.hurda && !g.geriCagirmaDurumu)
-    .map((g) => ({ seriNo: g.seriNo, alt: g.musteriAd ?? "depoda" }));
+    .map((g) => ({ seriNo: g.seriNo, alt: g.musteriAd ?? "depoda", musteride: !!g.musteriAd }));
 
   async function gonder(sorunlu: boolean) {
     const n = adet.trim() ? Number(adet) : 0;
@@ -41,7 +41,7 @@ export default function UrunLotHataFormu({ lot, seriler, kapat, kaydedildi }: {
 
   function kaydet(e: FormEvent) {
     e.preventDefault();
-    if (window.confirm(`${lot.lotNo} hatalı işaretlensin mi?${secili.length ? ` ${secili.length} ürün geri çağrılacak.` : ""}`)) gonder(true);
+    if (window.confirm(`${lot.lotNo} hatalı işaretlensin mi?${secili.length ? ` ${secimOzeti(adaylar, secili)}.` : ""}`)) gonder(true);
   }
 
   return (
@@ -58,7 +58,7 @@ export default function UrunLotHataFormu({ lot, seriler, kapat, kaydedildi }: {
         </div>
       </div>
       <div className="alan">
-        <span className="etiket-metni">Geri çağrılacak ürünler (isteğe bağlı)</span>
+        <span className="etiket-metni">Lottaki ürünler (isteğe bağlı)</span>
         <SeriSecimi adaylar={adaylar} secili={secili} setSecili={setSecili} bos="Ürün yok." />
       </div>
       {hata && <span className="hata">{hata}</span>}
@@ -75,7 +75,7 @@ export default function UrunLotHataFormu({ lot, seriler, kapat, kaydedildi }: {
           </button>
         )}
         <button type="submit" className="btn btn--geri btn--kucuk" disabled={bekliyor}>
-          {secili.length ? `Kaydet ve ${secili.length} ürünü geri çağır` : "Kaydet"}
+          {secili.length ? `Kaydet · ${secimOzeti(adaylar, secili)}` : "Kaydet"}
         </button>
       </div>
     </form>

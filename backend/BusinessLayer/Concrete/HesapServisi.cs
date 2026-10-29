@@ -88,7 +88,7 @@ public class HesapServisi(AppDbContext db, IPostaGonderici posta) : IHesapServis
         if (deger.Length == 0)
             throw new IsKuraliHatasi("Kullanıcı adı ya da e-posta girin.");
         var k = await db.Kullanicilar
-            .SingleOrDefaultAsync(x => x.Onayli && x.Eposta != null && (x.KullaniciAdi == deger || x.Eposta == deger), ct);
+            .SingleOrDefaultAsync(x => x.Onayli && x.Aktif && x.Eposta != null && (x.KullaniciAdi == deger || x.Eposta == deger), ct);
         if (k is null)
             return;
 

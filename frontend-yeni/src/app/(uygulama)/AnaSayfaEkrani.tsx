@@ -43,9 +43,13 @@ export default function AnaSayfaEkrani() {
     { ad: "Toplam üretilen", deger: uretimler?.length, yol: "/uretim?sekme=gecmis", dikkat: false },
   ];
 
-  async function ara(e: FormEvent) {
+  function ara(e: FormEvent) {
     e.preventDefault();
-    const metin = numaraAyikla(q);
+    aramaYap(q);
+  }
+
+  async function aramaYap(ham: string) {
+    const metin = numaraAyikla(ham);
     if (!metin) return;
     setHata("");
     setBekliyor(true);

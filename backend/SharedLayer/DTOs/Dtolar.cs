@@ -102,7 +102,10 @@ public record GeriCagirmaIstek(IReadOnlyList<string> SeriNolar, string Aciklama,
 /// <summary>Durum: musteride, geri_alindi, depoda, hurda, satisa_acildi.</summary>
 public record GeriCagirmaDto(
     int Id, string SeriNo, string UrunAd, string? LotNo, string Aciklama, DateTimeOffset Zaman, string KullaniciAd,
-    string Durum, string? MusteriAd, string? MusteriIletisim, DateTimeOffset? GeriAlinmaZamani, DateTimeOffset? KapanmaZamani);
+    string Durum, string? MusteriAd, string? MusteriIletisim, DateTimeOffset? GeriAlinmaZamani, DateTimeOffset? KapanmaZamani,
+    DateTimeOffset? BilgiVerildiZamani = null);
+
+public record GeriCagirmaHurdaIstek(string Aciklama);
 
 // --- Ürün lotu ----------------------------------------------------------------
 
@@ -165,7 +168,8 @@ public record SatisUyarisiDto(string SeriNo, IReadOnlyList<string> Lotlar);
 
 /// <summary>GeriCagrilanOnayi: geri çağrılan lot içeren ürünler varsa satış ancak true iken yapılır.</summary>
 public record SatisIstek(
-    string MusteriAdi, IReadOnlyList<string> SeriNolar, DateOnly? Tarih = null, bool GeriCagrilanOnayi = false);
+    string MusteriAdi, IReadOnlyList<string> SeriNolar, DateOnly? Tarih = null, bool GeriCagrilanOnayi = false,
+    DateTimeOffset? Zaman = null);
 
 public record SatisSonucuDto(
     int SatisId, int MusteriId, string MusteriAd, bool YeniMusteri, DateOnly Tarih,
@@ -174,7 +178,8 @@ public record SatisSonucuDto(
 /// <summary>SeriNolar: hâlâ satılmış olanlar; IadeEdilenler: bu satıştan iade alınanlar.</summary>
 /// <summary>Bir satışta bir ürün. Kalemler: satılan seri numaraları ürün lotlarıyla.</summary>
 public record SatisGecmisiDto(int SatisId, DateOnly Tarih, string MusteriAd, string UrunAd, IReadOnlyList<string> SeriNolar,
-                              IReadOnlyList<string> IadeEdilenler, IReadOnlyList<SatisKalemiDto>? Kalemler = null);
+                              IReadOnlyList<string> IadeEdilenler, IReadOnlyList<SatisKalemiDto>? Kalemler = null,
+                              DateTimeOffset? Zaman = null);
 
 public record SatisKalemiDto(string SeriNo, string LotNo);
 

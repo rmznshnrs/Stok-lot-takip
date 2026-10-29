@@ -1668,3 +1668,13 @@ input[type="search"].girdi { padding-left: 42px; background-position: 16px cente
   .ana-arama .girdi { width: 100%; }
   .ana-ust { padding: 18px; }
 }
+
+/* Panel başlığındaki süzgeç kutuları seçili yazıyı kesmeden gösterir */
+.panel-bas .arama-satiri select.girdi { width: auto; flex: none; min-width: 170px; padding-right: 28px; }
+.satir--pasif td { color: var(--soluk); }
+
+/* Arayüz yazıları (başlık, menü, sekme, düğme, etiket, tablo başlığı, durum) her kelimesi büyük harfle başlar.
+   Sayfa dili tr olduğu için i → İ olur. Cümle olan mesaj ve notlara uygulanmaz. */
+h1, h2, h3, h4, label, th, .yan-menu, .sekme, .btn, .btn-baglanti, .rozet, .etiket-metni,
+.bilgi > span:first-child, select.girdi, .tablo th, .yan-grup-ad { text-transform: capitalize; }
+.mono, .girdi--mono, .seri-cip, .depo-oge .mono { text-transform: none; }

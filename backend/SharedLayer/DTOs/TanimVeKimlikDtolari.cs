@@ -12,7 +12,10 @@ public static class Roller
 
 public record GirisIstek([Required] string KullaniciAdi, [Required] string Sifre);
 
-public record KullaniciDto(int Id, string Ad, string Soyad, string KullaniciAdi, string Rol);
+public record KullaniciDto(int Id, string Ad, string Soyad, string KullaniciAdi, string Rol, bool Aktif = true);
+
+/// <summary>Silindi: tamamen silindi; false ise geçmişte işlemi olduğu için pasif yapıldı.</summary>
+public record KullaniciSilSonucuDto(bool Silindi);
 
 /// <summary>Token: "Authorization: Bearer {Token}" başlığıyla gönderilir.</summary>
 public record GirisSonucuDto(string Token, DateTimeOffset GecerlilikSonu, KullaniciDto Kullanici);
