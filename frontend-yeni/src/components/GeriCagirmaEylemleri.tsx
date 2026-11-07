@@ -4,7 +4,7 @@ import { useState } from "react";
 import { ApiHatasi, geriCagirma, type GeriCagirma } from "@/lib/api";
 
 export const DURUM_ADI: Record<GeriCagirma["durum"], string> = {
-  musteride: "Müşteriden geri istendi",
+  musteride: "Müşteriden geri İstendi",
   geri_alindi: "Geri alındı, depoda",
   depoda: "Depoda, satışa kapalı",
   hurda: "Hurdaya ayrıldı",

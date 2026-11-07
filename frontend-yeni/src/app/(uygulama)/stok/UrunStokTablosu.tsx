@@ -170,7 +170,7 @@ function UrunAyrintisi({ urunId, lotlar, seriler, degisti }: {
                         aria-expanded={acikLot === l.lotNo}
                         onClick={() => setAcikLot(acikLot === l.lotNo ? null : l.lotNo)}
                       >
-                        {l.sorunlu ? "Hatayı düzenle" : "Hatalı işaretle"}
+                        {l.sorunlu ? "Hatayı düzenle" : "Hatalı İşaretle"}
                       </button>
                     </td>
                   )}

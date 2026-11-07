@@ -84,7 +84,7 @@ export default function MalGirisiFormu({ parcalar, kaydedildi }: { parcalar: Par
             />
           </div>
           <div className="alan">
-            <label htmlFor="tedarikciLotNo">Tedarikçi lot no (isteğe bağlı)</label>
+            <label htmlFor="tedarikciLotNo">Tedarikçi lot no (İsteğe bağlı)</label>
             <input className="girdi girdi--mono" maxLength={100} {...alan("tedarikciLotNo")} />
           </div>
           <div className="alan">
@@ -96,7 +96,7 @@ export default function MalGirisiFormu({ parcalar, kaydedildi }: { parcalar: Par
             <input type="date" className="girdi" required {...alan("siparisTarihi")} />
           </div>
           <div className="alan">
-            <label htmlFor="siparisNo">Sipariş / irsaliye no</label>
+            <label htmlFor="siparisNo">Sipariş / İrsaliye no</label>
             <input className="girdi" maxLength={100} {...alan("siparisNo")} />
           </div>
         </div>

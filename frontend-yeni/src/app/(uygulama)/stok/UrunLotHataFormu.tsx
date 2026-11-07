@@ -58,7 +58,7 @@ export default function UrunLotHataFormu({ lot, seriler, kapat, kaydedildi }: {
         </div>
       </div>
       <div className="alan">
-        <span className="etiket-metni">Lottaki ürünler (isteğe bağlı)</span>
+        <span className="etiket-metni">Lottaki ürünler (İsteğe bağlı)</span>
         <SeriSecimi adaylar={adaylar} secili={secili} setSecili={setSecili} bos="Ürün yok." />
       </div>
       {hata && <span className="hata">{hata}</span>}
@@ -74,7 +74,7 @@ export default function UrunLotHataFormu({ lot, seriler, kapat, kaydedildi }: {
             Hatayı kaldır
           </button>
         )}
-        <button type="submit" className="btn btn--geri btn--kucuk" disabled={bekliyor}>
+        <button type="submit" className="btn btn--geri btn--kucuk yazi-normal" disabled={bekliyor}>
           {secili.length ? `Kaydet · ${secimOzeti(adaylar, secili)}` : "Kaydet"}
         </button>
       </div>

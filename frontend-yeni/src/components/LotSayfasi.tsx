@@ -96,7 +96,7 @@ function LotDetayi({ iz, degisti }: { iz: LotIz; degisti: () => void }) {
               />
             ) : (
               <button type="button" className={`btn btn--tam ${lot.sorunlu ? "btn--ikincil" : "btn--geri"}`} onClick={() => setForm(true)}>
-                {lot.sorunlu ? "Hatayı düzenle" : "Hatalı lot olarak işaretle"}
+                {lot.sorunlu ? "Hatayı düzenle" : "Hatalı Lot Olarak İşaretle"}
               </button>
             )}
           </div>

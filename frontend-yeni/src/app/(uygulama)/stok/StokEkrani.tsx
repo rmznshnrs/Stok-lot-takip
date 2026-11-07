@@ -302,7 +302,7 @@ function GirisTablosu({ lotlar, minAltinda, degisti }: { lotlar: Lot[]; minAltin
                   <td className="hucre-dar sag">
                     <span className="dugme-grup dugme-grup--sag">
                       {([
-                        ["hata", lot.sorunlu ? "Hatayı düzenle" : "Hatalı işaretle"],
+                        ["hata", lot.sorunlu ? "Hatayı düzenle" : "Hatalı İşaretle"],
                         ["duzelt", "Stoktan düş"],
                       ] as const).map(([islem, ad]) => (
                         <button

@@ -60,7 +60,7 @@ export default function HataliLotFormu({ lot, kapat, kaydedildi }: {
         <label className="onay-etiket"><input type="radio" name={`kullan-${lot.id}`} checked={kullan === false} onChange={() => setKullan(false)} /> kullanılmasın</label>
       </div>
       <div className="alan">
-        <span className="etiket-metni">Bu lottan parça taşıyan ürünler (isteğe bağlı)</span>
+        <span className="etiket-metni">Bu lottan parça taşıyan ürünler (İsteğe bağlı)</span>
         <SeriSecimi
           adaylar={adaylar}
           secili={secili}
@@ -81,7 +81,7 @@ export default function HataliLotFormu({ lot, kapat, kaydedildi }: {
             Hatayı kaldır
           </button>
         )}
-        <button type="submit" className="btn btn--geri btn--kucuk" disabled={bekliyor}>
+        <button type="submit" className="btn btn--geri btn--kucuk yazi-normal" disabled={bekliyor}>
           {secili.length ? `Kaydet · ${secimOzeti(adaylar, secili)}` : "Kaydet"}
         </button>
       </div>

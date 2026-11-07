@@ -73,7 +73,7 @@ export default function IslemGecmisi() {
         <h2>İşlem geçmişi</h2>
         <div className="arama-satiri">
           <select className="girdi" aria-label="İşlem türü" value={tur} onChange={(e) => suz(e.target.value as IslemTuru | "", kisi)}>
-            <option value="">Bütün işlemler</option>
+            <option value="">Bütün İşlemler</option>
             {TURLER.map((t) => <option key={t.deger} value={t.deger}>{t.ad}</option>)}
           </select>
           <select className="girdi" aria-label="Kişi" value={kisi} onChange={(e) => suz(tur, e.target.value)}>

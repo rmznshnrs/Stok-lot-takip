@@ -1674,7 +1674,7 @@ input[type="search"].girdi { padding-left: 42px; background-position: 16px cente
 .satir--pasif td { color: var(--soluk); }
 
 /* Arayüz yazıları (başlık, menü, sekme, düğme, etiket, tablo başlığı, durum) her kelimesi büyük harfle başlar.
-   Sayfa dili tr olduğu için i → İ olur. Cümle olan mesaj ve notlara uygulanmaz. */
+   Tarayıcı küçük i harfini I yapar; bu yüzden i ile başlayan yazılar kaynakta İ ile yazılır. Cümle olan mesaj ve notlara uygulanmaz. */
 h1, h2, h3, h4, label, th, .yan-menu, .sekme, .btn, .btn-baglanti, .rozet, .etiket-metni,
 .bilgi > span:first-child, select.girdi, .tablo th, .yan-grup-ad { text-transform: capitalize; }
-.mono, .girdi--mono, .seri-cip, .depo-oge .mono { text-transform: none; }
+.mono, .girdi--mono, .seri-cip, .depo-oge .mono, .yazi-normal { text-transform: none; }

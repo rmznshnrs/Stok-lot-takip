@@ -65,7 +65,7 @@ function SeriDetayi({ iz, degisti }: { iz: SeriIz; degisti: () => void }) {
             )}
           </div>
           {iz.satis?.musteriIletisim && (
-            <div className="bilgi"><span>Müşteri iletişim</span><span>{iz.satis.musteriIletisim}</span></div>
+            <div className="bilgi"><span>Müşteri İletişim</span><span>{iz.satis.musteriIletisim}</span></div>
           )}
         </div>
         {iz.iadeler.map((i) => (
