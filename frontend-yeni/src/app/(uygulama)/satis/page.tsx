@@ -1,13 +1,6 @@
-import type { Metadata } from "next";
-import { Suspense } from "react";
-import SatisSayfasi from "./SatisSayfasi";
+import { redirect } from "next/navigation";
 
-export const metadata: Metadata = { title: "Satış" };
-
+/** Satış, sipariş + sevkiyata dönüştü; eski adres Sevkiyat'a gider. */
 export default function Sayfa() {
-  return (
-    <Suspense>
-      <SatisSayfasi />
-    </Suspense>
-  );
+  redirect("/sevkiyat");
 }

@@ -13,7 +13,7 @@ public class StokServisi(AppDbContext db) : IStokServisi
         return await StokluListeAsync(q, ct);
     }
 
-    private static async Task<List<ParcaStokDto>> StokluListeAsync(IQueryable<Parca> q, CancellationToken ct)
+    private async Task<List<ParcaStokDto>> StokluListeAsync(IQueryable<Parca> q, CancellationToken ct)
     {
         var satirlar = await q.OrderBy(p => p.Kod).Select(p => new
         {
@@ -24,8 +24,10 @@ public class StokServisi(AppDbContext db) : IStokServisi
             Urunler = p.AgacSatirlari.OrderBy(a => a.Urun!.Ad).Select(a => a.Urun!.Ad).ToList(),
             Hatali = p.Lotlar.SelectMany(l => l.Duzeltmeler).Sum(d => (int?)d.HataliAdet) ?? 0,
         }).ToListAsync(ct);
+        var ayrilan = await Ayrilan.ParcalarAsync(db, [.. satirlar.Select(s => s.Id)], null, ct);
         return [.. satirlar.Select(s => new ParcaStokDto(
-            s.Id, s.Kod, s.Ad, s.Birim, s.MinStok, s.Toplam, s.Kullanilabilir, s.LotSayisi, s.Urunler, s.Hatali))];
+            s.Id, s.Kod, s.Ad, s.Birim, s.MinStok, s.Toplam, s.Kullanilabilir, s.LotSayisi, s.Urunler, s.Hatali,
+            ayrilan.GetValueOrDefault(s.Id)))];
     }
 
     public async Task<List<StokGrubuDto>> StokDurumuAsync(string? arama = null, string? parcaKod = null,

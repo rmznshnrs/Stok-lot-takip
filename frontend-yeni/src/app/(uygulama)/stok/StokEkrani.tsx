@@ -15,12 +15,11 @@ import { AdetDuzeltFormu } from "./LotIslemFormlari";
 import MalGirisiFormu from "./MalGirisiFormu";
 import UrunStokTablosu from "./UrunStokTablosu";
 
-type Gorunum = "urun" | "parca" | "biten";
+type Gorunum = "urun" | "parca";
 
 const GORUNUMLER: { deger: Gorunum; ad: string }[] = [
   { deger: "urun", ad: "Ürün bazında" },
   { deger: "parca", ad: "Parça bazında" },
-  { deger: "biten", ad: "Tükenen parça stokları" },
 ];
 
 export default function StokEkrani() {
@@ -29,13 +28,13 @@ export default function StokEkrani() {
   const parcaKod = params.get("parca") ?? "";
   const istenen = params.get("gorunum");
   // Eski "lot" (giriş bazında) adresleri parça bazında açılır
-  const gorunum: Gorunum = istenen === "urun" ? "urun" : istenen === "biten" ? "biten" : "parca";
+  const gorunum: Gorunum = istenen === "urun" ? "urun" : "parca";
 
   const [arama, setArama] = useState(params.get("q") ?? "");
   const aranan = useGecikmeli(arama.trim());
 
   const { veri: gruplar, hata, yenile } = useVeri(
-    () => stok.durum({ arama: aranan, parca: parcaKod, bitenler: gorunum === "biten" }),
+    () => stok.durum({ arama: aranan, parca: parcaKod, }),
     [aranan, parcaKod, gorunum],
   );
   const { veri: tumParcalar, yenile: parcalariYenile } = useVeri(() => parcalar.listele(), []);
@@ -110,9 +109,7 @@ export default function StokEkrani() {
 
         <div className="tablo-kap">
           {gorunum === "urun" ? (
-            <UrunStokTablosu aranan={aranan} bildir={(metin) => setMesaj({ tur: "success", metin })} />
-          ) : gorunum === "biten" ? (
-            <TukenenTablosu gruplar={gruplar} aranan={aranan} />
+            <UrunStokTablosu aranan={aranan} />
           ) : (
             <ParcaTablosu
               gruplar={gruplar}
@@ -183,6 +180,7 @@ function ParcaTablosu({ gruplar, aranan, ilkAcik, degisti }: {
                   <td className="sag">{p.toplamStok}</td>
                   <td className={`sag${p.minAltinda ? " uyari-metin" : ""}`}>
                     {p.kullanilabilirStok}{p.minAltinda && " · min altında"}
+                    {p.ayrilan > 0 && <div className="yardim">{p.ayrilan} üretim sırasına ayrıldı · {p.serbest} serbest</div>}
                   </td>
                   <td className="sag soluk">{p.minStok}</td>
                   <td className={`sag${p.hataliAdet ? " uyari-metin" : " soluk"}`}>{p.hataliAdet}</td>
@@ -212,47 +210,6 @@ function ParcaTablosu({ gruplar, aranan, ilkAcik, degisti }: {
   );
 }
 
-/** Kalanı 0'a düşmüş lotlar (son gelen üstte). Lota tıklayınca kime gittiği açılır. */
-function TukenenTablosu({ gruplar, aranan }: { gruplar: StokGrubu[] | null; aranan: string }) {
-  const lotlar = (gruplar ?? [])
-    .flatMap(({ parca, lotlar }) => lotlar.filter((l) => l.kalanAdet === 0).map((l) => ({ parca, lot: l })))
-    .sort((a, b) => b.lot.siparisTarihi.localeCompare(a.lot.siparisTarihi));
-  return (
-    <table className="tablo">
-      <thead>
-        <tr>
-          <th>Parça</th>
-          <th>Stok giriş no</th>
-          <th>Tedarikçi lot no</th>
-          <th>Tedarikçi</th>
-          <th>Sipariş tarihi</th>
-          <th className="sag">Gelen</th>
-        </tr>
-      </thead>
-      <tbody>
-        {gruplar === null && <tr className="bos"><td colSpan={6}>Yükleniyor…</td></tr>}
-        {gruplar !== null && lotlar.length === 0 && (
-          <tr className="bos"><td colSpan={6}>{aranan ? "Sonuç yok." : "Tükenen parça stoğu yok."}</td></tr>
-        )}
-        {lotlar.map(({ parca: p, lot }) => (
-          <tr key={lot.id} className={lot.sorunlu ? "uyari-satir" : undefined}>
-            <td>{p.ad} <span className="mono yardim">{p.kod}</span></td>
-            <td className="mono">
-              <Link href={lotAdresi(lot.lotNo)} className={lot.sorunlu ? "uyari-metin" : "lot-baglanti"}>
-                {lot.lotNo}
-              </Link>
-              {lot.sorunlu && <> <span className="lot-etiket lot-etiket--uyari">· hatalı</span></>}
-            </td>
-            <td className="mono soluk">{lot.tedarikciLotNo || "—"}</td>
-            <td>{lot.tedarikciAd}</td>
-            <td>{tarih(lot.siparisTarihi)}</td>
-            <td className="sag">{lot.girisAdet}</td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
-  );
-}
 
 type LotIslemi = "hata" | "duzelt";
 

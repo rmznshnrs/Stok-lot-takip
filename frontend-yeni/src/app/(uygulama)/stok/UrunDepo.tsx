@@ -10,15 +10,14 @@ import { useVeri } from "@/lib/kancalar";
 import { seriAdresi } from "@/lib/adres";
 
 /**
- * Ürünün (lotNo verilirse yalnız o lotun) depodaki seri numaraları; yönetici seçtiklerini hurdaya / kayba ayırıp
+ * Ürünün depodaki seri numaraları; yönetici seçtiklerini hurdaya / kayba ayırıp
  * stoktan düşer (açıklama zorunlu).
  */
-export default function UrunDepo({ urunId, lotNo, degisti }: { urunId: number; lotNo?: string; degisti?: () => void }) {
+export default function UrunDepo({ urunId, degisti }: { urunId: number; degisti?: () => void }) {
   const admin = useAdminMi();
   const { veri: liste, hata, yenile } = useVeri(() => uretim.gecmis(undefined, urunId), [urunId]);
-  const lotunkiler = liste?.filter((u) => !lotNo || u.lotNo === lotNo);
-  const depoda = lotunkiler?.filter((u) => !u.musteriAd && !u.hurda) ?? [];
-  const ayrilan = lotunkiler?.filter((u) => u.hurda).length ?? 0;
+  const depoda = liste?.filter((u) => !u.musteriAd && !u.hurda) ?? [];
+  const ayrilan = liste?.filter((u) => u.hurda).length ?? 0;
 
   const [ara, setAra] = useState("");
   const gorunen = depoda.filter((u) => icerir(u.seriNo, ara.trim()));
@@ -62,7 +61,7 @@ export default function UrunDepo({ urunId, lotNo, degisti }: { urunId: number; l
   return (
     <div className="form-dikey">
       <div className="bas-satir">
-        <h3>{lotNo ? `${lotNo} · depodaki ürünler` : "Depodaki ürünler"}{admin && " · stoktan düş"} <span className="rozet rozet--kucuk rozet--mavi">{depoda.length}</span></h3>
+        <h3>Depodaki ürünler{admin && " · stoktan düş"} <span className="rozet rozet--kucuk rozet--mavi">{depoda.length}</span></h3>
         {ayrilan > 0 && (
           <Link href="/uretim?sekme=gecmis" className="not">{ayrilan} hurda / kayıp</Link>
         )}

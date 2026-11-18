@@ -5,12 +5,15 @@ import { useState, type FormEvent } from "react";
 import GeriCagirmaEylemleri, { DURUM_ADI, acikMi } from "@/components/GeriCagirmaEylemleri";
 import { useAdminMi } from "@/components/Oturum";
 import { ApiHatasi, geriCagirma, hurdaAdi, izleme, type SeriIz } from "@/lib/api";
-import { lotAdresi, urunLotAdresi } from "@/lib/adres";
+import { lotAdresi } from "@/lib/adres";
 import { tarih, tarihSaat } from "@/lib/bicim";
 import { useVeri } from "@/lib/kancalar";
 
-/** Seri no sayfası (Üretim geçmişi altında): ürün bilgisi, satış / iade / geri çağırma, içindeki parçalar ve lotları. */
-export default function SeriSayfasi({ seriNo, geri }: { seriNo: string; geri: string }) {
+/**
+ * Seri no sayfası (Müşteriler altında): üretim tarihi, sevkiyat / iade, içindeki parçalar ve lotları, geri çağırma alanı.
+ * Geri bağlantısı gönderildiyse müşteriye, gönderilmediyse Üretim geçmişine gider.
+ */
+export default function SeriSayfasi({ seriNo }: { seriNo: string }) {
   const { veri: iz, hata, yenile } = useVeri(async () => {
     try {
       return await izleme.seri(seriNo);
@@ -23,7 +26,11 @@ export default function SeriSayfasi({ seriNo, geri }: { seriNo: string; geri: st
   return (
     <main className="icerik icerik--dikey">
       <div className="bas-satir">
-        <Link href={geri} className="not--buyuk">← Üretim geçmişi</Link>
+        {iz?.satis ? (
+          <Link href={`/musteriler?id=${iz.satis.musteriId}`} className="not--buyuk">← {iz.satis.musteriAd}</Link>
+        ) : (
+          <Link href="/uretim?sekme=gecmis" className="not--buyuk">← Üretim geçmişi</Link>
+        )}
       </div>
       {hata && <div className="mesaj mesaj--error">{hata}</div>}
       {iz === null && !hata && <p className="yukleniyor">Yükleniyor…</p>}
@@ -45,11 +52,8 @@ function SeriDetayi({ iz, degisti }: { iz: SeriIz; degisti: () => void }) {
         <div className="buyuk-numara">{iz.seriNo}</div>
         <div className="iz-ad">{iz.urunAd}</div>
         <div className="bilgi-liste">
-          {iz.lotNo && (
-            <div className="bilgi"><span>Ürün lot no</span><Link href={urunLotAdresi(iz.lotNo)} className="mono">{iz.lotNo}</Link></div>
-          )}
           <div className="bilgi"><span>Üretim tarihi</span><span>{tarihSaat(iz.tarih)}</span></div>
-          <div className="bilgi"><span>Durum</span><span>{iz.satis ? "Satıldı" : iz.hurda ? hurdaAdi(iz.hurda.tur) : "Depoda"}</span></div>
+          <div className="bilgi"><span>Durum</span><span>{iz.satis ? "Gönderildi" : iz.hurda ? hurdaAdi(iz.hurda.tur) : "Depoda"}</span></div>
           {iz.hurda && (
             <div className="bilgi">
               <span>{hurdaAdi(iz.hurda.tur)} nedeni</span>
@@ -57,11 +61,11 @@ function SeriDetayi({ iz, degisti }: { iz: SeriIz; degisti: () => void }) {
             </div>
           )}
           <div className="bilgi">
-            <span>Satış</span>
+            <span>Müşteri</span>
             {iz.satis ? (
-              <span>{iz.satis.musteriAd} · {tarih(iz.satis.tarih)}</span>
+              <span><Link href={`/musteriler?id=${iz.satis.musteriId}`}>{iz.satis.musteriAd}</Link> · {tarih(iz.satis.tarih)}</span>
             ) : (
-              <span className="soluk">Henüz satılmadı</span>
+              <span className="soluk">Henüz gönderilmedi</span>
             )}
           </div>
           {iz.satis?.musteriIletisim && (
@@ -70,13 +74,16 @@ function SeriDetayi({ iz, degisti }: { iz: SeriIz; degisti: () => void }) {
         </div>
         {iz.iadeler.map((i) => (
           <div key={i.iadeZamani} className="bilgi-kutu alt-not">
-            <strong>İade alındı</strong> · {i.musteriAd} ({tarih(i.satisTarihi)} satışı) · {tarihSaat(i.iadeZamani)}
+            <strong>İade alındı</strong> · {i.musteriAd} ({tarih(i.satisTarihi)} sevkiyatı) · {tarihSaat(i.iadeZamani)}
             <br />
             {i.aciklama} · {i.kullaniciAd}
           </div>
         ))}
+        <div className="adim-baslik alt-not">Geri Çağırma</div>
+        {!g && !iz.hurda && !admin && <p className="not">Açık geri çağırma yok.</p>}
+        {iz.hurda && !g && <p className="not">Ürün {hurdaAdi(iz.hurda.tur).toLocaleLowerCase("tr")} olarak ayrılmış.</p>}
         {g && (
-          <div className="uyari-kutu alt-not">
+          <div className="uyari-kutu">
             <strong>Geri çağrıldı</strong> · {DURUM_ADI[g.durum]}
             {g.bilgiVerildiZamani && <> · müşteriye bilgi verildi ({tarihSaat(g.bilgiVerildiZamani)})</>}
             <br />

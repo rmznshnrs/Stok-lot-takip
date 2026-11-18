@@ -6,9 +6,9 @@ import { hurdaAdi, uretim, urunler } from "@/lib/api";
 import { tarih, tarihSaat } from "@/lib/bicim";
 import { useSayfalama } from "@/components/Sayfalama";
 import { useGecikmeli, useVeri } from "@/lib/kancalar";
-import { seriAdresi, urunLotAdresi } from "@/lib/adres";
+import { seriAdresi } from "@/lib/adres";
 
-/** Üretilen seri numaraları: ürün, tarih, depoda / satıldı / hurda, geri çağırma ve hatalı lot uyarısı. */
+/** Üretilen seri numaraları: ürün, tarih, depoda / gönderildi / hurda, geri çağırma ve hatalı lot uyarısı. */
 export default function UretimGecmisi({ ilkArama = "" }: { ilkArama?: string }) {
   const [arama, setArama] = useState(ilkArama);
   const [urunId, setUrunId] = useState("");
@@ -25,7 +25,7 @@ export default function UretimGecmisi({ ilkArama = "" }: { ilkArama?: string }) 
         <div className="panel-bas">
           <div className="baslik-grup">
             <h2>Üretim geçmişi</h2>
-            {liste && <span className="ozet">{liste.length} ürün · {depoda} depoda · {liste.length - depoda - ayrilan} satıldı{ayrilan > 0 && ` · ${ayrilan} hurda / kayıp`}</span>}
+            {liste && <span className="ozet">{liste.length} ürün · {depoda} depoda · {liste.length - depoda - ayrilan} gönderildi{ayrilan > 0 && ` · ${ayrilan} hurda / kayıp`}</span>}
           </div>
           <div className="arama-satiri">
             <select className="girdi" aria-label="Ürün" value={urunId} onChange={(e) => setUrunId(e.target.value)}>
@@ -47,17 +47,16 @@ export default function UretimGecmisi({ ilkArama = "" }: { ilkArama?: string }) 
             <thead>
               <tr>
                 <th>Seri No</th>
-                <th>Lot No</th>
                 <th>Ürün</th>
                 <th>Üretim tarihi</th>
                 <th>Durum</th>
               </tr>
             </thead>
             <tbody>
-              {liste === null && !hata && <tr className="bos"><td colSpan={5}>Yükleniyor…</td></tr>}
+              {liste === null && !hata && <tr className="bos"><td colSpan={4}>Yükleniyor…</td></tr>}
               {liste?.length === 0 && (
                 <tr className="bos">
-                  <td colSpan={5}>{aranan || urunId ? "Aramaya uyan üretim bulunamadı." : "Henüz üretim yok."}</td>
+                  <td colSpan={4}>{aranan || urunId ? "Aramaya uyan üretim bulunamadı." : "Henüz üretim yok."}</td>
                 </tr>
               )}
               {gorunen?.map((u) => (
@@ -65,7 +64,6 @@ export default function UretimGecmisi({ ilkArama = "" }: { ilkArama?: string }) 
                   <td className="mono">
                     <Link href={seriAdresi(u.seriNo)}>{u.seriNo}</Link>
                   </td>
-                  <td className="mono">{u.lotNo && <Link href={urunLotAdresi(u.lotNo)} replace>{u.lotNo}</Link>}</td>
                   <td>{u.urunAd}</td>
                   <td>{tarihSaat(u.tarih)}</td>
                   <td>
@@ -76,7 +74,7 @@ export default function UretimGecmisi({ ilkArama = "" }: { ilkArama?: string }) 
                       </span>
                     ) : u.musteriAd ? (
                       <>
-                        <span className="rozet rozet--kucuk rozet--mavi">Satıldı</span> {u.musteriAd}
+                        <span className="rozet rozet--kucuk rozet--mavi">Gönderildi</span> {u.musteriAd}
                         {u.satisTarihi && <span className="not"> · {tarih(u.satisTarihi)}</span>}
                       </>
                     ) : (

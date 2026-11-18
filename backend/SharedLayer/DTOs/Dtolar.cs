@@ -23,8 +23,12 @@ public record SatisBilgisiDto(int SatisId, DateOnly Tarih, int MusteriId, string
 
 public record ParcaStokDto(
     int Id, string Kod, string Ad, string Birim, int MinStok,
-    int ToplamStok, int KullanilabilirStok, int LotSayisi, IReadOnlyList<string> KullanildigiUrunler, int HataliAdet = 0)
+    int ToplamStok, int KullanilabilirStok, int LotSayisi, IReadOnlyList<string> KullanildigiUrunler, int HataliAdet = 0,
+    int Ayrilan = 0)
 {
+    /// <summary>Kullanılabilir stoktan sıradaki üretimlere ayrılmamış olanı.</summary>
+    public int Serbest => Math.Max(0, KullanilabilirStok - Ayrilan);
+
     /// <summary>Geri çağrılanlar hariç kullanılabilir stok minimumun altında.</summary>
     public bool MinAltinda => KullanilabilirStok < MinStok;
 }
@@ -58,7 +62,7 @@ public record ParcaIhtiyaciDto(
 
 public record UretimOnizlemeDto(
     int UrunId, string UrunKod, string UrunAd, int Adet,
-    IReadOnlyList<ParcaIhtiyaciDto> Parcalar, IReadOnlyList<string> SeriNolar, string LotNo = "")
+    IReadOnlyList<ParcaIhtiyaciDto> Parcalar, IReadOnlyList<string> SeriNolar)
 {
     public IReadOnlyList<ParcaIhtiyaciDto> Eksikler => [.. Parcalar.Where(p => p.Eksik > 0)];
     public bool Yeterli => Eksikler.Count == 0;
@@ -71,13 +75,13 @@ public record UretimOnizlemeDto(
 
 public record EksikParcaDto(ParcaOzetDto Parca, int Gereken, int Kullanilabilir, int Eksik);
 
-public record UretimSonucuDto(int UrunId, string UrunAd, IReadOnlyList<string> SeriNolar, string LotNo = "");
+public record UretimSonucuDto(int UrunId, string UrunAd, IReadOnlyList<string> SeriNolar);
 
 /// <summary>Üretim geçmişinde bir seri no. MusteriAd/SatisTarihi satılmadıysa, Hurda ayrılmadıysa null.</summary>
 public record UretimGecmisiDto(
     int UretimId, string SeriNo, int UrunId, string UrunAd, DateTimeOffset Tarih,
     string? MusteriAd, DateOnly? SatisTarihi, IReadOnlyList<string> GeriCagrilanLotlar, HurdaBilgisiDto? Hurda,
-    string? GeriCagirmaDurumu = null, string LotNo = "");
+    string? GeriCagirmaDurumu = null);
 
 /// <summary>Tur: "Hurda" veya "Kayip".</summary>
 public record HurdaBilgisiDto(string Tur, string Aciklama, DateTimeOffset Zaman, string KullaniciAd);
@@ -107,17 +111,6 @@ public record GeriCagirmaDto(
 
 public record GeriCagirmaHurdaIstek(string Aciklama);
 
-// --- Ürün lotu ----------------------------------------------------------------
-
-/// <summary>Bir ürün lotu (aynı anda üretilenler). Depoda: satılmamış ve hurdaya ayrılmamış.</summary>
-public record UrunLotDto(
-    string LotNo, int UrunId, string UrunAd, DateTimeOffset Tarih, int Toplam, int Depoda, int Satilan, int HurdaKayip,
-    int AcikGeriCagirma, bool Sorunlu, string SorunAciklama, int HataliAdet, DateTimeOffset? SorunZamani);
-
-public record UrunLotSorunIstek(bool Sorunlu, string? Aciklama, int HataliAdet = 0, IReadOnlyList<string>? GeriCagrilacaklar = null);
-
-public record UrunLotSorunSonucuDto(UrunLotDto Lot, IReadOnlyList<string> GeriCagrilanSeriNolar);
-
 // --- İzlenebilirlik -----------------------------------------------------------
 
 /// <summary>HurdaTuru: "Hurda", "Kayip" veya null (ayrılmadı).</summary>
@@ -144,7 +137,7 @@ public record SeriIzParcaDto(ParcaOzetDto Parca, LotDto Lot, int Adet);
 public record SeriIzDto(
     int UretimId, string SeriNo, DateTimeOffset Tarih, string UrunKod, string UrunAd,
     IReadOnlyList<SeriIzParcaDto> Parcalar, SatisBilgisiDto? Satis, HurdaBilgisiDto? Hurda = null,
-    IReadOnlyList<IadeBilgisiDto>? Iadeler = null, GeriCagirmaDto? GeriCagirma = null, string LotNo = "")
+    IReadOnlyList<IadeBilgisiDto>? Iadeler = null, GeriCagirmaDto? GeriCagirma = null)
 {
     /// <summary>İçindeki sorunlu lotlar (alan adı eski).</summary>
     public IReadOnlyList<string> GeriCagrilanLotlar =>
@@ -175,13 +168,12 @@ public record SatisSonucuDto(
     int SatisId, int MusteriId, string MusteriAd, bool YeniMusteri, DateOnly Tarih,
     IReadOnlyList<string> SeriNolar, IReadOnlyList<SatisUyarisiDto> Uyarilar);
 
-/// <summary>SeriNolar: hâlâ satılmış olanlar; IadeEdilenler: bu satıştan iade alınanlar.</summary>
-/// <summary>Bir satışta bir ürün. Kalemler: satılan seri numaraları ürün lotlarıyla.</summary>
+/// <summary>Bir satışta bir ürün. SeriNolar: hâlâ satılmış olanlar; IadeEdilenler: bu satıştan iade alınanlar.</summary>
 public record SatisGecmisiDto(int SatisId, DateOnly Tarih, string MusteriAd, string UrunAd, IReadOnlyList<string> SeriNolar,
                               IReadOnlyList<string> IadeEdilenler, IReadOnlyList<SatisKalemiDto>? Kalemler = null,
                               DateTimeOffset? Zaman = null);
 
-public record SatisKalemiDto(string SeriNo, string LotNo);
+public record SatisKalemiDto(string SeriNo);
 
 /// <summary>Satıştan iade: seri numaraları ve zorunlu açıklama.</summary>
 public record SatisIadeIstek(IReadOnlyList<string> SeriNolar, string Aciklama);
@@ -195,3 +187,97 @@ public record IadeBilgisiDto(string MusteriAd, DateOnly SatisTarihi, DateTimeOff
 
 /// <summary>Tur: giris, uretim, satis, iade, duzeltme, hurda, sorun, geri. NumaraTuru: "lot", "seri" veya null.</summary>
 public record IslemDto(DateTimeOffset Zaman, string Tur, string KullaniciAd, string Aciklama, string? Numara, string? NumaraTuru);
+
+// --- Sipariş ------------------------------------------------------------------
+
+/// <summary>SeriNolar: depodan bu kaleme hemen ayrılacak seri numaraları (en fazla Adet kadar).</summary>
+public record SiparisKalemiIstek(int UrunId, int Adet, IReadOnlyList<string>? SeriNolar = null);
+
+public record SiparisIstek(int MusteriId, IReadOnlyList<SiparisKalemiIstek> Kalemler, DateOnly? Tarih = null,
+                           DateOnly? IstenenTarih = null, string? Aciklama = null);
+
+/// <summary>
+/// Ayrilanlar: bu kaleme ayrılmış seri numaraları (Gonderilenler de içinde). Uretimde: sıradaki bekleyen adet.
+/// Eksik: ne ayrılmış ne sırada olan adet.
+/// </summary>
+public record SiparisKalemiDto(
+    int Id, int UrunId, string UrunKod, string UrunAd, int Adet,
+    IReadOnlyList<string> Ayrilanlar, IReadOnlyList<string> Gonderilenler, int Uretimde)
+{
+    public int Eksik => Math.Max(0, Adet - Ayrilanlar.Count - Uretimde);
+}
+
+/// <summary>Durum: bekliyor, uretimde, hazir, kismen_gonderildi, tamamlandi, iptal.</summary>
+public record SiparisDto(
+    int Id, string No, int MusteriId, string MusteriAd, DateOnly Tarih, DateOnly? IstenenTarih, string Aciklama,
+    string Durum, IReadOnlyList<SiparisKalemiDto> Kalemler, DateTimeOffset OlusturmaZamani, string KullaniciAd,
+    DateTimeOffset? IptalZamani);
+
+public record SeriAyirIstek(IReadOnlyList<string> SeriNolar);
+
+/// <summary>Depoda, satılmamış, hurda değil, açık geri çağırması yok ve hiçbir siparişe ayrılmamış seri.</summary>
+public record HazirSeriDto(string SeriNo, DateTimeOffset Tarih);
+
+// --- Üretim sırası --------------------------------------------------------------
+
+/// <summary>SiparisKalemiId verilirse üretilenler o kaleme ayrılır. Adet verilmezse kalemin eksiği kadar.</summary>
+public record UretimEmriIstek(int UrunId, int? Adet, int? SiparisKalemiId = null, DateOnly? PlanlananTarih = null,
+                              string? Aciklama = null);
+
+/// <summary>Ayrilan: bu iş için ayrılmış parça adedi (kalan üretim için).</summary>
+public record EmirParcasiDto(ParcaOzetDto Parca, int BirimAdet, int Ayrilan);
+
+/// <summary>Durum: Bekliyor, Tamamlandi, Iptal.</summary>
+public record UretimEmriDto(
+    int Id, int Sira, int UrunId, string UrunKod, string UrunAd, int Adet, int Uretilen, string Durum,
+    DateOnly PlanlananTarih, string Aciklama, int? SiparisId, string? SiparisNo, string? MusteriAd,
+    DateTimeOffset OlusturmaZamani, string KullaniciAd, DateTimeOffset? BitisZamani,
+    IReadOnlyList<EmirParcasiDto> Parcalar, IReadOnlyList<string> SeriNolar);
+
+/// <summary>Adet verilmezse kalanın hepsi üretilir.</summary>
+public record EmirUretIstek(int? Adet = null);
+
+public record EmirTasiIstek(int Yon);
+
+public record EmirPlanIstek(DateOnly PlanlananTarih);
+
+// --- Sevkiyat -------------------------------------------------------------------
+
+/// <summary>Sipariş için ayrılmış ürünlerden sevkiyat. Takip no girilirse doğrudan "Kargoda" olur.</summary>
+public record SevkiyatIstek(int SiparisId, IReadOnlyList<string> SeriNolar, string? KargoFirmasi = null, string? TakipNo = null,
+                            string? Aciklama = null, bool GeriCagrilanOnayi = false);
+
+public record KargoIstek(string KargoFirmasi, string TakipNo);
+
+public record SevkiyatKalemiDto(string SeriNo, string UrunAd);
+
+/// <summary>Durum: Hazirlaniyor, Kargoda, TeslimEdildi. Iadeler: bu sevkiyattan iade alınan seri numaraları.</summary>
+public record SevkiyatDto(
+    int Id, string No, int MusteriId, string MusteriAd, int? SiparisId, string? SiparisNo, DateOnly Tarih, DateTimeOffset? Zaman,
+    string Durum, string KargoFirmasi, string TakipNo, string Aciklama, DateTimeOffset? KargoZamani, DateTimeOffset? TeslimZamani,
+    DateTimeOffset OlusturmaZamani, string KullaniciAd, IReadOnlyList<SevkiyatKalemiDto> Kalemler, IReadOnlyList<string> Iadeler);
+
+// --- Ana sayfa ve takvim ----------------------------------------------------------
+
+/// <summary>Serbest: kullanılabilir stoktan sıradaki işlere ayrılmamış olanı.</summary>
+public record UretilebilirParcaDto(ParcaOzetDto Parca, int BirimAdet, int Serbest);
+
+/// <summary>Serbest parça stoğuyla en fazla Uretilebilir adet üretilebilir; Kisitlayanlar: buna yol açan parçalar.</summary>
+public record UretilebilirUyariDto(int UrunId, string UrunKod, string UrunAd, int Uretilebilir,
+                                   IReadOnlyList<UretilebilirParcaDto> Kisitlayanlar);
+
+/// <summary>Kalan: siparişte henüz gönderilmemiş adet.</summary>
+public record YaklasanTeslimDto(int SiparisId, string No, string MusteriAd, DateOnly IstenenTarih, int Kalan);
+
+public record AnaSayfaOzetiDto(
+    int AcikSiparis, int SiradakiIs, int SiradakiAdet, int BugunPlanlanan, int HazirlananSevkiyat, int KargodaSevkiyat,
+    int DepodaUrun, int MinAltindaParca, int AcikGeriCagirma,
+    IReadOnlyList<UretilebilirUyariDto> Uyarilar, IReadOnlyList<YaklasanTeslimDto> YaklasanTeslimler);
+
+/// <summary>
+/// Bir gün, bir ürün. Planlanan: sıradaki işlerin o güne planlanan kalan adedi; Uretilen: o gün üretilen;
+/// Istenen: o gün teslimi istenen sipariş adedi (teslim tarihi yoksa sipariş günü).
+/// </summary>
+public record TakvimUrunuDto(int UrunId, string UrunAd, int Planlanan, int Uretilen, int Istenen);
+
+public record TakvimGunuDto(DateOnly Tarih, IReadOnlyList<TakvimUrunuDto> Urunler);

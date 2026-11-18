@@ -29,10 +29,6 @@ public class SatisServisi(AppDbContext db) : ISatisServisi
             .Where(t => liste.Contains(t.Uretim!.SeriNo) && t.StokLotu!.Sorunlu)
             .Select(t => new { t.Uretim!.SeriNo, t.StokLotu!.LotNo })
             .Distinct().ToListAsync(ct);
-        // Hatalı işaretlenmiş ürün lotundaki seri numaraları da uyarı verir
-        satirlar.AddRange(await db.Uretimler.AsNoTracking()
-            .Where(u => liste.Contains(u.SeriNo) && db.UrunLotSorunlari.Any(s => s.LotNo == u.LotNo))
-            .Select(u => new { u.SeriNo, u.LotNo }).ToListAsync(ct));
         var lotlar = satirlar.GroupBy(s => s.SeriNo, StringComparer.OrdinalIgnoreCase)
             .ToDictionary(g => g.Key, g => g.Select(s => s.LotNo).Order().ToList(), StringComparer.OrdinalIgnoreCase);
         // Verilen sırayla; veritabanındaki yazımla
@@ -84,6 +80,14 @@ public class SatisServisi(AppDbContext db) : ISatisServisi
                 throw new GeriCagrilanLotOnayiGerekliHatasi(uyarilar);
 
             var musteri = await db.Musteriler.SingleOrDefaultAsync(m => m.Ad == musteriAdi, ct);
+            // Başka bir müşterinin siparişine ayrılmış ürün satılamaz
+            int? musteriId = musteri?.Id;
+            var baskasina = await db.Uretimler
+                .Where(u => uretimIdleri.Contains(u.Id) && u.SiparisKalemiId != null
+                            && (musteriId == null || u.SiparisKalemi!.Siparis!.MusteriId != musteriId))
+                .Select(u => u.SeriNo + " (" + u.SiparisKalemi!.Siparis!.No + ")").ToListAsync(ct);
+            if (baskasina.Count > 0)
+                throw new SatisHatasi($"Başka bir siparişe ayrılmış: {string.Join(", ", baskasina.Order())}");
             var yeniMusteri = musteri is null;
             musteri ??= new Musteri { Ad = musteriAdi };
 
@@ -93,6 +97,7 @@ public class SatisServisi(AppDbContext db) : ISatisServisi
             var an = istek.Zaman ?? (istek.Tarih is null ? Zaman.Simdi() : null);
             var satis = new Satis
             {
+                No = await YeniNoAsync(db, ct),
                 Musteri = musteri, Tarih = an is { } z ? Zaman.YerelTarih(z) : istek.Tarih!.Value, Zaman = an,
                 OlusturanKullanici = kullanici, OlusturmaZamani = Zaman.Simdi(),
             };
@@ -106,9 +111,11 @@ public class SatisServisi(AppDbContext db) : ISatisServisi
     }
 
     public async Task<List<SatisGecmisiDto>> SatisGecmisiAsync(string? arama = null, int adet = 500,
-                                                               CancellationToken ct = default)
+                                                               CancellationToken ct = default, int? musteriId = null)
     {
         var q = db.Satislar.AsNoTracking();
+        if (musteriId is { } m)
+            q = q.Where(s => s.MusteriId == m);
         arama = arama?.Trim();
         if (!string.IsNullOrEmpty(arama))
             q = q.Where(s => EF.Functions.Like(s.Musteri!.Ad, Arama.Desen(arama))
@@ -118,16 +125,23 @@ public class SatisServisi(AppDbContext db) : ISatisServisi
             .Select(s => new
             {
                 s.Id, s.Tarih, s.Zaman, MusteriAd = s.Musteri!.Ad,
-                Satilan = s.Kalemler.Select(k => new { k.Uretim!.SeriNo, k.Uretim.LotNo, UrunAd = k.Uretim.Urun!.Ad }).ToList(),
+                Satilan = s.Kalemler.Select(k => new { k.Uretim!.SeriNo, UrunAd = k.Uretim.Urun!.Ad }).ToList(),
                 Iade = s.Iadeler.Select(i => new { i.Uretim!.SeriNo, UrunAd = i.Uretim.Urun!.Ad }).ToList(),
             }).ToListAsync(ct);
-        return [.. satislar.SelectMany(s => s.Satilan.Select(k => (k.SeriNo, k.LotNo, k.UrunAd, Iade: false))
-            .Concat(s.Iade.Select(i => (i.SeriNo, LotNo: "", i.UrunAd, Iade: true)))
+        return [.. satislar.SelectMany(s => s.Satilan.Select(k => (k.SeriNo, k.UrunAd, Iade: false))
+            .Concat(s.Iade.Select(i => (i.SeriNo, i.UrunAd, Iade: true)))
             .GroupBy(k => k.UrunAd).OrderBy(g => g.Key, StringComparer.CurrentCulture)
             .Select(g => new SatisGecmisiDto(s.Id, s.Tarih, s.MusteriAd, g.Key,
                 [.. g.Where(k => !k.Iade).Select(k => k.SeriNo).Order()],
                 [.. g.Where(k => k.Iade).Select(k => k.SeriNo).Distinct().Order()],
-                [.. g.Where(k => !k.Iade).OrderBy(k => k.SeriNo).Select(k => new SatisKalemiDto(k.SeriNo, k.LotNo))], s.Zaman)))];
+                [.. g.Where(k => !k.Iade).OrderBy(k => k.SeriNo).Select(k => new SatisKalemiDto(k.SeriNo))], s.Zaman)))];
+    }
+
+    /// <summary>Sıradaki sevkiyat numarası (SV-0001).</summary>
+    internal static async Task<string> YeniNoAsync(AppDbContext db, CancellationToken ct)
+    {
+        var mevcut = await db.Satislar.Where(s => s.No.StartsWith("SV-")).Select(s => s.No).ToListAsync(ct);
+        return $"SV-{Sira.EnBuyuk(mevcut, "SV-") + 1:D4}";
     }
 
     public Task<SatisIadeSonucuDto> IadeAlAsync(int satisId, SatisIadeIstek istek, int kullaniciId, CancellationToken ct = default)

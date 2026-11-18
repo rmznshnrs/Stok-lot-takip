@@ -111,12 +111,6 @@ public class IslemGecmisiServisi(AppDbContext db) : IIslemGecmisiServisi
                     l.Parca!.Ad + " · " + l.SorunAciklama + (l.GeriCagrildi ? " · üretime kapalı" : " · üretimde kullanılabilir"),
                     l.LotNo, "lot"))
                 .ToListAsync(ct));
-            liste.AddRange(await db.UrunLotSorunlari.AsNoTracking()
-                .Where(s => s.OlusturmaZamani < sinir && (yapanId == null || s.OlusturanKullaniciId == yapanId))
-                .OrderByDescending(s => s.OlusturmaZamani).Take(adet)
-                .Select(s => new IslemDto(s.OlusturmaZamani, "sorun", s.OlusturanKullanici!.Ad + " " + s.OlusturanKullanici.Soyad,
-                    s.Urun!.Ad + " · " + s.Aciklama + (s.HataliAdet > 0 ? " · " + s.HataliAdet + " hatalı" : ""), s.LotNo, "urunlot"))
-                .ToListAsync(ct));
         }
 
         if (Al("geri"))

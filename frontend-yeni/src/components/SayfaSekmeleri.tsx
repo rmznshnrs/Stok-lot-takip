@@ -8,13 +8,13 @@ export default function SayfaSekmeleri({ etiket, sekmeler }: {
   return (
     <div className="ust-sekme-satiri">
       <h1>{etiket}</h1>
-      <nav className="sekmeler sekmeler--buyuk" aria-label={etiket}>
+      {sekmeler.length > 1 && <nav className="sekmeler sekmeler--buyuk" aria-label={etiket}>
         {sekmeler.map((s) => (
           <Link key={s.adres} href={s.adres} className={`sekme${s.aktif ? " sekme--aktif" : ""}`} aria-current={s.aktif ? "page" : undefined}>
             {s.ad}
           </Link>
         ))}
-      </nav>
+      </nav>}
     </div>
   );
 }

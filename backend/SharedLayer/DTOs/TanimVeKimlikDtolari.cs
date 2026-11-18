@@ -56,7 +56,6 @@ public record IletisimIstek(string Ad, string? Iletisim = null, string? Telefon 
 
 // --- İşlem istekleri ---------------------------------------------------------------
 
-public record UretimIstek(int UrunId, int Adet);
 
 
 public record SatisUyarilariIstek(IReadOnlyList<string> SeriNolar);

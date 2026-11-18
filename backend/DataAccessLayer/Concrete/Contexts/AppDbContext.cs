@@ -26,7 +26,10 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<UretimHurda> UretimHurdalari => Set<UretimHurda>();
     public DbSet<SatisIade> SatisIadeleri => Set<SatisIade>();
     public DbSet<UrunGeriCagirma> UrunGeriCagirmalari => Set<UrunGeriCagirma>();
-    public DbSet<UrunLotSorunu> UrunLotSorunlari => Set<UrunLotSorunu>();
+    public DbSet<Siparis> Siparisler => Set<Siparis>();
+    public DbSet<SiparisKalemi> SiparisKalemleri => Set<SiparisKalemi>();
+    public DbSet<UretimEmri> UretimEmirleri => Set<UretimEmri>();
+    public DbSet<UretimEmriParcasi> UretimEmriParcalari => Set<UretimEmriParcasi>();
 
     /// <summary>Müşteri / tedarikçide görüntülenen tek satırlık iletişim: boş olmayan alanlar " · " ile.</summary>
     private const string IletisimSql = "CONCAT_WS(N' · ', NULLIF([Telefon], N''), NULLIF([Eposta], N''), NULLIF([Adres], N''))";
@@ -37,6 +40,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         c.Properties<KullaniciRolu>().HaveConversion<string>().HaveMaxLength(20);
         c.Properties<StokDuzeltmeTuru>().HaveConversion<string>().HaveMaxLength(20);
         c.Properties<UretimHurdaTuru>().HaveConversion<string>().HaveMaxLength(20);
+        c.Properties<UretimEmriDurumu>().HaveConversion<string>().HaveMaxLength(20);
+        c.Properties<SevkiyatDurumu>().HaveConversion<string>().HaveMaxLength(20);
     }
 
     protected override void OnModelCreating(ModelBuilder m)
@@ -70,9 +75,9 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
                 t.HasCheckConstraint("CK_StokLotu_GirisAdet", "[GirisAdet] > 0");
                 // Sayım fazlası (+ düzeltme) giriş adedini aşabilir; yalnız negatif olamaz
                 t.HasCheckConstraint("CK_StokLotu_KalanAdet", "[KalanAdet] >= 0");
-                e.Property(x => x.SorunAciklama).HasMaxLength(500);
+            });
+            e.Property(x => x.SorunAciklama).HasMaxLength(500);
             e.HasOne(x => x.SorunIsaretleyen).WithMany().HasForeignKey(x => x.SorunIsaretleyenId);
-        });
             e.Property(x => x.LotNo).HasMaxLength(100);
             e.Property(x => x.TedarikciLotNo).HasMaxLength(100);
             e.HasIndex(x => x.TedarikciLotNo);
@@ -111,10 +116,49 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             e.ToTable("Uretim");
             e.Property(x => x.SeriNo).HasMaxLength(50);
             e.HasIndex(x => x.SeriNo).IsUnique();
-            e.Property(x => x.LotNo).HasMaxLength(50);
-            e.HasIndex(x => x.LotNo);
             e.HasOne(x => x.Urun).WithMany(u => u.Uretimler).HasForeignKey(x => x.UrunId);
             e.HasOne(x => x.OlusturanKullanici).WithMany().HasForeignKey(x => x.OlusturanKullaniciId);
+            e.HasOne(x => x.UretimEmri).WithMany(u => u.Uretimler).HasForeignKey(x => x.UretimEmriId);
+            e.HasOne(x => x.SiparisKalemi).WithMany(k => k.Ayrilanlar).HasForeignKey(x => x.SiparisKalemiId);
+        });
+
+        m.Entity<Siparis>(e =>
+        {
+            e.ToTable("Siparis");
+            e.Property(x => x.No).HasMaxLength(20);
+            e.HasIndex(x => x.No).IsUnique();
+            e.Property(x => x.Aciklama).HasMaxLength(500);
+            e.HasOne(x => x.Musteri).WithMany(mu => mu.Siparisler).HasForeignKey(x => x.MusteriId);
+            e.HasOne(x => x.OlusturanKullanici).WithMany().HasForeignKey(x => x.OlusturanKullaniciId);
+        });
+
+        m.Entity<SiparisKalemi>(e =>
+        {
+            e.ToTable("SiparisKalemi", t => t.HasCheckConstraint("CK_SiparisKalemi_Adet", "[Adet] > 0"));
+            e.HasOne(x => x.Siparis).WithMany(s => s.Kalemler).HasForeignKey(x => x.SiparisId);
+            e.HasOne(x => x.Urun).WithMany().HasForeignKey(x => x.UrunId);
+        });
+
+        m.Entity<UretimEmri>(e =>
+        {
+            e.ToTable("UretimEmri", t =>
+            {
+                t.HasCheckConstraint("CK_UretimEmri_Adet", "[Adet] > 0");
+                t.HasCheckConstraint("CK_UretimEmri_Uretilen", "[Uretilen] >= 0 AND [Uretilen] <= [Adet]");
+            });
+            e.Property(x => x.Aciklama).HasMaxLength(500);
+            e.HasIndex(x => new { x.Durum, x.Sira });
+            e.HasOne(x => x.Urun).WithMany().HasForeignKey(x => x.UrunId);
+            e.HasOne(x => x.SiparisKalemi).WithMany(k => k.UretimEmirleri).HasForeignKey(x => x.SiparisKalemiId);
+            e.HasOne(x => x.OlusturanKullanici).WithMany().HasForeignKey(x => x.OlusturanKullaniciId);
+        });
+
+        m.Entity<UretimEmriParcasi>(e =>
+        {
+            e.ToTable("UretimEmriParcasi", t => t.HasCheckConstraint("CK_UretimEmriParcasi_BirimAdet", "[BirimAdet] > 0"));
+            e.HasKey(x => new { x.UretimEmriId, x.ParcaId });
+            e.HasOne(x => x.UretimEmri).WithMany(u => u.Parcalar).HasForeignKey(x => x.UretimEmriId);
+            e.HasOne(x => x.Parca).WithMany().HasForeignKey(x => x.ParcaId);
         });
 
         m.Entity<UretimTuketim>(e =>
@@ -140,7 +184,14 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         m.Entity<Satis>(e =>
         {
             e.ToTable("Satis");
+            e.Property(x => x.No).HasMaxLength(20);
+            e.HasIndex(x => x.No).IsUnique();
+            e.Property(x => x.KargoFirmasi).HasMaxLength(100);
+            e.Property(x => x.TakipNo).HasMaxLength(100);
+            e.Property(x => x.Aciklama).HasMaxLength(500);
+            e.HasIndex(x => x.Durum);
             e.HasOne(x => x.Musteri).WithMany(mu => mu.Satislar).HasForeignKey(x => x.MusteriId);
+            e.HasOne(x => x.Siparis).WithMany(s => s.Sevkiyatlar).HasForeignKey(x => x.SiparisId);
             e.HasOne(x => x.OlusturanKullanici).WithMany().HasForeignKey(x => x.OlusturanKullaniciId);
         });
 
@@ -215,20 +266,6 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             e.HasOne(x => x.StokLotu).WithMany().HasForeignKey(x => x.StokLotuId);
             e.HasOne(x => x.OlusturanKullanici).WithMany().HasForeignKey(x => x.OlusturanKullaniciId);
             e.HasOne(x => x.KapatanKullanici).WithMany().HasForeignKey(x => x.KapatanKullaniciId);
-        });
-
-        m.Entity<UrunLotSorunu>(e =>
-        {
-            e.ToTable("UrunLotSorunu", t =>
-            {
-                t.HasCheckConstraint("CK_UrunLotSorunu_Aciklama", "LEN([Aciklama]) > 0");
-                t.HasCheckConstraint("CK_UrunLotSorunu_HataliAdet", "[HataliAdet] >= 0");
-            });
-            e.Property(x => x.LotNo).HasMaxLength(50);
-            e.Property(x => x.Aciklama).HasMaxLength(500);
-            e.HasIndex(x => x.LotNo).IsUnique();
-            e.HasOne(x => x.Urun).WithMany().HasForeignKey(x => x.UrunId);
-            e.HasOne(x => x.OlusturanKullanici).WithMany().HasForeignKey(x => x.OlusturanKullaniciId);
         });
 
         // Bağlı kayıt silinmez. Tek istisna yukarıdaki UrunAgaci → Urun.

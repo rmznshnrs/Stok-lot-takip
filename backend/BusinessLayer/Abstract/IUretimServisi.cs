@@ -16,9 +16,6 @@ public interface IUretimServisi
     Task<UretimSonucuDto> UretAsync(int urunId, int adet, int kullaniciId, DateTimeOffset? tarih = null,
                                     CancellationToken ct = default);
 
-    /// <summary>Şimdi üretilirse bu partiye verilecek ürün lot numarası (seri öneki + L + 3 hane: U1-L001).</summary>
-    Task<string> SonrakiLotNoAsync(int urunId, CancellationToken ct = default);
-
     /// <summary>Şimdi üretilirse verilecek ardışık seri numaraları.</summary>
     Task<List<string>> SonrakiSeriNolarAsync(int urunId, int adet, CancellationToken ct = default);
 

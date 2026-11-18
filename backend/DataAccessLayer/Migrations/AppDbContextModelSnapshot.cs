@@ -165,8 +165,31 @@ namespace DataAccessLayer.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("Aciklama")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("Durum")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("KargoFirmasi")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTimeOffset?>("KargoZamani")
+                        .HasColumnType("datetimeoffset");
+
                     b.Property<int>("MusteriId")
                         .HasColumnType("int");
+
+                    b.Property<string>("No")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
 
                     b.Property<int>("OlusturanKullaniciId")
                         .HasColumnType("int");
@@ -174,17 +197,35 @@ namespace DataAccessLayer.Migrations
                     b.Property<DateTimeOffset>("OlusturmaZamani")
                         .HasColumnType("datetimeoffset");
 
+                    b.Property<int?>("SiparisId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("TakipNo")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
                     b.Property<DateOnly>("Tarih")
                         .HasColumnType("date");
+
+                    b.Property<DateTimeOffset?>("TeslimZamani")
+                        .HasColumnType("datetimeoffset");
 
                     b.Property<DateTimeOffset?>("Zaman")
                         .HasColumnType("datetimeoffset");
 
                     b.HasKey("Id");
 
+                    b.HasIndex("Durum");
+
                     b.HasIndex("MusteriId");
 
+                    b.HasIndex("No")
+                        .IsUnique();
+
                     b.HasIndex("OlusturanKullaniciId");
+
+                    b.HasIndex("SiparisId");
 
                     b.ToTable("Satis", (string)null);
                 });
@@ -277,6 +318,83 @@ namespace DataAccessLayer.Migrations
                     b.HasIndex("KullaniciId");
 
                     b.ToTable("SifreSifirlama", (string)null);
+                });
+
+            modelBuilder.Entity("EntityLayer.Concrete.Siparis", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Aciklama")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<DateTimeOffset?>("IptalZamani")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<DateOnly?>("IstenenTarih")
+                        .HasColumnType("date");
+
+                    b.Property<int>("MusteriId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("No")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<int>("OlusturanKullaniciId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("OlusturmaZamani")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<DateOnly>("Tarih")
+                        .HasColumnType("date");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MusteriId");
+
+                    b.HasIndex("No")
+                        .IsUnique();
+
+                    b.HasIndex("OlusturanKullaniciId");
+
+                    b.ToTable("Siparis", (string)null);
+                });
+
+            modelBuilder.Entity("EntityLayer.Concrete.SiparisKalemi", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("Adet")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SiparisId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("UrunId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SiparisId");
+
+                    b.HasIndex("UrunId");
+
+                    b.ToTable("SiparisKalemi", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_SiparisKalemi_Adet", "[Adet] > 0");
+                        });
                 });
 
             modelBuilder.Entity("EntityLayer.Concrete.StokDuzeltme", b =>
@@ -471,11 +589,6 @@ namespace DataAccessLayer.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("LotNo")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
                     b.Property<int>("OlusturanKullaniciId")
                         .HasColumnType("int");
 
@@ -487,24 +600,116 @@ namespace DataAccessLayer.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
+                    b.Property<int?>("SiparisKalemiId")
+                        .HasColumnType("int");
+
                     b.Property<DateTimeOffset>("Tarih")
                         .HasColumnType("datetimeoffset");
+
+                    b.Property<int?>("UretimEmriId")
+                        .HasColumnType("int");
 
                     b.Property<int>("UrunId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("LotNo");
-
                     b.HasIndex("OlusturanKullaniciId");
 
                     b.HasIndex("SeriNo")
                         .IsUnique();
 
+                    b.HasIndex("SiparisKalemiId");
+
+                    b.HasIndex("UretimEmriId");
+
                     b.HasIndex("UrunId");
 
                     b.ToTable("Uretim", (string)null);
+                });
+
+            modelBuilder.Entity("EntityLayer.Concrete.UretimEmri", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Aciklama")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<int>("Adet")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset?>("BitisZamani")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("Durum")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<int>("OlusturanKullaniciId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("OlusturmaZamani")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<DateOnly>("PlanlananTarih")
+                        .HasColumnType("date");
+
+                    b.Property<int?>("SiparisKalemiId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Sira")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Uretilen")
+                        .HasColumnType("int");
+
+                    b.Property<int>("UrunId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OlusturanKullaniciId");
+
+                    b.HasIndex("SiparisKalemiId");
+
+                    b.HasIndex("UrunId");
+
+                    b.HasIndex("Durum", "Sira");
+
+                    b.ToTable("UretimEmri", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_UretimEmri_Adet", "[Adet] > 0");
+
+                            t.HasCheckConstraint("CK_UretimEmri_Uretilen", "[Uretilen] >= 0 AND [Uretilen] <= [Adet]");
+                        });
+                });
+
+            modelBuilder.Entity("EntityLayer.Concrete.UretimEmriParcasi", b =>
+                {
+                    b.Property<int>("UretimEmriId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ParcaId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("BirimAdet")
+                        .HasColumnType("int");
+
+                    b.HasKey("UretimEmriId", "ParcaId");
+
+                    b.HasIndex("ParcaId");
+
+                    b.ToTable("UretimEmriParcasi", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_UretimEmriParcasi_BirimAdet", "[BirimAdet] > 0");
+                        });
                 });
 
             modelBuilder.Entity("EntityLayer.Concrete.UretimHurda", b =>
@@ -681,53 +886,6 @@ namespace DataAccessLayer.Migrations
                         });
                 });
 
-            modelBuilder.Entity("EntityLayer.Concrete.UrunLotSorunu", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Aciklama")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
-                    b.Property<int>("HataliAdet")
-                        .HasColumnType("int");
-
-                    b.Property<string>("LotNo")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<int>("OlusturanKullaniciId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTimeOffset>("OlusturmaZamani")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<int>("UrunId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("LotNo")
-                        .IsUnique();
-
-                    b.HasIndex("OlusturanKullaniciId");
-
-                    b.HasIndex("UrunId");
-
-                    b.ToTable("UrunLotSorunu", null, t =>
-                        {
-                            t.HasCheckConstraint("CK_UrunLotSorunu_Aciklama", "LEN([Aciklama]) > 0");
-
-                            t.HasCheckConstraint("CK_UrunLotSorunu_HataliAdet", "[HataliAdet] >= 0");
-                        });
-                });
-
             modelBuilder.Entity("EntityLayer.Concrete.Satis", b =>
                 {
                     b.HasOne("EntityLayer.Concrete.Musteri", "Musteri")
@@ -742,9 +900,16 @@ namespace DataAccessLayer.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("EntityLayer.Concrete.Siparis", "Siparis")
+                        .WithMany("Sevkiyatlar")
+                        .HasForeignKey("SiparisId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.Navigation("Musteri");
 
                     b.Navigation("OlusturanKullanici");
+
+                    b.Navigation("Siparis");
                 });
 
             modelBuilder.Entity("EntityLayer.Concrete.SatisIade", b =>
@@ -802,6 +967,44 @@ namespace DataAccessLayer.Migrations
                         .IsRequired();
 
                     b.Navigation("Kullanici");
+                });
+
+            modelBuilder.Entity("EntityLayer.Concrete.Siparis", b =>
+                {
+                    b.HasOne("EntityLayer.Concrete.Musteri", "Musteri")
+                        .WithMany("Siparisler")
+                        .HasForeignKey("MusteriId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("EntityLayer.Concrete.Kullanici", "OlusturanKullanici")
+                        .WithMany()
+                        .HasForeignKey("OlusturanKullaniciId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Musteri");
+
+                    b.Navigation("OlusturanKullanici");
+                });
+
+            modelBuilder.Entity("EntityLayer.Concrete.SiparisKalemi", b =>
+                {
+                    b.HasOne("EntityLayer.Concrete.Siparis", "Siparis")
+                        .WithMany("Kalemler")
+                        .HasForeignKey("SiparisId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("EntityLayer.Concrete.Urun", "Urun")
+                        .WithMany()
+                        .HasForeignKey("UrunId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Siparis");
+
+                    b.Navigation("Urun");
                 });
 
             modelBuilder.Entity("EntityLayer.Concrete.StokDuzeltme", b =>
@@ -865,6 +1068,16 @@ namespace DataAccessLayer.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("EntityLayer.Concrete.SiparisKalemi", "SiparisKalemi")
+                        .WithMany("Ayrilanlar")
+                        .HasForeignKey("SiparisKalemiId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("EntityLayer.Concrete.UretimEmri", "UretimEmri")
+                        .WithMany("Uretimler")
+                        .HasForeignKey("UretimEmriId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("EntityLayer.Concrete.Urun", "Urun")
                         .WithMany("Uretimler")
                         .HasForeignKey("UrunId")
@@ -873,7 +1086,56 @@ namespace DataAccessLayer.Migrations
 
                     b.Navigation("OlusturanKullanici");
 
+                    b.Navigation("SiparisKalemi");
+
+                    b.Navigation("UretimEmri");
+
                     b.Navigation("Urun");
+                });
+
+            modelBuilder.Entity("EntityLayer.Concrete.UretimEmri", b =>
+                {
+                    b.HasOne("EntityLayer.Concrete.Kullanici", "OlusturanKullanici")
+                        .WithMany()
+                        .HasForeignKey("OlusturanKullaniciId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("EntityLayer.Concrete.SiparisKalemi", "SiparisKalemi")
+                        .WithMany("UretimEmirleri")
+                        .HasForeignKey("SiparisKalemiId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("EntityLayer.Concrete.Urun", "Urun")
+                        .WithMany()
+                        .HasForeignKey("UrunId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("OlusturanKullanici");
+
+                    b.Navigation("SiparisKalemi");
+
+                    b.Navigation("Urun");
+                });
+
+            modelBuilder.Entity("EntityLayer.Concrete.UretimEmriParcasi", b =>
+                {
+                    b.HasOne("EntityLayer.Concrete.Parca", "Parca")
+                        .WithMany()
+                        .HasForeignKey("ParcaId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("EntityLayer.Concrete.UretimEmri", "UretimEmri")
+                        .WithMany("Parcalar")
+                        .HasForeignKey("UretimEmriId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Parca");
+
+                    b.Navigation("UretimEmri");
                 });
 
             modelBuilder.Entity("EntityLayer.Concrete.UretimHurda", b =>
@@ -966,28 +1228,11 @@ namespace DataAccessLayer.Migrations
                     b.Navigation("Uretim");
                 });
 
-            modelBuilder.Entity("EntityLayer.Concrete.UrunLotSorunu", b =>
-                {
-                    b.HasOne("EntityLayer.Concrete.Kullanici", "OlusturanKullanici")
-                        .WithMany()
-                        .HasForeignKey("OlusturanKullaniciId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("EntityLayer.Concrete.Urun", "Urun")
-                        .WithMany()
-                        .HasForeignKey("UrunId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("OlusturanKullanici");
-
-                    b.Navigation("Urun");
-                });
-
             modelBuilder.Entity("EntityLayer.Concrete.Musteri", b =>
                 {
                     b.Navigation("Satislar");
+
+                    b.Navigation("Siparisler");
                 });
 
             modelBuilder.Entity("EntityLayer.Concrete.Parca", b =>
@@ -1002,6 +1247,20 @@ namespace DataAccessLayer.Migrations
                     b.Navigation("Iadeler");
 
                     b.Navigation("Kalemler");
+                });
+
+            modelBuilder.Entity("EntityLayer.Concrete.Siparis", b =>
+                {
+                    b.Navigation("Kalemler");
+
+                    b.Navigation("Sevkiyatlar");
+                });
+
+            modelBuilder.Entity("EntityLayer.Concrete.SiparisKalemi", b =>
+                {
+                    b.Navigation("Ayrilanlar");
+
+                    b.Navigation("UretimEmirleri");
                 });
 
             modelBuilder.Entity("EntityLayer.Concrete.StokLotu", b =>
@@ -1027,6 +1286,13 @@ namespace DataAccessLayer.Migrations
                     b.Navigation("SatisKalemi");
 
                     b.Navigation("Tuketimler");
+                });
+
+            modelBuilder.Entity("EntityLayer.Concrete.UretimEmri", b =>
+                {
+                    b.Navigation("Parcalar");
+
+                    b.Navigation("Uretimler");
                 });
 
             modelBuilder.Entity("EntityLayer.Concrete.Urun", b =>

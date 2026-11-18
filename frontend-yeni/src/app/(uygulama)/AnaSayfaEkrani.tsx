@@ -3,9 +3,9 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
-import { ApiHatasi, geriCagirma, izleme, parcalar, uretim, type Aday, type NumaraArama, type NumaraTuru } from "@/lib/api";
-import { lotAdresi, seriAdresi, urunLotAdresi } from "@/lib/adres";
-import { tarih } from "@/lib/bicim";
+import { ApiHatasi, izleme, ozet as ozetApi, type Aday, type NumaraArama, type NumaraTuru, type AnaSayfaOzeti } from "@/lib/api";
+import { lotAdresi, seriAdresi } from "@/lib/adres";
+import { bugun, tarih } from "@/lib/bicim";
 import { numaraAyikla } from "@/lib/gs1";
 import { useVeri } from "@/lib/kancalar";
 
@@ -13,17 +13,16 @@ function izAdresi(tur: NumaraTuru, deger: string) {
   const d = encodeURIComponent(deger);
   if (tur === "lot") return lotAdresi(deger);
   if (tur === "seri") return seriAdresi(deger);
-  if (tur === "urunlot") return urunLotAdresi(deger);
   return `/stok?parca=${d}`;
 }
 
 const HIZLI = [
   { yol: "/stok?giris=1", baslik: "Mal girişi" },
-  { yol: "/uretim", baslik: "Üretim" },
-  { yol: "/satis?yeni=1", baslik: "Satış" },
+  { yol: "/uretim?yeni=1", baslik: "Sıraya ekle" },
+  { yol: "/sevkiyat?yeni=1", baslik: "Yeni sevkiyat" },
 ];
 
-const HAREKET_ADI = { giris: "Mal girişi", uretim: "Üretim", satis: "Satış" } as const;
+const HAREKET_ADI = { giris: "Mal girişi", uretim: "Üretim", satis: "Sevkiyat" } as const;
 
 
 export default function AnaSayfaEkrani() {
@@ -33,14 +32,14 @@ export default function AnaSayfaEkrani() {
   const [hata, setHata] = useState("");
   const [bekliyor, setBekliyor] = useState(false);
   const { veri: hareketler, hata: hareketHatasi } = useVeri(() => izleme.hareketler(8), []);
-  const { veri: parcaListesi } = useVeri(() => parcalar.listele(), []);
-  const { veri: acikGeri } = useVeri(() => geriCagirma.liste(true), []);
-  const { veri: uretimler } = useVeri(() => uretim.gecmis(), []);
+  const { veri: o, hata: ozetHatasi } = useVeri(() => ozetApi.anaSayfa(), []);
   const ozet = [
-    { ad: "Minimum stok altındaki parça", deger: parcaListesi?.filter((p) => p.minAltinda).length, yol: "/stok?gorunum=parca", dikkat: true },
-    { ad: "Açık geri çağırma", deger: acikGeri?.length, yol: "/uretim?sekme=geri", dikkat: true },
-    { ad: "Depodaki ürün", deger: uretimler?.filter((u) => !u.musteriAd && !u.hurda).length, yol: "/stok?gorunum=urun", dikkat: false },
-    { ad: "Toplam üretilen", deger: uretimler?.length, yol: "/uretim?sekme=gecmis", dikkat: false },
+    { ad: "Açık sipariş", deger: o?.acikSiparis, yol: "/takvim", dikkat: false },
+    { ad: "Üretim sırasındaki ürün", deger: o?.siradakiAdet, alt: o && `${o.siradakiIs} iş · bugüne kadar planlanan ${o.bugunPlanlanan}`, yol: "/uretim", dikkat: false },
+    { ad: "Gönderilmeyi bekleyen sevkiyat", deger: o && o.hazirlananSevkiyat + o.kargodaSevkiyat, alt: o && `${o.hazirlananSevkiyat} hazırlanıyor · ${o.kargodaSevkiyat} kargoda`, yol: "/sevkiyat", dikkat: false },
+    { ad: "Depodaki ürün", deger: o?.depodaUrun, yol: "/stok?gorunum=urun", dikkat: false },
+    { ad: "Minimum stok altındaki parça", deger: o?.minAltindaParca, yol: "/stok?gorunum=parca", dikkat: true },
+    { ad: "Açık geri çağırma", deger: o?.acikGeriCagirma, yol: "/musteriler?sekme=geri", dikkat: true },
   ];
 
   function ara(e: FormEvent) {
@@ -87,7 +86,7 @@ export default function AnaSayfaEkrani() {
               <div className="seri-listesi">
                 {sonuc.arama.adaylar.map((a: Aday) => (
                   <Link key={`${a.tur}-${a.deger}`} href={izAdresi(a.tur, a.deger)} className="seri-cip seri-cip--mavi">
-                    <span className="cip-tur">{a.tur === "lot" ? "stok giriş" : a.tur === "seri" ? "seri" : a.tur === "urunlot" ? "ürün lot" : "parça"}</span> {a.deger}
+                    <span className="cip-tur">{a.tur === "lot" ? "stok giriş" : a.tur === "seri" ? "seri"  : "parça"}</span> {a.deger}
                   </Link>
                 ))}
               </div>
@@ -103,14 +102,19 @@ export default function AnaSayfaEkrani() {
         </div>
       </section>
 
+      {ozetHatasi && <div className="mesaj mesaj--error">{ozetHatasi}</div>}
       <section className="ozet-kutular">
         {ozet.map((o) => (
           <Link key={o.ad} href={o.yol} className={`ozet-kutu${o.dikkat && o.deger ? " ozet-kutu--dikkat" : ""}`}>
             <span>{o.ad}</span>
             <b>{o.deger ?? "…"}</b>
+            {o.alt && <small className="yardim">{o.alt}</small>}
           </Link>
         ))}
       </section>
+
+      {o && <UretimUyarilari ozet={o} />}
+      {o && o.yaklasanTeslimler.length > 0 && <YaklasanTeslimler ozet={o} />}
 
       <section className="panel">
         <div className="panel-bas"><h3>Son hareketler</h3></div>
@@ -141,5 +145,70 @@ export default function AnaSayfaEkrani() {
         </div>
       </section>
     </main>
+  );
+}
+
+/** Parça stoğuyla en fazla 3 adet üretilebilen ürünler (sıradaki işlere ayrılan parçalar düşülmüş). */
+function UretimUyarilari({ ozet: o }: { ozet: AnaSayfaOzeti }) {
+  return (
+    <section className={`panel${o.uyarilar.length ? " panel--dikkat" : ""}`}>
+      <div className="panel-bas">
+        <h3>Üretim Uyarıları</h3>
+        {o.uyarilar.length > 0 && <span className="rozet rozet--kucuk rozet--uyari">{o.uyarilar.length} ürün</span>}
+      </div>
+      <div className="panel-ic form-dikey">
+        {o.uyarilar.length === 0 ? (
+          <p className="not">Bütün ürünler için en az 4 adetlik parça var.</p>
+        ) : (
+          o.uyarilar.map((u) => (
+            <div key={u.urunId} className="bas-satir uyari-satiri">
+              <span>
+                <strong>{u.urunAd}</strong>{" "}
+                <span className={u.uretilebilir === 0 ? "uyari-metin" : undefined}>
+                  {u.uretilebilir === 0 ? "parça stoğuyla hiç üretilemiyor" : `parça stoğuyla en fazla ${u.uretilebilir} adet üretilebilir`}
+                </span>
+                <span className="yardim">
+                  {" · "}
+                  {u.kisitlayanlar.map((k) => `${k.parca.ad}: ${k.serbest} ${k.parca.birim} serbest (1 üründe ${k.birimAdet})`).join(" · ")}
+                </span>
+              </span>
+              <Link href={`/stok?parca=${encodeURIComponent(u.kisitlayanlar[0]?.parca.kod ?? "")}`} className="btn btn--ikincil btn--kucuk">Parça Stoğu</Link>
+            </div>
+          ))
+        )}
+      </div>
+    </section>
+  );
+}
+
+/** 7 gün içinde ya da geçmişte teslimi istenip henüz tamamı gönderilmemiş siparişler. */
+function YaklasanTeslimler({ ozet: o }: { ozet: AnaSayfaOzeti }) {
+  const bugunMetni = bugun();
+  return (
+    <section className="panel">
+      <div className="panel-bas"><h3>Yaklaşan Teslimler</h3></div>
+      <div className="tablo-kap">
+        <table className="tablo">
+          <thead>
+            <tr>
+              <th>Teslim</th>
+              <th>Sipariş</th>
+              <th>Müşteri</th>
+              <th className="sag">Gönderilecek</th>
+            </tr>
+          </thead>
+          <tbody>
+            {o.yaklasanTeslimler.map((t) => (
+              <tr key={t.siparisId} className={t.istenenTarih < bugunMetni ? "uyari-satir" : undefined}>
+                <td>{tarih(t.istenenTarih)}{t.istenenTarih < bugunMetni && <span className="uyari-metin"> · gecikti</span>}</td>
+                <td className="mono"><Link href={`/musteriler?siparis=${t.siparisId}`}>{t.no}</Link></td>
+                <td>{t.musteriAd}</td>
+                <td className="sag">{t.kalan}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
   );
 }

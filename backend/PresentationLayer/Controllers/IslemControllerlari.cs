@@ -35,20 +35,45 @@ public class StokController(IStokServisi stok, IStokDuzeltmeServisi duzeltme) : 
         duzeltme.HataliAsync(istek, User.KullaniciId(), ct);
 }
 
-/// <summary>Üretim: önizleme ve kayıt.</summary>
+/// <summary>Üretim: önizleme, üretim sırası, geçmiş. Ürünler doğrudan üretilmez; sıraya eklenip sıradan üretilir.</summary>
 [ApiController]
 [Route("api/uretim")]
-public class UretimController(IUretimServisi uretim) : ControllerBase
+public class UretimController(IUretimServisi uretim, IUretimSirasiServisi sira) : ControllerBase
 {
     /// <summary>Kaydetmeden: hangi lottan kaç parça düşüleceği, eksikler, verilecek seri numaraları.</summary>
     [HttpGet("onizleme")]
     public Task<UretimOnizlemeDto> Onizle([FromQuery] int urunId, [FromQuery] int adet, CancellationToken ct) =>
         uretim.OnizleAsync(urunId, adet, ct);
 
-    /// <summary>Üretimi kaydeder. Stok yetmezse 409 ve "eksikler".</summary>
-    [HttpPost]
-    public Task<UretimSonucuDto> Uret(UretimIstek istek, CancellationToken ct) =>
-        uretim.UretAsync(istek.UrunId, istek.Adet, User.KullaniciId(), ct: ct);
+    /// <summary>Bekleyen işler sırayla; bitenler=true: tamamlanan / iptal edilenler.</summary>
+    [HttpGet("sira")]
+    public Task<List<UretimEmriDto>> Sira([FromQuery] bool bitenler, CancellationToken ct) => sira.ListeAsync(bitenler, ct);
+
+    /// <summary>Sıraya ekler ve parçaları ayırır. Parça yetmezse 409 ve "eksikler".</summary>
+    [HttpPost("sira")]
+    public async Task<ActionResult<UretimEmriDto>> SirayaEkle(UretimEmriIstek istek, CancellationToken ct)
+    {
+        var e = await sira.EkleAsync(istek, User.KullaniciId(), ct);
+        return Created($"/api/uretim/sira/{e.Id}", e);
+    }
+
+    [HttpGet("sira/{id:int}")]
+    public Task<UretimEmriDto> SiraGetir(int id, CancellationToken ct) => sira.GetirAsync(id, ct);
+
+    /// <summary>Sıradaki işten üretir (adet verilmezse kalanın hepsi); ürünler stoğa girer.</summary>
+    [HttpPost("sira/{id:int}/uret")]
+    public Task<UretimSonucuDto> SiradanUret(int id, EmirUretIstek istek, CancellationToken ct) =>
+        sira.UretAsync(id, istek, User.KullaniciId(), ct);
+
+    [HttpPost("sira/{id:int}/iptal")]
+    public Task<UretimEmriDto> SiraIptal(int id, CancellationToken ct) => sira.IptalAsync(id, User.KullaniciId(), ct);
+
+    [HttpPost("sira/{id:int}/tasi")]
+    public Task<List<UretimEmriDto>> SiraTasi(int id, EmirTasiIstek istek, CancellationToken ct) => sira.TasiAsync(id, istek.Yon, ct);
+
+    [HttpPut("sira/{id:int}/plan")]
+    public Task<UretimEmriDto> SiraPlan(int id, EmirPlanIstek istek, CancellationToken ct) =>
+        sira.PlanlaAsync(id, istek.PlanlananTarih, ct);
 
     /// <summary>Üretilen seri numaraları (yeniden eskiye): satış durumu, geri çağrılan lotlar.</summary>
     [HttpGet("gecmis")]
@@ -60,6 +85,81 @@ public class UretimController(IUretimServisi uretim) : ControllerBase
     [Authorize(Policy = Politikalar.Admin)]
     public Task<UretimHurdaSonucuDto> Hurda(UretimHurdaIstek istek, CancellationToken ct) =>
         uretim.HurdayaAyirAsync(istek, User.KullaniciId(), ct);
+}
+
+/// <summary>Müşteri siparişleri.</summary>
+[ApiController]
+[Route("api/siparis")]
+public class SiparisController(ISiparisServisi siparis) : ControllerBase
+{
+    [HttpGet]
+    public Task<List<SiparisDto>> Liste([FromQuery] int? musteriId, [FromQuery] bool acik, CancellationToken ct) =>
+        siparis.ListeAsync(musteriId, acik, ct);
+
+    [HttpGet("{id:int}")]
+    public Task<SiparisDto> Getir(int id, CancellationToken ct) => siparis.GetirAsync(id, ct);
+
+    [HttpPost]
+    public async Task<ActionResult<SiparisDto>> Olustur(SiparisIstek istek, CancellationToken ct)
+    {
+        var s = await siparis.OlusturAsync(istek, User.KullaniciId(), ct);
+        return Created($"/api/siparis/{s.Id}", s);
+    }
+
+    [HttpPost("{id:int}/iptal")]
+    public Task<SiparisDto> Iptal(int id, CancellationToken ct) => siparis.IptalAsync(id, User.KullaniciId(), ct);
+
+    /// <summary>Depodaki serbest ürünleri sipariş kalemine ayırır.</summary>
+    [HttpPost("kalem/{kalemId:int}/ayir")]
+    public Task<SiparisDto> Ayir(int kalemId, SeriAyirIstek istek, CancellationToken ct) => siparis.SeriAyirAsync(kalemId, istek, ct);
+
+    [HttpDelete("kalem/{kalemId:int}/seri/{seriNo}")]
+    public Task<SiparisDto> Birak(int kalemId, string seriNo, CancellationToken ct) => siparis.SeriBirakAsync(kalemId, seriNo, ct);
+
+    /// <summary>Ürünün depoda serbest seri numaraları (siparişe ayrılabilir).</summary>
+    [HttpGet("hazir")]
+    public Task<List<HazirSeriDto>> Hazir([FromQuery] int urunId, CancellationToken ct) => siparis.HazirSerilerAsync(urunId, ct);
+}
+
+/// <summary>Sevkiyat: siparişe ayrılan ürünlerin gönderilmesi ve kargo durumu.</summary>
+[ApiController]
+[Route("api/sevkiyat")]
+public class SevkiyatController(ISevkiyatServisi sevkiyat) : ControllerBase
+{
+    [HttpGet]
+    public Task<List<SevkiyatDto>> Liste([FromQuery] string? arama, [FromQuery] string? durum, [FromQuery] int? musteriId,
+                                         CancellationToken ct) =>
+        sevkiyat.ListeAsync(arama, durum, musteriId, ct);
+
+    [HttpGet("{id:int}")]
+    public Task<SevkiyatDto> Getir(int id, CancellationToken ct) => sevkiyat.GetirAsync(id, ct);
+
+    /// <summary>Hatalı lotlu ürün varsa onay olmadan 409 ve "uyarilar".</summary>
+    [HttpPost]
+    public async Task<ActionResult<SevkiyatDto>> Olustur(SevkiyatIstek istek, CancellationToken ct)
+    {
+        var s = await sevkiyat.OlusturAsync(istek, User.KullaniciId(), ct);
+        return Created($"/api/sevkiyat/{s.Id}", s);
+    }
+
+    [HttpPut("{id:int}/kargo")]
+    public Task<SevkiyatDto> Kargo(int id, KargoIstek istek, CancellationToken ct) => sevkiyat.KargoAsync(id, istek, ct);
+
+    [HttpPost("{id:int}/teslim")]
+    public Task<SevkiyatDto> Teslim(int id, CancellationToken ct) => sevkiyat.TeslimAsync(id, ct);
+}
+
+/// <summary>Ana sayfa özeti ve üretim / sipariş takvimi.</summary>
+[ApiController]
+[Route("api/ozet")]
+public class OzetController(IOzetServisi ozet) : ControllerBase
+{
+    [HttpGet]
+    public Task<AnaSayfaOzetiDto> AnaSayfa(CancellationToken ct) => ozet.AnaSayfaAsync(ct);
+
+    [HttpGet("takvim")]
+    public Task<List<TakvimGunuDto>> Takvim([FromQuery] DateOnly baslangic, [FromQuery] DateOnly bitis, CancellationToken ct) =>
+        ozet.TakvimAsync(baslangic, bitis, ct);
 }
 
 /// <summary>Satış.</summary>
@@ -85,7 +185,8 @@ public class SatisController(ISatisServisi satis) : ControllerBase
     }
 
     [HttpGet("gecmis")]
-    public Task<List<SatisGecmisiDto>> Gecmis([FromQuery] string? arama, CancellationToken ct) => satis.SatisGecmisiAsync(arama, ct: ct);
+    public Task<List<SatisGecmisiDto>> Gecmis([FromQuery] string? arama, [FromQuery] int? musteriId, CancellationToken ct) =>
+        satis.SatisGecmisiAsync(arama, ct: ct, musteriId: musteriId);
 
     /// <summary>Satıştan iade (yalnız Admin, açıklama zorunlu). Ürün depoya döner.</summary>
     [HttpPost("{id:int}/iade")]
@@ -175,18 +276,4 @@ public class GeriCagirmaController(IGeriCagirmaServisi geri) : ControllerBase
     [Authorize(Policy = Politikalar.Admin)]
     public Task<GeriCagirmaDto> Hurda(int id, GeriCagirmaHurdaIstek istek, CancellationToken ct) =>
         geri.HurdayaAyirAsync(id, istek, User.KullaniciId(), ct);
-}
-
-/// <summary>Ürün lotları (aynı anda üretilenler). Liste herkese, hata işareti yalnız Admin.</summary>
-[ApiController]
-[Route("api/urun-lot")]
-public class UrunLotController(IUrunLotServisi lotlar) : ControllerBase
-{
-    [HttpGet]
-    public Task<List<UrunLotDto>> Liste([FromQuery] int? urunId, CancellationToken ct) => lotlar.ListeAsync(urunId, ct);
-
-    [HttpPost("{lotNo}/sorun")]
-    [Authorize(Policy = Politikalar.Admin)]
-    public Task<UrunLotSorunSonucuDto> Sorun(string lotNo, UrunLotSorunIstek istek, CancellationToken ct) =>
-        lotlar.SorunAsync(lotNo, istek, User.KullaniciId(), ct);
 }

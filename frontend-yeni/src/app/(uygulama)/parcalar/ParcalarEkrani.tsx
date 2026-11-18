@@ -166,7 +166,7 @@ export default function ParcalarEkrani() {
 }
 
 function ParcaSatiri({ p, yeni, duzenle }: { p: ParcaStok; yeni: boolean; duzenle: () => void }) {
-  const ipucu = `Kullanılabilir ${p.kullanilabilirStok} · toplam ${p.toplamStok} · minimum ${p.minStok}`;
+  const ipucu = `Kullanılabilir ${p.kullanilabilirStok}${p.ayrilan ? ` (${p.ayrilan} sıraya ayrıldı)` : ""} · toplam ${p.toplamStok} · minimum ${p.minStok}`;
   const stokAdresi = `/stok?parca=${encodeURIComponent(p.kod)}`;
   return (
     <tr className={p.minAltinda ? "uyari-satir" : undefined}>

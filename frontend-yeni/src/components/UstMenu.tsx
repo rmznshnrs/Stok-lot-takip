@@ -15,7 +15,8 @@ const GRUPLAR: { ad: string | null; baglantilar: Baglanti[]; admin?: boolean }[]
     baglantilar: [
       { yol: "/uretim", ad: "Üretim" },
       { yol: "/stok", ad: "Stok" },
-      { yol: "/satis", ad: "Satış" },
+      { yol: "/sevkiyat", ad: "Sevkiyat" },
+      { yol: "/takvim", ad: "Takvim" },
     ],
   },
   {
@@ -23,6 +24,8 @@ const GRUPLAR: { ad: string | null; baglantilar: Baglanti[]; admin?: boolean }[]
     baglantilar: [
       { yol: "/urunler", ad: "Ürünler" },
       { yol: "/parcalar", ad: "Parçalar" },
+      { yol: "/musteriler", ad: "Müşteriler" },
+      { yol: "/tedarikciler", ad: "Tedarikçiler" },
     ],
   },
   { ad: "Sistem", baglantilar: [{ yol: "/yonetim", ad: "Yönetim" }], admin: true },

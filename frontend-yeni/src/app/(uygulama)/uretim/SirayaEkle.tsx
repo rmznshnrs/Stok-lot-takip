@@ -3,10 +3,9 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { ApiHatasi, uretim, urunler, type UretimSonucu } from "@/lib/api";
-import { ETIKET_TURLERI, etiketTuruKaydet, kayitliEtiketTuru, type EtiketTuru } from "@/lib/etiket";
+import { ApiHatasi, sira, uretim, urunler } from "@/lib/api";
+import { bugun } from "@/lib/bicim";
 import { useGecikmeli, useVeri } from "@/lib/kancalar";
-import { seriAdresi, urunLotAdresi } from "@/lib/adres";
 
 const EN_COK = 999;
 
@@ -14,7 +13,8 @@ function sinirla(n: number) {
   return Math.min(EN_COK, Math.max(1, Math.floor(n) || 1));
 }
 
-export default function UretimEkrani() {
+/** Üretim sırasına iş ekleme: ürün, adet, parça kontrolü (ayrılmış parçalar düşülmüş), planlanan gün. */
+export default function SirayaEkle() {
   const router = useRouter();
   const params = useSearchParams();
   const urunId = Number(params.get("urun")) || null;
@@ -30,15 +30,14 @@ export default function UretimEkrani() {
     [urunId, adet],
   );
 
-  const [sonuc, setSonuc] = useState<UretimSonucu | null>(null);
-  // Etiket isteğe bağlı; son seçilen barkod türü hatırlanır
-  const [etiketTuru, setEtiketTuru] = useState<EtiketTuru>(kayitliEtiketTuru);
+  const [planlanan, setPlanlanan] = useState(bugun);
+  const [aciklama, setAciklama] = useState("");
   const [kayitHatasi, setKayitHatasi] = useState("");
   const [bekliyor, setBekliyor] = useState(false);
 
   // Seçili ürün yoksa ilkini seç
   useEffect(() => {
-    if (!urunId && !aranan && liste?.length) router.replace(`/uretim?urun=${liste[0].id}`);
+    if (!urunId && !aranan && liste?.length) router.replace(`/uretim?yeni=1&urun=${liste[0].id}`);
   }, [urunId, aranan, liste, router]);
 
   function adetDegistir(fark: number) {
@@ -50,11 +49,10 @@ export default function UretimEkrani() {
     setBekliyor(true);
     setKayitHatasi("");
     try {
-      setSonuc(await uretim.uret(onizleme.urunId, onizleme.adet));
-      setAdetMetni("1");
+      const e = await sira.ekle({ urunId: onizleme.urunId, adet: onizleme.adet, planlananTarih: planlanan, aciklama: aciklama.trim() });
+      router.push(`/uretim?eklendi=${e.id}`);
     } catch (err) {
-      setKayitHatasi(err instanceof ApiHatasi ? eksikMetni(err) : "Üretim kaydedilemedi.");
-    } finally {
+      setKayitHatasi(err instanceof ApiHatasi ? eksikMetni(err) : "Sıraya eklenemedi.");
       setBekliyor(false);
       yenile();
     }
@@ -78,11 +76,10 @@ export default function UretimEkrani() {
         {liste?.map((u) => (
           <Link
             key={u.id}
-            href={`/uretim?urun=${u.id}`}
+            href={`/uretim?yeni=1&urun=${u.id}`}
             replace
             className={`liste-oge${u.id === urunId ? " liste-oge--secili" : ""}`}
             aria-current={u.id === urunId ? "page" : undefined}
-            onClick={() => setSonuc(null)}
           >
             <span className="liste-oge-ad">{u.ad}</span>
             <span className="liste-oge-alt">{u.parcaCesidi} parça çeşidi</span>
@@ -95,46 +92,6 @@ export default function UretimEkrani() {
       </section>
 
       <section className="kart kart--genis kart--bosluklu">
-        {sonuc && (
-          <div className="sonuc-kutu" role="status">
-            <div className="sonuc-baslik">
-              Üretim kaydedildi: {sonuc.seriNolar.length} adet {sonuc.urunAd} · Lot no{" "}
-              <Link href={urunLotAdresi(sonuc.lotNo)} className="mono">{sonuc.lotNo}</Link>
-            </div>
-            <div className="seri-listesi">
-              {sonuc.seriNolar.map((s) => (
-                <Link key={s} href={seriAdresi(s)} className="seri-cip">{s}</Link>
-              ))}
-            </div>
-            <div className="etiket-tercih">
-              <span className="etiket-metni">Etiket</span>
-              <div className="sekmeler" role="radiogroup" aria-label="Etikette barkod">
-                {ETIKET_TURLERI.map((t) => (
-                  <button
-                    key={t.deger}
-                    type="button"
-                    role="radio"
-                    aria-checked={etiketTuru === t.deger}
-                    className={`sekme${etiketTuru === t.deger ? " sekme--aktif" : ""}`}
-                    onClick={() => {
-                      setEtiketTuru(t.deger);
-                      etiketTuruKaydet(t.deger);
-                    }}
-                  >
-                    {t.ad}
-                  </button>
-                ))}
-              </div>
-              <Link
-                href={`/etiket?seri=${sonuc.seriNolar.map(encodeURIComponent).join(",")}&tur=${etiketTuru}`}
-                className="btn btn--kucuk"
-              >
-                Etiket yazdır
-              </Link>
-            </div>
-          </div>
-        )}
-
         {liste?.length === 0 && !aranan ? (
           <p className="not not--buyuk">
             Ürün yok. <Link href="/urunler?yeni=1">Ürün ekle</Link>
@@ -162,6 +119,17 @@ export default function UretimEkrani() {
               </div>
             </div>
 
+            <div className="izgara-2">
+              <div className="alan">
+                <label htmlFor="sira-tarih">Planlanan Gün</label>
+                <input id="sira-tarih" type="date" className="girdi" value={planlanan} onChange={(e) => setPlanlanan(e.target.value)} />
+              </div>
+              <div className="alan">
+                <label htmlFor="sira-aciklama">Açıklama <span className="soluk">(İsteğe bağlı)</span></label>
+                <input id="sira-aciklama" className="girdi" maxLength={500} value={aciklama} onChange={(e) => setAciklama(e.target.value)} />
+              </div>
+            </div>
+
             <div className="adim-baslik">
               3 · Parça kontrolü
             </div>
@@ -180,7 +148,7 @@ export default function UretimEkrani() {
                       <tr>
                         <th>Parça</th>
                         <th className="sag">Gereken</th>
-                        <th className="sag">Kullanılabilir</th>
+                        <th className="sag">Serbest</th>
                         <th>Kullanılacak stok girişleri</th>
                         <th>Durum</th>
                       </tr>
@@ -235,8 +203,8 @@ export default function UretimEkrani() {
                   <span />
                   <div className="kaydet-grup">
                     {!guncel.yeterli && <span className="uyari-not">Eksik parça var</span>}
-                    <button type="button" className="btn" disabled={!guncel.yeterli || bekliyor} onClick={kaydet}>
-                      {bekliyor ? "Kaydediliyor…" : "Üretimi kaydet"}
+                    <button type="button" className="btn" disabled={!guncel.yeterli || bekliyor || !planlanan} onClick={kaydet}>
+                      {bekliyor ? "Ekleniyor…" : "Sıraya ekle"}
                     </button>
                   </div>
                 </div>

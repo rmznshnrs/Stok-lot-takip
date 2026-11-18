@@ -6,12 +6,12 @@ import { ApiHatasi, islemler, kullanicilar, type Islem, type IslemTuru } from "@
 import { tarihSaat } from "@/lib/bicim";
 import { useSayfalama } from "@/components/Sayfalama";
 import { useVeri } from "@/lib/kancalar";
-import { lotAdresi, seriAdresi, urunLotAdresi } from "@/lib/adres";
+import { lotAdresi, seriAdresi } from "@/lib/adres";
 
 const TURLER: { deger: IslemTuru; ad: string }[] = [
   { deger: "giris", ad: "Mal girişi" },
   { deger: "uretim", ad: "Üretim" },
-  { deger: "satis", ad: "Satış" },
+  { deger: "satis", ad: "Sevkiyat" },
   { deger: "iade", ad: "İade" },
   { deger: "duzeltme", ad: "Stok düzeltme" },
   { deger: "hurda", ad: "Hurda / kayıp" },
@@ -109,7 +109,7 @@ export default function IslemGecmisi() {
                 <td>{i.aciklama}</td>
                 <td className="mono">
                   {i.numara && (
-                    <Link href={i.numaraTuru === "lot" ? lotAdresi(i.numara) : i.numaraTuru === "urunlot" ? urunLotAdresi(i.numara) : seriAdresi(i.numara)}>
+                    <Link href={i.numaraTuru === "lot" ? lotAdresi(i.numara) : seriAdresi(i.numara)}>
                       {i.numara}
                     </Link>
                   )}

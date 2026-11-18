@@ -102,11 +102,12 @@ public class ApiTestleri(TestVeritabani vt) : IAsyncLifetime
         { "GET", "/api/tedarikciler" }, { "GET", "/api/musteriler" }, { "POST", "/api/musteriler" }, { "PUT", "/api/musteriler/1" },
         { "POST", "/api/tedarikciler" }, { "PUT", "/api/tedarikciler/1" }, { "POST", "/api/satis/1/iade" }, { "GET", "/api/islemler" },
         { "GET", "/api/stok" }, { "POST", "/api/stok/giris" }, { "POST", "/api/stok/duzeltme" },
-        { "GET", "/api/uretim/onizleme?urunId=1&adet=1" }, { "POST", "/api/uretim" }, { "GET", "/api/uretim/gecmis" }, { "POST", "/api/uretim/hurda" },
+        { "GET", "/api/uretim/onizleme?urunId=1&adet=1" }, { "GET", "/api/uretim/sira" }, { "POST", "/api/uretim/sira" }, { "POST", "/api/uretim/sira/1/uret" }, { "GET", "/api/uretim/gecmis" }, { "POST", "/api/uretim/hurda" },
         { "GET", "/api/satis/kontrol?seriNo=SN-IP-0003" }, { "POST", "/api/satis/uyarilar" }, { "POST", "/api/satis" }, { "GET", "/api/satis/gecmis" },
         { "GET", "/api/izleme/lot/L-D-2601" }, { "GET", "/api/izleme/seri/SN-IP-0001" }, { "GET", "/api/izleme/ara?q=L" },
         { "GET", "/api/izleme/hareketler" }, { "POST", "/api/izleme/lot/L-D-2601/sorun" },
         { "GET", "/api/geri-cagirma" }, { "POST", "/api/geri-cagirma" }, { "POST", "/api/geri-cagirma/1/geri-al" }, { "POST", "/api/geri-cagirma/1/satisa-ac" },
+        { "GET", "/api/siparis" }, { "POST", "/api/siparis" }, { "GET", "/api/sevkiyat" }, { "GET", "/api/ozet" }, { "GET", "/api/ozet/takvim?baslangic=2026-11-01&bitis=2026-11-30" }, { "POST", "/api/sevkiyat" }, { "POST", "/api/sevkiyat/1/teslim" }, { "GET", "/api/siparis/hazir?urunId=1" },
     };
 
     [Theory]
@@ -267,7 +268,7 @@ public class ApiTestleri(TestVeritabani vt) : IAsyncLifetime
         Assert.Equal(HttpStatusCode.Created, y.StatusCode);
 
         var urunId = (await depo.GetFromJsonAsync<List<UrunListeDto>>("/api/urunler"))!.Single(u => u.Kod == "IP").Id;
-        y = await depo.PostAsJsonAsync("/api/uretim", new UretimIstek(urunId, 1));
+        y = await SiradanUret(depo, urunId, 1);
         Assert.Equal(HttpStatusCode.OK, y.StatusCode);
         var seri = (await y.Content.ReadFromJsonAsync<UretimSonucuDto>())!.SeriNolar.Single();
         Assert.Equal("SN-IP-0007", seri);
@@ -281,6 +282,15 @@ public class ApiTestleri(TestVeritabani vt) : IAsyncLifetime
         Assert.Equal(_depoId, await db.Satislar.Where(s => s.Kalemler.Any(k => k.Uretim!.SeriNo == seri)).Select(s => s.OlusturanKullaniciId).SingleAsync());
     }
 
+    /// <summary>Sıraya ekler ve hepsini üretir; üretim yanıtını döner.</summary>
+    private static async Task<HttpResponseMessage> SiradanUret(HttpClient c, int urunId, int adet)
+    {
+        var y = await c.PostAsJsonAsync("/api/uretim/sira", new UretimEmriIstek(urunId, adet));
+        Assert.Equal(HttpStatusCode.Created, y.StatusCode);
+        var emir = (await y.Content.ReadFromJsonAsync<UretimEmriDto>())!;
+        return await c.PostAsJsonAsync($"/api/uretim/sira/{emir.Id}/uret", new EmirUretIstek());
+    }
+
     // --- Hata yanıtları ---------------------------------------------------------------
 
     [Fact]
@@ -292,7 +302,7 @@ public class ApiTestleri(TestVeritabani vt) : IAsyncLifetime
         Assert.False(o.Yeterli);
         Assert.Equal(["SN-IP-0007", "SN-IP-0056"], new[] { o.SeriNolar[0], o.SeriNolar[^1] });
 
-        var y = await c.PostAsJsonAsync("/api/uretim", new UretimIstek(urunId, 50));
+        var y = await c.PostAsJsonAsync("/api/uretim/sira", new UretimEmriIstek(urunId, 50));
         Assert.Equal(HttpStatusCode.Conflict, y.StatusCode);
         var p = await Problem(y);
         Assert.Equal("Yetersiz stok", p.GetProperty("title").GetString());
@@ -350,7 +360,7 @@ public class ApiTestleri(TestVeritabani vt) : IAsyncLifetime
         Assert.Equal(2, (await y.Content.ReadFromJsonAsync<UrunDetayDto>())!.Agac.Count);
 
         await c.PostAsJsonAsync("/api/stok/giris", new MalGirisiIstek(kasa.Id, "Yeni Kasa A.Ş.", "L-KASA-1", 5, new(2026, 9, 1)));
-        y = await c.PostAsJsonAsync("/api/uretim", new UretimIstek(urun.Id, 2));
+        y = await SiradanUret(c, urun.Id, 2);
         Assert.Equal(["SN-KT-0001", "SN-KT-0002"], (await y.Content.ReadFromJsonAsync<UretimSonucuDto>())!.SeriNolar);
         await c.PostAsJsonAsync("/api/satis", new SatisIstek("Gama Ltd", ["sn-kt-0001"]));
 

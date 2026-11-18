@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState, type FormEvent } from "react";
+import { useState, type FormEvent, type ReactNode } from "react";
 import Mesaj, { type MesajBilgisi } from "@/components/Mesaj";
 import { ApiHatasi, firmalar, type Iletisim } from "@/lib/api";
 import { icerir } from "@/lib/bicim";
@@ -12,9 +12,9 @@ type Tur = "musteri" | "tedarikci";
 
 /**
  * Müşteri veya tedarikçi listesi ve düzenleme formu. kok: bu listenin sayfa adresi
- * (ör. "/parcalar?sekme=tedarikciler"); seçim &id= ve &yeni=1 ile eklenir.
+ * (ör. "/musteriler"); seçim id= ve yeni=1 parametreleriyle eklenir. ek: seçili kaydın altında gösterilecek bölüm.
  */
-export default function FirmaListesi({ tur, kok }: { tur: Tur; kok: string }) {
+export default function FirmaListesi({ tur, kok, ek }: { tur: Tur; kok: string; ek?: (f: Iletisim) => ReactNode }) {
   const router = useRouter();
   const params = useSearchParams();
   const yeni = params.get("yeni") === "1";
@@ -25,7 +25,8 @@ export default function FirmaListesi({ tur, kok }: { tur: Tur; kok: string }) {
   const [arama, setArama] = useState("");
   const gorunen = liste?.filter((f) => icerir(`${f.ad} ${f.iletisim}`, arama.trim())) ?? [];
   const secili = liste?.find((f) => f.id === seciliId) ?? null;
-  const adres = (ek = "") => `${kok}${ek}`;
+  // kok soru işareti içermiyorsa ilk ek parametre ? ile başlar
+  const adres = (ek = "") => `${kok}${kok.includes("?") ? ek : ek.replace(/^&/, "?")}`;
 
   return (
     <main className="icerik">
@@ -63,15 +64,18 @@ export default function FirmaListesi({ tur, kok }: { tur: Tur; kok: string }) {
 
       <section className="kart kart--genis kart--bosluklu">
         {yeni || secili ? (
-          <FirmaFormu
-            key={`${tur}-${yeni ? "yeni" : secili?.id}`}
-            tur={tur}
-            firma={yeni ? null : secili}
-            kaydedildi={(f) => {
-              yenile();
-              router.replace(adres(`&id=${f.id}`));
-            }}
-          />
+          <>
+            <FirmaFormu
+              key={`${tur}-${yeni ? "yeni" : secili?.id}`}
+              tur={tur}
+              firma={yeni ? null : secili}
+              kaydedildi={(f) => {
+                yenile();
+                router.replace(adres(`&id=${f.id}`));
+              }}
+            />
+            {!yeni && secili && ek?.(secili)}
+          </>
         ) : (
           <p className="not not--buyuk">
             Soldan seçin.

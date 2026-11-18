@@ -11,4 +11,5 @@ public class Musteri
     public string Iletisim { get; private set; } = "";
 
     public List<Satis> Satislar { get; set; } = [];
+    public List<Siparis> Siparisler { get; set; } = [];
 }

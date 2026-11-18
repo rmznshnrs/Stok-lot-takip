@@ -54,66 +54,6 @@ public class MusteriyeGeriVermeTestleri(TestVeritabani vt) : IsKuraliTesti(vt)
     }
 }
 
-public class UrunLotSorunuTestleri(TestVeritabani vt) : IsKuraliTesti(vt)
-{
-    private UrunLotServisi Lotlar => new(Db, new GeriCagirmaServisi(Db));
-
-    [Fact]
-    public async Task Hatali_isaretlenince_urunler_kendiliginden_geri_cagrilmaz_satista_uyari_verir()
-    {
-        await Uretim.UretAsync(Urun.Id, 3, Kullanici.Id);  // SN-IP-L001
-        await Satis.SatAsync(new SatisIstek("Atlas", ["SN-IP-0001"]), Kullanici.Id);
-
-        await Assert.ThrowsAsync<YetkiHatasi>(() => Lotlar.SorunAsync("SN-IP-L001", new(true, "x"), Kullanici.Id));
-        await Assert.ThrowsAsync<IsKuraliHatasi>(() => Lotlar.SorunAsync("SN-IP-L001", new(true, " "), Admin.Id));
-        await Assert.ThrowsAsync<BulunamadiHatasi>(() => Lotlar.SorunAsync("YOK-L1", new(true, "x"), Admin.Id));
-        await Assert.ThrowsAsync<IsKuraliHatasi>(() => Lotlar.SorunAsync("SN-IP-L001", new(true, "x", 4), Admin.Id));
-
-        var s = await Lotlar.SorunAsync("sn-ip-l001", new(true, "Kasa çatlak", 2), Admin.Id);
-        Assert.Empty(s.GeriCagrilanSeriNolar);
-        Assert.Equal(0, await Db.UrunGeriCagirmalari.CountAsync());
-        Assert.Equal(("SN-IP-L001", true, "Kasa çatlak", 2), (s.Lot.LotNo, s.Lot.Sorunlu, s.Lot.SorunAciklama, s.Lot.HataliAdet));
-        Assert.Equal((3, 2, 1, 0), (s.Lot.Toplam, s.Lot.Depoda, s.Lot.Satilan, s.Lot.HurdaKayip));
-
-        var uyari = Assert.Single(await Satis.SatisUyarilariAsync(["SN-IP-0002"]));
-        Assert.Contains("SN-IP-L001", uyari.Lotlar);
-        var islem = (await new IslemGecmisiServisi(Db).IslemlerAsync(Admin.Id)).Single(i => i.NumaraTuru == "urunlot");
-        Assert.Equal(("sorun", "SN-IP-L001"), (islem.Tur, islem.Numara));
-        Assert.Contains("2 hatalı", islem.Aciklama);
-    }
-
-    [Fact]
-    public async Task Secilen_urunler_geri_cagrilir_ve_hata_kaldirilir()
-    {
-        await Uretim.UretAsync(Urun.Id, 2, Kullanici.Id);  // SN-IP-L001
-        await Uretim.UretAsync(Urun.Id, 1, Kullanici.Id);  // SN-IP-L002
-
-        var hata = await Assert.ThrowsAsync<IsKuraliHatasi>(() =>
-            Lotlar.SorunAsync("SN-IP-L001", new(true, "x", 0, ["SN-IP-0003"]), Admin.Id));
-        Assert.Contains("SN-IP-0003", hata.Message);
-        Assert.Equal(0, await Db.UrunLotSorunlari.CountAsync());  // yanlış seçimde işaret de kaydedilmez
-
-        var s = await Lotlar.SorunAsync("SN-IP-L001", new(true, "Kasa çatlak", 1, ["SN-IP-0002"]), Admin.Id);
-        Assert.Equal(["SN-IP-0002"], s.GeriCagrilanSeriNolar);
-        Assert.Equal(1, s.Lot.AcikGeriCagirma);
-        var g = Assert.Single(await new GeriCagirmaServisi(Db).ListeAsync());
-        Assert.Equal(("SN-IP-0002", null, "SN-IP-L001 hatalı: Kasa çatlak"), (g.SeriNo, g.LotNo, g.Aciklama));
-
-        // Düzenleme: açıklama ve adet değişir, kayıt tekdir; kaldırınca işaret gider, geri çağırma kalır
-        s = await Lotlar.SorunAsync("SN-IP-L001", new(true, "Kasa ve kapak", 2), Admin.Id);
-        Assert.Equal(("Kasa ve kapak", 2), (s.Lot.SorunAciklama, s.Lot.HataliAdet));
-        Assert.Equal(1, await Db.UrunLotSorunlari.CountAsync());
-        s = await Lotlar.SorunAsync("SN-IP-L001", new(false, null), Admin.Id);
-        Assert.False(s.Lot.Sorunlu);
-        Assert.Equal(0, await Db.UrunLotSorunlari.CountAsync());
-        Assert.Equal(1, await Db.UrunGeriCagirmalari.CountAsync());
-
-        var liste = await Lotlar.ListeAsync(Urun.Id);
-        Assert.Equal(["SN-IP-L002", "SN-IP-L001"], liste.Select(l => l.LotNo));
-        Assert.Empty(await Lotlar.ListeAsync(-1));
-    }
-}
-
 public class ParcaHataliAdetTestleri(TestVeritabani vt) : IsKuraliTesti(vt)
 {
     [Fact]

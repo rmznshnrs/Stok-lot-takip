@@ -183,5 +183,7 @@ public class SatisTestleri(TestVeritabani vt) : IsKuraliTesti(vt)
                      g.Select(x => (x.MusteriAd, x.SeriNolar.ToArray())));
         Assert.Equal(["Atlas"], (await Satis.SatisGecmisiAsync("0001")).Select(x => x.MusteriAd));
         Assert.Equal(["Beta"], (await Satis.SatisGecmisiAsync("bet")).Select(x => x.MusteriAd));
+        var atlas = await Db.Musteriler.SingleAsync(m => m.Ad == "Atlas");
+        Assert.Equal(["Atlas"], (await Satis.SatisGecmisiAsync(musteriId: atlas.Id)).Select(x => x.MusteriAd));
     }
 }

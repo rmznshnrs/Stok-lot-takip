@@ -16,7 +16,7 @@ public class UretimServisi(AppDbContext db, IStokLotuRepository lotlar, IUretimR
             q = q.Where(u => u.UrunId == id);
         arama = arama?.Trim();
         if (!string.IsNullOrEmpty(arama))
-            q = q.Where(u => EF.Functions.Like(u.SeriNo, Arama.Desen(arama)) || EF.Functions.Like(u.LotNo, Arama.Desen(arama))
+            q = q.Where(u => EF.Functions.Like(u.SeriNo, Arama.Desen(arama))
                              || EF.Functions.Like(u.Urun!.Ad, Arama.Desen(arama))
                              || (u.SatisKalemi != null && EF.Functions.Like(u.SatisKalemi.Satis!.Musteri!.Ad, Arama.Desen(arama))));
         return await q.OrderByDescending(u => u.Tarih).ThenByDescending(u => u.Id).Take(adet)
@@ -27,7 +27,7 @@ public class UretimServisi(AppDbContext db, IStokLotuRepository lotlar, IUretimR
                 u.Tuketimler.Where(t => t.StokLotu!.Sorunlu).Select(t => t.StokLotu!.LotNo).Distinct().OrderBy(l => l).ToList(),
                 u.Hurda == null ? null : new HurdaBilgisiDto(u.Hurda.Tur.ToString(), u.Hurda.Aciklama, u.Hurda.OlusturmaZamani,
                     u.Hurda.OlusturanKullanici!.Ad + " " + u.Hurda.OlusturanKullanici.Soyad),
-                u.Hurda == null && u.GeriCagirmalar.Any(g => g.KapanmaZamani == null) ? "acik" : null, u.LotNo))
+                u.Hurda == null && u.GeriCagirmalar.Any(g => g.KapanmaZamani == null) ? "acik" : null))
             .ToListAsync(ct);
     }
 
@@ -61,10 +61,13 @@ public class UretimServisi(AppDbContext db, IStokLotuRepository lotlar, IUretimR
 
             var zaman = Zaman.Simdi();
             foreach (var u in kayitlar)
+            {
+                u.SiparisKalemiId = null;  // siparişe ayrılmışsa ayrım kalkar
                 db.UretimHurdalari.Add(new UretimHurda
                 {
                     Uretim = u, Tur = tur, Aciklama = aciklama, OlusturanKullanici = admin, OlusturmaZamani = zaman,
                 });
+            }
             await db.SaveChangesAsync(ct);
             return new UretimHurdaSonucuDto([.. kayitlar.Select(u => u.SeriNo).Order()], tur.ToString(), aciklama);
         }, ct);
@@ -77,10 +80,10 @@ public class UretimServisi(AppDbContext db, IStokLotuRepository lotlar, IUretimR
         var kullanilabilir = await db.StokLotlari.AsNoTracking()
             .Where(l => parcaIdleri.Contains(l.ParcaId) && !l.GeriCagrildi && l.KalanAdet > 0)
             .OrderBy(l => l.SiparisTarihi).ThenBy(l => l.Id).ToListAsync(ct);
-        var plan = await PlanlaAsync(urun, adet, kullanilabilir, ct);
+        var ayrilan = await Ayrilan.ParcalarAsync(db, parcaIdleri, null, ct);
+        var plan = await PlanlaAsync(urun, adet, kullanilabilir, ayrilan, ct);
         return new UretimOnizlemeDto(urun.Id, urun.Kod, urun.Ad, adet,
-            [.. plan.Parcalar.Select(p => p.Ihtiyac)], await SonrakiSeriNolarAsync(urun, adet, ct),
-            await SonrakiLotNoAsync(urun, ct));
+            [.. plan.Parcalar.Select(p => p.Ihtiyac)], await SonrakiSeriNolarAsync(urun, adet, ct));
     }
 
     public Task<UretimSonucuDto> UretAsync(int urunId, int adet, int kullaniciId, DateTimeOffset? tarih = null,
@@ -89,49 +92,61 @@ public class UretimServisi(AppDbContext db, IStokLotuRepository lotlar, IUretimR
         {
             var kullanici = await Kullanicilar.GetirAsync(db, kullaniciId, ct);
             var urun = await UrunGetirAsync(urunId, adet, ct);
-            // Lotlar kilitlenerek okunur: aynı anda başka bir üretim bu transaction bitene kadar bekler
-            var kilitli = await lotlar.KullanilabilirLotlariKilitleAsync([.. urun.Agac.Select(a => a.ParcaId)], ct);
-            var plan = await PlanlaAsync(urun, adet, kilitli, ct, atlananlariHesapla: false);
-
-            var eksikler = plan.Parcalar.Where(p => p.Ihtiyac.Eksik > 0)
-                .Select(p => new EksikParcaDto(p.Ihtiyac.Parca, p.Ihtiyac.Gereken, p.Ihtiyac.Kullanilabilir, p.Ihtiyac.Eksik))
-                .ToList();
-            if (eksikler.Count > 0)
-                throw new YetersizStokHatasi(eksikler);
-
-            var an = tarih ?? Zaman.Simdi();
-            var seriNolar = await SonrakiSeriNolarAsync(urun, adet, ct);
-            var lotNo = await SonrakiLotNoAsync(urun, ct);
-            // Her parça için FIFO kuyruğu; ürünler sırayla bu kuyruktan tüketir
-            var kuyruklar = plan.Parcalar.ToDictionary(p => p.Satir.ParcaId, p => new Queue<StokLotu>(p.Lotlar));
-
-            foreach (var seriNo in seriNolar)
-            {
-                var uretim = new Uretim
-                {
-                    Urun = urun, SeriNo = seriNo, LotNo = lotNo, Tarih = an, OlusturanKullanici = kullanici, OlusturmaZamani = Zaman.Simdi(),
-                };
-                foreach (var (satir, _, _) in plan.Parcalar)
-                {
-                    var kuyruk = kuyruklar[satir.ParcaId];
-                    var gereken = satir.Adet;
-                    while (gereken > 0)
-                    {
-                        var lot = kuyruk.Peek();
-                        var dusulen = Math.Min(gereken, lot.KalanAdet);
-                        lot.KalanAdet -= dusulen;
-                        gereken -= dusulen;
-                        uretim.Tuketimler.Add(new UretimTuketim { Uretim = uretim, StokLotu = lot, Adet = dusulen });
-                        if (lot.KalanAdet == 0)
-                            kuyruk.Dequeue();
-                    }
-                }
-                db.Uretimler.Add(uretim);
-            }
-
-            await db.SaveChangesAsync(ct);
-            return new UretimSonucuDto(urun.Id, urun.Ad, seriNolar, lotNo);
+            return await UretIcAsync(urun, adet, kullanici, tarih, null, ct);
         }, ct);
+
+    /// <summary>
+    /// Transaction içinde çağrılır. Sıradaki işlere ayrılmış parçalar kullanılamaz; emir verilirse onun
+    /// ayırdığı parçalar kullanılır ve üretilenler o işe bağlanır.
+    /// </summary>
+    internal async Task<UretimSonucuDto> UretIcAsync(Urun urun, int adet, Kullanici kullanici, DateTimeOffset? tarih,
+                                                     UretimEmri? emir, CancellationToken ct)
+    {
+        // Lotlar kilitlenerek okunur: aynı anda başka bir üretim bu transaction bitene kadar bekler
+        var parcaIdleri = urun.Agac.Select(a => a.ParcaId).ToList();
+        var kilitli = await lotlar.KullanilabilirLotlariKilitleAsync(parcaIdleri, ct);
+        var ayrilan = await Ayrilan.ParcalarAsync(db, parcaIdleri, emir?.Id, ct);
+        var plan = await PlanlaAsync(urun, adet, kilitli, ayrilan, ct, atlananlariHesapla: false);
+
+        var eksikler = plan.Parcalar.Where(p => p.Ihtiyac.Eksik > 0)
+            .Select(p => new EksikParcaDto(p.Ihtiyac.Parca, p.Ihtiyac.Gereken, p.Ihtiyac.Kullanilabilir, p.Ihtiyac.Eksik))
+            .ToList();
+        if (eksikler.Count > 0)
+            throw new YetersizStokHatasi(eksikler);
+
+        var an = tarih ?? Zaman.Simdi();
+        var seriNolar = await SonrakiSeriNolarAsync(urun, adet, ct);
+        // Her parça için FIFO kuyruğu; ürünler sırayla bu kuyruktan tüketir
+        var kuyruklar = plan.Parcalar.ToDictionary(p => p.Satir.ParcaId, p => new Queue<StokLotu>(p.Lotlar));
+
+        foreach (var seriNo in seriNolar)
+        {
+            var uretim = new Uretim
+            {
+                Urun = urun, SeriNo = seriNo, Tarih = an, OlusturanKullanici = kullanici, OlusturmaZamani = Zaman.Simdi(),
+                UretimEmri = emir, SiparisKalemiId = emir?.SiparisKalemiId,
+            };
+            foreach (var (satir, _, _) in plan.Parcalar)
+            {
+                var kuyruk = kuyruklar[satir.ParcaId];
+                var gereken = satir.Adet;
+                while (gereken > 0)
+                {
+                    var lot = kuyruk.Peek();
+                    var dusulen = Math.Min(gereken, lot.KalanAdet);
+                    lot.KalanAdet -= dusulen;
+                    gereken -= dusulen;
+                    uretim.Tuketimler.Add(new UretimTuketim { Uretim = uretim, StokLotu = lot, Adet = dusulen });
+                    if (lot.KalanAdet == 0)
+                        kuyruk.Dequeue();
+                }
+            }
+            db.Uretimler.Add(uretim);
+        }
+
+        await db.SaveChangesAsync(ct);
+        return new UretimSonucuDto(urun.Id, urun.Ad, seriNolar);
+    }
 
     public async Task<List<string>> SonrakiSeriNolarAsync(int urunId, int adet, CancellationToken ct = default)
     {
@@ -140,24 +155,9 @@ public class UretimServisi(AppDbContext db, IStokLotuRepository lotlar, IUretimR
         return await SonrakiSeriNolarAsync(urun, adet, ct);
     }
 
-    public async Task<string> SonrakiLotNoAsync(int urunId, CancellationToken ct = default)
-    {
-        var urun = await db.Urunler.AsNoTracking().SingleOrDefaultAsync(u => u.Id == urunId, ct)
-                   ?? throw new BulunamadiHatasi("Ürün bulunamadı.");
-        return await SonrakiLotNoAsync(urun, ct);
-    }
-
     // --- iç ------------------------------------------------------------------
 
-    private async Task<string> SonrakiLotNoAsync(Urun urun, CancellationToken ct)
-    {
-        var onek = urun.SeriOneki + "L";
-        var mevcut = await db.Uretimler.Where(u => u.UrunId == urun.Id && u.LotNo.StartsWith(onek))
-            .Select(u => u.LotNo).Distinct().ToListAsync(ct);
-        return $"{onek}{Sira.EnBuyuk(mevcut, onek) + 1:D3}";
-    }
-
-    private async Task<Urun> UrunGetirAsync(int urunId, int adet, CancellationToken ct)
+    internal async Task<Urun> UrunGetirAsync(int urunId, int adet, CancellationToken ct)
     {
         if (adet < 1)
             throw new IsKuraliHatasi("Üretim adedi en az 1 olmalı.");
@@ -171,9 +171,12 @@ public class UretimServisi(AppDbContext db, IStokLotuRepository lotlar, IUretimR
         return urun;
     }
 
-    /// <summary>FIFO dağılımı: verilen lotlar (geri çağrılmamış, kalanı olan, FIFO sıralı) üzerinden.</summary>
-    private async Task<Plan> PlanlaAsync(Urun urun, int adet, List<StokLotu> kullanilabilir, CancellationToken ct,
-                                         bool atlananlariHesapla = true)
+    /// <summary>
+    /// FIFO dağılımı: verilen lotlar (geri çağrılmamış, kalanı olan, FIFO sıralı) üzerinden.
+    /// ayrilan: sıradaki işlere ayrılmış parça adetleri; kullanılabilir stoktan düşülür.
+    /// </summary>
+    private async Task<Plan> PlanlaAsync(Urun urun, int adet, List<StokLotu> kullanilabilir, Dictionary<int, int> ayrilan,
+                                         CancellationToken ct, bool atlananlariHesapla = true)
     {
         var satirlar = urun.Agac.OrderBy(a => a.Parca!.Kod).ToList();
         Dictionary<int, List<string>> atlanan = [];
@@ -203,7 +206,8 @@ public class UretimServisi(AppDbContext db, IStokLotuRepository lotlar, IUretimR
                 kalan -= dusulen;
             }
             parcalar.Add((satir, lotlarim, new ParcaIhtiyaciDto(
-                Donusum.Ozet(satir.Parca!), satir.Adet, gereken, lotlarim.Sum(l => l.KalanAdet), dusumler,
+                Donusum.Ozet(satir.Parca!), satir.Adet, gereken,
+                Math.Max(0, lotlarim.Sum(l => l.KalanAdet) - ayrilan.GetValueOrDefault(satir.ParcaId)), dusumler,
                 atlanan.GetValueOrDefault(satir.ParcaId) ?? [])));
         }
         return new Plan(urun, adet, parcalar);

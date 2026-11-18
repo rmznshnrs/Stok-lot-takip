@@ -28,35 +28,8 @@ public class LotNumarasiTestleri(TestVeritabani vt) : IsKuraliTesti(vt)
     }
 
     [Fact]
-    public async Task Ayni_anda_uretilenler_ayni_urun_lot_nosunu_alir()
+    public async Task Numara_aramasi_tedarikci_lot_nosunu_tanir()
     {
-        Assert.Equal("SN-IP-L001", (await Uretim.OnizleAsync(Urun.Id, 2)).LotNo);
-        var ilk = await Uretim.UretAsync(Urun.Id, 2, Kullanici.Id);
-        var ikinci = await Uretim.UretAsync(Urun.Id, 1, Kullanici.Id);
-        Assert.Equal("SN-IP-L001", ilk.LotNo);
-        Assert.Equal("SN-IP-L002", ikinci.LotNo);
-        Assert.Equal(["SN-IP-0001", "SN-IP-0002"],
-            await Db.Uretimler.Where(u => u.LotNo == "SN-IP-L001").OrderBy(u => u.SeriNo).Select(u => u.SeriNo).ToListAsync());
-        Assert.Equal("SN-IP-L002", (await Izleme.SeriIzleAsync("SN-IP-0003"))!.LotNo);
-        Assert.Equal("SN-IP-L003", await Uretim.SonrakiLotNoAsync(Urun.Id));
-    }
-
-    [Fact]
-    public async Task Uretim_gecmisi_urun_lot_nosuyla_aranir()
-    {
-        await Uretim.UretAsync(Urun.Id, 2, Kullanici.Id);
-        await Uretim.UretAsync(Urun.Id, 1, Kullanici.Id);
-        var g = await Uretim.UretimGecmisiAsync("l001");
-        Assert.Equal(["SN-IP-0001", "SN-IP-0002"], g.Select(u => u.SeriNo).Order());
-        Assert.All(g, u => Assert.Equal("SN-IP-L001", u.LotNo));
-    }
-
-    [Fact]
-    public async Task Numara_aramasi_urun_lot_ve_tedarikci_lot_nosunu_tanir()
-    {
-        await Uretim.UretAsync(Urun.Id, 2, Kullanici.Id);
-        Assert.Equal(("urunlot", "SN-IP-L001"), Sonuc(await Izleme.NumaraAraAsync("sn-ip-l001")));
-
         var tek = await Giris(tedarikciLotNo: "TD-55");
         Assert.Equal(("lot", tek.Lot.LotNo), Sonuc(await Izleme.NumaraAraAsync("TD-55")));
 
@@ -67,12 +40,12 @@ public class LotNumarasiTestleri(TestVeritabani vt) : IsKuraliTesti(vt)
     }
 
     [Fact]
-    public async Task Son_hareketlerde_uretim_urun_lot_nosuyla_gorunur()
+    public async Task Son_hareketlerde_uretim_seri_nosuyla_gorunur()
     {
         await Uretim.UretAsync(Urun.Id, 2, Kullanici.Id);
         var h = (await Izleme.SonHareketlerAsync()).Single(x => x.Tur == "uretim");
-        Assert.Equal(("SN-IP-L001", "urunlot"), (h.Numara, h.NumaraTuru));
-        Assert.Contains("SN-IP-0001 … SN-IP-0002", h.Aciklama);
+        Assert.Equal(("SN-IP-0001", "seri"), (h.NumaraIlk, h.NumaraTuru));
+        Assert.Equal(("İndikatör Paneli · 2 adet", "SN-IP-0001 … SN-IP-0002"), (h.Aciklama, h.Numara));
     }
 
     private static (string?, string?) Sonuc(NumaraAramaDto d) => (d.Tur, d.Deger);

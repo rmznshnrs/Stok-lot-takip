@@ -23,13 +23,12 @@ public class IletisimTestleri(TestVeritabani vt) : IsKuraliTesti(vt)
         await Assert.ThrowsAsync<IsKuraliHatasi>(() => Tanim.MusteriKaydetAsync(null, new IletisimIstek("Gama", Eposta: "gama")));
 
     [Fact]
-    public async Task Satis_gecmisi_seri_numaralarini_urun_lotlariyla_verir()
+    public async Task Satis_gecmisi_seri_numaralarini_verir()
     {
-        await Uretim.UretAsync(Urun.Id, 2, Kullanici.Id);  // SN-IP-L001
-        await Uretim.UretAsync(Urun.Id, 1, Kullanici.Id);  // SN-IP-L002
+        await Uretim.UretAsync(Urun.Id, 2, Kullanici.Id);
+        await Uretim.UretAsync(Urun.Id, 1, Kullanici.Id);
         await Satis.SatAsync(new SatisIstek("Atlas", ["SN-IP-0003", "SN-IP-0001"]), Kullanici.Id);
         var g = Assert.Single(await Satis.SatisGecmisiAsync());
-        Assert.Equal([("SN-IP-0001", "SN-IP-L001"), ("SN-IP-0003", "SN-IP-L002")],
-            g.Kalemler!.Select(k => (k.SeriNo, k.LotNo)));
+        Assert.Equal(["SN-IP-0001", "SN-IP-0003"], g.Kalemler!.Select(k => k.SeriNo));
     }
 }

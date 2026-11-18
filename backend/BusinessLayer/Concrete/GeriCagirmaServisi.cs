@@ -95,6 +95,7 @@ public class GeriCagirmaServisi(AppDbContext db) : IGeriCagirmaServisi
                     .Select(i => i.Satis!.MusteriId).FirstAsync(ct);
                 db.Satislar.Add(new Satis
                 {
+                    No = await SatisServisi.YeniNoAsync(db, ct), Aciklama = "Geri çağrılan ürün müşteriye geri gönderiliyor.",
                     MusteriId = musteriId, Tarih = Zaman.YerelTarih(zaman), Zaman = zaman, OlusturanKullanici = admin, OlusturmaZamani = zaman,
                     Kalemler = [new SatisKalemi { UretimId = g.UretimId }],
                 });

@@ -157,8 +157,14 @@ public class OrnekVeri(AppDbContext db, IUretimServisi uretimServisi, ISatisServ
     private async Task SifirlaAsync(CancellationToken ct)
     {
         // Restrict ilişkileri nedeniyle bağımlı kayıtlardan başlayarak sil
+        await db.Uretimler.ExecuteUpdateAsync(u => u.SetProperty(x => x.SiparisKalemiId, (int?)null)
+                                                    .SetProperty(x => x.UretimEmriId, (int?)null), ct);
+        await db.Satislar.ExecuteUpdateAsync(x => x.SetProperty(y => y.SiparisId, (int?)null), ct);
+        await db.UretimEmriParcalari.ExecuteDeleteAsync(ct);
+        await db.UretimEmirleri.ExecuteDeleteAsync(ct);
+        await db.SiparisKalemleri.ExecuteDeleteAsync(ct);
+        await db.Siparisler.ExecuteDeleteAsync(ct);
         await db.UrunGeriCagirmalari.ExecuteDeleteAsync(ct);
-        await db.UrunLotSorunlari.ExecuteDeleteAsync(ct);
         await db.SatisIadeleri.ExecuteDeleteAsync(ct);
         await db.UretimHurdalari.ExecuteDeleteAsync(ct);
         await db.SatisKalemleri.ExecuteDeleteAsync(ct);

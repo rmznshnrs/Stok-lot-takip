@@ -2,44 +2,33 @@
 
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import SeriSayfasi from "@/components/SeriSayfasi";
-import UretimEkrani from "./UretimEkrani";
-import GeriCagirmalar from "./GeriCagirmalar";
+import SirayaEkle from "./SirayaEkle";
 import UretimGecmisi from "./UretimGecmisi";
+import UretimSirasi from "./UretimSirasi";
 
-/** Üretim sayfasının iki sekmesi: yeni üretim ve üretim geçmişi (?sekme=gecmis). */
+/**
+ * Üretim: sıra (varsayılan; ?yeni=1 sıraya ekleme formu) ve üretim geçmişi (?sekme=gecmis).
+ * Ürünler doğrudan üretilmez, önce sıraya girer. Geri çağırmalar Müşteriler'de.
+ */
 export default function UretimSayfasi() {
   const params = useSearchParams();
-  const sekme = params.get("sekme");
-  const seri = params.get("seri")?.trim();
+  const gecmis = params.get("sekme") === "gecmis";
+  const yeni = params.get("yeni") === "1";
   const ara = params.get("ara")?.trim() ?? "";
-  const gecmis = sekme === "gecmis";
-  const geri = sekme === "geri";
   return (
     <>
       <div className="ust-sekme-satiri">
         <h1>Üretim</h1>
         <nav className="sekmeler sekmeler--buyuk" aria-label="Üretim">
-          <Link href="/uretim" className={`sekme${gecmis || geri ? "" : " sekme--aktif"}`} aria-current={gecmis || geri ? undefined : "page"}>
-            Yeni üretim
+          <Link href="/uretim" className={`sekme${gecmis ? "" : " sekme--aktif"}`} aria-current={gecmis ? undefined : "page"}>
+            Üretim Sırası
           </Link>
           <Link href="/uretim?sekme=gecmis" className={`sekme${gecmis ? " sekme--aktif" : ""}`} aria-current={gecmis ? "page" : undefined}>
-            Üretim geçmişi
-          </Link>
-          <Link href="/uretim?sekme=geri" className={`sekme${geri ? " sekme--aktif" : ""}`} aria-current={geri ? "page" : undefined}>
-            Geri çağırmalar
+            Üretim Geçmişi
           </Link>
         </nav>
       </div>
-      {seri ? (
-        <SeriSayfasi seriNo={seri} geri={geri ? "/uretim?sekme=geri" : "/uretim?sekme=gecmis"} />
-      ) : gecmis ? (
-        <UretimGecmisi key={ara} ilkArama={ara} />
-      ) : geri ? (
-        <GeriCagirmalar />
-      ) : (
-        <UretimEkrani />
-      )}
+      {gecmis ? <UretimGecmisi key={ara} ilkArama={ara} /> : yeni ? <SirayaEkle /> : <UretimSirasi />}
     </>
   );
 }

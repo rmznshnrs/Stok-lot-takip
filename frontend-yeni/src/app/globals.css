@@ -1086,7 +1086,6 @@ button.sekme.sekme--aktif { border-bottom-color: var(--ana); }
 .satis-secim { display: flex; flex-direction: column; gap: 10px; padding: 12px; background: var(--zemin); border-radius: 4px; }
 .cip-kaldir { margin-left: 4px; border: 0; background: none; color: inherit; cursor: pointer; font-size: 14px; line-height: 1; padding: 0 2px; }
 .satis-lot + .satis-lot { margin-top: 2px; }
-.satis-lot-no { color: var(--soluk); }
 .acilan-satir > td { background: var(--zemin); padding: 12px 16px 16px 40px; }
 .parca-ac { display: inline-flex; align-items: center; gap: 6px; }
 .parca-ok { display: inline-block; width: 10px; color: var(--soluk); font-size: 11px; }
@@ -1678,3 +1677,51 @@ input[type="search"].girdi { padding-left: 42px; background-position: 16px cente
 h1, h2, h3, h4, label, th, .yan-menu, .sekme, .btn, .btn-baglanti, .rozet, .etiket-metni,
 .bilgi > span:first-child, select.girdi, .tablo th, .yan-grup-ad { text-transform: capitalize; }
 .mono, .girdi--mono, .seri-cip, .depo-oge .mono, .yazi-normal { text-transform: none; }
+
+/* Sipariş kalemleri ve üretim sırası */
+.kutu { border: 1px solid var(--kenar); border-radius: 10px; padding: 14px; margin: 0; min-width: 0; }
+.secili-satir td { background: var(--ana-acik); }
+.dugme-grup--sik { gap: 6px; flex-wrap: nowrap; justify-content: flex-end; }
+
+/* Sevkiyat: kargo takip adımları */
+.kargo-adimlari { list-style: none; margin: 4px 0; padding: 0; display: flex; flex-direction: column; gap: 0; }
+.kargo-adim { position: relative; display: flex; flex-direction: column; padding: 0 0 14px 22px; }
+.kargo-adim::before {
+  content: ""; position: absolute; left: 4px; top: 4px; width: 10px; height: 10px; border-radius: 50%;
+  border: 2px solid var(--kenar); background: var(--kart);
+}
+.kargo-adim:not(:last-child)::after { content: ""; position: absolute; left: 9px; top: 18px; bottom: 0; width: 2px; background: var(--kenar); }
+.kargo-adim--tamam::before { border-color: var(--ana); background: var(--ana); }
+.kargo-adim--tamam:not(:last-child)::after { background: var(--ana); }
+.kargo-adim-ad { font-weight: 600; text-transform: capitalize; }
+
+/* Ana sayfa: altı özet kutusu üçlü sıra; üretim uyarıları */
+@media (min-width: 900px) { .ozet-kutular { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.ozet-kutu small { font-size: 12px; }
+.panel--dikkat { border-color: var(--uyari); background: var(--uyari-satir); }
+.uyari-satiri { padding: 8px 0; border-bottom: 1px solid var(--kenar-ince); align-items: center; }
+.uyari-satiri:last-child { border-bottom: 0; }
+
+/* Takvim: ay görünümü */
+.takvim-baslik { margin: 0 8px; min-width: 140px; text-align: center; }
+.takvim-acikla { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+.takvim-kap { overflow-x: auto; }
+.takvim { display: grid; grid-template-columns: repeat(7, minmax(110px, 1fr)); gap: 4px; min-width: 780px; }
+.takvim-gun-adi { font-size: 12px; font-weight: 600; color: var(--soluk); text-align: center; padding: 4px 0; }
+.takvim-gun {
+  min-height: 92px; border: 1px solid var(--kenar); border-radius: 8px; padding: 6px; background: var(--kart);
+  display: flex; flex-direction: column; gap: 4px;
+}
+.takvim-gun--disarida { opacity: .45; }
+.takvim-gun--gecmis { background: var(--zemin); }
+.takvim-gun--bugun { border-color: var(--ana); box-shadow: inset 0 0 0 1px var(--ana); }
+.takvim-gun-no { font-size: 12px; font-weight: 600; color: var(--soluk); }
+.takvim-gun--bugun .takvim-gun-no { color: var(--ana-koyu); }
+.takvim-urun { display: flex; justify-content: space-between; align-items: center; gap: 4px; font-size: 12px; }
+.takvim-urun--eksik .takvim-urun-ad { color: var(--uyari); font-weight: 600; }
+.takvim-urun-ad { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.takvim-sayilar { display: flex; gap: 2px; flex-shrink: 0; }
+.takvim-cip { font-size: 11px; padding: 1px 6px; border-radius: 999px; font-weight: 600; }
+.takvim-cip--plan { background: var(--ana-acik); color: var(--ana-koyu); }
+.takvim-cip--uret { background: var(--kenar); color: var(--metin); }
+.takvim-cip--ist { background: var(--uyari-zemin); color: var(--uyari); }

@@ -16,7 +16,8 @@ public interface ISatisServisi
     Task<SatisSonucuDto> SatAsync(SatisIstek istek, int kullaniciId, CancellationToken ct = default);
 
     /// <summary>Satış geçmişi: her satış + ürün için bir satır (yeniden eskiye). Arama müşteri adı veya seri no'da.</summary>
-    Task<List<SatisGecmisiDto>> SatisGecmisiAsync(string? arama = null, int adet = 500, CancellationToken ct = default);
+    Task<List<SatisGecmisiDto>> SatisGecmisiAsync(string? arama = null, int adet = 500, CancellationToken ct = default,
+                                                    int? musteriId = null);
 
     /// <summary>
     /// Yalnız Admin: satıştan seri numaralarını iade alır (açıklama zorunlu). Satış kalemi kaldırılır, ürün depoya

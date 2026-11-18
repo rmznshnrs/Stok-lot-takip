@@ -72,7 +72,7 @@ public class IzlemeServisi(AppDbContext db) : IIzlemeServisi
                 : new HurdaBilgisiDto(h.Tur.ToString(), h.Aciklama, h.OlusturmaZamani, $"{h.OlusturanKullanici!.Ad} {h.OlusturanKullanici.Soyad}"),
             [.. uretim.Iadeler.OrderBy(i => i.OlusturmaZamani).Select(i => new IadeBilgisiDto(i.Satis!.Musteri!.Ad, i.Satis.Tarih,
                 i.OlusturmaZamani, i.Aciklama, $"{i.OlusturanKullanici!.Ad} {i.OlusturanKullanici.Soyad}"))],
-            (await geri.ListeAsync(ct: ct)).Where(g => g.SeriNo == uretim.SeriNo).FirstOrDefault(), uretim.LotNo);
+            (await geri.ListeAsync(ct: ct)).Where(g => g.SeriNo == uretim.SeriNo).FirstOrDefault());
     }
 
     public async Task<NumaraAramaDto> NumaraAraAsync(string metin, CancellationToken ct = default)
@@ -85,8 +85,6 @@ public class IzlemeServisi(AppDbContext db) : IIzlemeServisi
             return new("lot", lot, []);
         if (await db.Uretimler.Where(u => u.SeriNo == m).Select(u => u.SeriNo).FirstOrDefaultAsync(ct) is { } seri)
             return new("seri", seri, []);
-        if (await db.Uretimler.Where(u => u.LotNo == m).Select(u => u.LotNo).FirstOrDefaultAsync(ct) is { } urunLot)
-            return new("urunlot", urunLot, []);
         if (await db.Parcalar.Where(p => p.Kod == m).Select(p => p.Kod).FirstOrDefaultAsync(ct) is { } kod)
             return new("parca", kod, []);
         // Tedarikçinin lot numarası: tek girişe aitse o giriş, birden fazlaysa hepsi aday
@@ -101,8 +99,6 @@ public class IzlemeServisi(AppDbContext db) : IIzlemeServisi
                 .Select(l => l.LotNo).Take(10).ToListAsync(ct)).Select(x => new AdayDto("lot", x))
             .Concat((await db.Uretimler.Where(u => EF.Functions.Like(u.SeriNo, Arama.Desen(m))).OrderBy(u => u.SeriNo)
                 .Select(u => u.SeriNo).Take(10).ToListAsync(ct)).Select(x => new AdayDto("seri", x)))
-            .Concat((await db.Uretimler.Where(u => EF.Functions.Like(u.LotNo, Arama.Desen(m))).Select(u => u.LotNo)
-                .Distinct().OrderBy(x => x).Take(10).ToListAsync(ct)).Select(x => new AdayDto("urunlot", x)))
             .ToList();
         return adaylar.Count == 1 ? new(adaylar[0].Tur, adaylar[0].Deger, []) : new(null, null, adaylar);
     }
@@ -122,16 +118,12 @@ public class IzlemeServisi(AppDbContext db) : IIzlemeServisi
         // Tek seferde yapılan üretimler aynı Tarih'i taşır → (ürün, tarih) grubu tek satır
         var uretimler = await db.Uretimler.AsNoTracking()
             .OrderByDescending(u => u.Tarih).ThenByDescending(u => u.Id).Take(adet * 20)
-            .Select(u => new { u.Id, u.UrunId, UrunAd = u.Urun!.Ad, u.Tarih, u.SeriNo, u.LotNo }).ToListAsync(ct);
+            .Select(u => new { u.Id, u.UrunId, UrunAd = u.Urun!.Ad, u.Tarih, u.SeriNo }).ToListAsync(ct);
         foreach (var g in uretimler.GroupBy(u => (u.UrunId, u.Tarih)).Take(adet))
         {
             var seriler = g.Select(u => u.SeriNo).Order().ToList();
-            var lotNo = g.First().LotNo;
-            hareketler.Add((lotNo.Length > 0
-                ? new HareketDto("uretim", Zaman.YerelTarih(g.Key.Tarih),
-                    $"{g.First().UrunAd} · {seriler.Count} adet · {Aralik(seriler)}", lotNo, lotNo, "urunlot")
-                : new HareketDto("uretim", Zaman.YerelTarih(g.Key.Tarih), $"{g.First().UrunAd} · {seriler.Count} adet",
-                    Aralik(seriler), seriler[0], "seri"), 1, g.Max(u => u.Id)));
+            hareketler.Add((new HareketDto("uretim", Zaman.YerelTarih(g.Key.Tarih), $"{g.First().UrunAd} · {seriler.Count} adet",
+                Aralik(seriler), seriler[0], "seri"), 1, g.Max(u => u.Id)));
         }
 
         var satislar = await db.Satislar.AsNoTracking()
