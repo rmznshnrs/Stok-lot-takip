@@ -176,8 +176,9 @@ public class OzetController(IOzetServisi ozet, IRaporServisi rapor) : Controller
         return NoContent();
     }
 
-    /// <summary>Son ay (1, 3, 6, 12) için Excel raporu.</summary>
+    /// <summary>Son ay (1, 3, 6, 12) için Excel raporu (yalnız Admin; Yönetim sayfasında).</summary>
     [HttpGet("excel")]
+    [Authorize(Policy = Politikalar.Admin)]
     public async Task<IActionResult> Excel([FromQuery] int ay, CancellationToken ct)
     {
         var (icerik, ad) = await rapor.ExcelAsync(ay, ct);

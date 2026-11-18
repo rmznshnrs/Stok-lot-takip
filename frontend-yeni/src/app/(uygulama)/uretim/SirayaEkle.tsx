@@ -149,7 +149,7 @@ export default function SirayaEkle() {
                         <th>Parça</th>
                         <th className="sag">Gereken</th>
                         <th className="sag">Serbest</th>
-                        <th>Kullanılacak stok girişleri</th>
+                        <th>Kullanılacak Lotlar</th>
                         <th>Durum</th>
                       </tr>
                     </thead>

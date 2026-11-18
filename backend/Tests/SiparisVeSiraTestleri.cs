@@ -225,6 +225,7 @@ public class OzetTestleri(TestVeritabani vt) : IsKuraliTesti(vt)
         Assert.Equal(("IP", 2), (u.UrunKod, u.Uretilebilir));
         Assert.Equal([("DIY", 2)], u.Kisitlayanlar.Select(k => (k.Parca.Kod, k.Serbest)));
         Assert.Equal((1, 11), (o.SiradakiIs, o.SiradakiAdet));
+        Assert.Equal(("İndikatör Paneli", 2), (Assert.Single(o.Kapasiteler).UrunAd, o.Kapasiteler[0].Uretilebilir));
     }
 
     [Fact]

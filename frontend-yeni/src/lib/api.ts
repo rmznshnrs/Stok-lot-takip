@@ -156,7 +156,7 @@ export interface HazirSeri { seriNo: string; tarih: string }
 
 export type SevkiyatDurumu = "Hazirlaniyor" | "Kargoda" | "TeslimEdildi";
 export const SEVKIYAT_DURUM_ADI: Record<SevkiyatDurumu, string> = {
-  Hazirlaniyor: "Hazırlanıyor", Kargoda: "Kargoda", TeslimEdildi: "Teslim Edildi",
+  Hazirlaniyor: "Kargoya Verilecek", Kargoda: "Kargoda", TeslimEdildi: "Teslim Edildi",
 };
 /** Sevkiyat (sevk edilen ürün satılmış sayılır). iadeler: bu sevkiyattan iade alınan seri numaraları. */
 export interface Sevkiyat {
@@ -179,6 +179,8 @@ export interface AnaSayfaOzeti {
   hazirlananSevkiyat: number; kargodaSevkiyat: number; depodaUrun: number; minAltindaParca: number; acikGeriCagirma: number;
   uyarilar: UretilebilirUyari[];
   yaklasanTeslimler: { siparisId: number; no: string; musteriAd: string; istenenTarih: string; kalan: number }[];
+  /** Ürün ağacı olan her ürün için parça stoğuyla üretilebilecek adet. */
+  kapasiteler: { urunId: number; urunAd: string; uretilebilir: number }[];
 }
 /** planlanan: sıradaki işlerin o güne planlanan adedi; uretilen: o gün üretilen; istenen: o gün teslimi istenen sipariş adedi. */
 export interface TakvimGunu {

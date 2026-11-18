@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import GeriIleri from "@/components/GeriIleri";
 import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 import Mesaj, { type MesajBilgisi } from "@/components/Mesaj";
@@ -9,7 +10,6 @@ import { ApiHatasi, sevkiyat, sira, siparisler, type Siparis, type SiparisKalemi
 import { seriAdresi } from "@/lib/adres";
 import { bugun, tarih, tarihSaat } from "@/lib/bicim";
 import { useVeri } from "@/lib/kancalar";
-import ParcaIhtiyaci from "./ParcaIhtiyaci";
 import { durumRozeti } from "./MusteriSiparisleri";
 import { sevkiyatAdresi, sevkiyatRozeti, urunOzeti } from "../sevkiyat/ortak";
 
@@ -40,7 +40,7 @@ export default function SiparisDetay({ id }: { id: number }) {
   return (
     <main className="icerik icerik--dikey">
       <div className="bas-satir">
-        {s && <Link href={`/musteriler?id=${s.musteriId}`} className="not--buyuk">← {s.musteriAd}</Link>}
+        <GeriIleri />
       </div>
       {hata && <div className="mesaj mesaj--error">{hata}</div>}
       {s === null && !hata && <p className="yukleniyor">Yükleniyor…</p>}
@@ -143,7 +143,6 @@ function KalemKutusu({ siparis, kalem: k, calistir }: {
           )}
         </>
       )}
-      {acik && k.eksik > 0 && <ParcaIhtiyaci urunId={k.urunId} adet={k.eksik} />}
     </div>
   );
 }

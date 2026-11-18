@@ -273,7 +273,11 @@ public record YaklasanTeslimDto(int SiparisId, string No, string MusteriAd, Date
 public record AnaSayfaOzetiDto(
     int AcikSiparis, int SiradakiIs, int SiradakiAdet, int BugunPlanlanan, int HazirlananSevkiyat, int KargodaSevkiyat,
     int DepodaUrun, int MinAltindaParca, int AcikGeriCagirma,
-    IReadOnlyList<UretilebilirUyariDto> Uyarilar, IReadOnlyList<YaklasanTeslimDto> YaklasanTeslimler);
+    IReadOnlyList<UretilebilirUyariDto> Uyarilar, IReadOnlyList<YaklasanTeslimDto> YaklasanTeslimler,
+    IReadOnlyList<UrunKapasitesiDto> Kapasiteler);
+
+/// <summary>Ürün ağacı olan her ürün için serbest parça stoğuyla üretilebilecek adet (grafik için).</summary>
+public record UrunKapasitesiDto(int UrunId, string UrunAd, int Uretilebilir);
 
 /// <summary>
 /// Bir gün, bir ürün. Planlanan: sıradaki işlerin o güne planlanan kalan adedi; Uretilen: o gün üretilen;

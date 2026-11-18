@@ -29,7 +29,7 @@ export default function SevkiyatSayfasi() {
 
 const SUZGECLER: { deger: SevkiyatDurumu | ""; ad: string }[] = [
   { deger: "", ad: "Tümü" },
-  { deger: "Hazirlaniyor", ad: "Hazırlanıyor" },
+  { deger: "Hazirlaniyor", ad: "Kargoya Verilecek" },
   { deger: "Kargoda", ad: "Kargoda" },
   { deger: "TeslimEdildi", ad: "Teslim Edildi" },
 ];

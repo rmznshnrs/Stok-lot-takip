@@ -193,7 +193,7 @@ function AlimPlani({ gun, calistir }: { gun: string; calistir: Calistir }) {
         <label htmlFor="alim-parca">Parça <span className="soluk">(İsteğe bağlı)</span></label>
         <select id="alim-parca" className="girdi" value={parcaId} onChange={(e) => setParcaId(e.target.value)}>
           <option value="">Yalnız not</option>
-          {parcaListesi?.map((p) => <option key={p.id} value={p.id}>{p.kod} · {p.ad} ({p.serbest} serbest)</option>)}
+          {parcaListesi?.map((p) => <option key={p.id} value={p.id}>{p.kod} · {p.ad} ({p.serbest} adet)</option>)}
         </select>
       </div>
       {parcaId && (

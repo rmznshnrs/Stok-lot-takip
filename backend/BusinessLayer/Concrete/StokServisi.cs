@@ -92,7 +92,7 @@ public class StokServisi(AppDbContext db) : IStokServisi
             // Numara verilmezse sistem verir; aynı anda verilen numara çakışırsa Islem yeniden dener
             var lotNo = verilenNo.Length > 0 ? verilenNo : await SonrakiStokGirisNoAsync(ct);
             if (await db.StokLotlari.AnyAsync(l => l.LotNo == lotNo, ct))
-                throw new IsKuraliHatasi($"{lotNo} stok giriş numarası zaten kayıtlı.");
+                throw new IsKuraliHatasi($"{lotNo} lot numarası zaten kayıtlı.");
 
             var tedarikci = await db.Tedarikciler.SingleOrDefaultAsync(t => t.Ad == tedarikciAdi, ct);
             var yeni = tedarikci is null;
@@ -161,7 +161,7 @@ public class StokDuzeltmeServisi(AppDbContext db) : IStokDuzeltmeServisi
         {
             var admin = await Kullanicilar.AdminGetirAsync(db, kullaniciId, "Stok düzeltme", ct);
             var lot = await db.StokLotlari.SingleOrDefaultAsync(l => l.Id == istek.StokLotuId, ct)
-                      ?? throw new BulunamadiHatasi("Stok girişi bulunamadı.");
+                      ?? throw new BulunamadiHatasi("Lot bulunamadı.");
             var yeniKalan = lot.KalanAdet + istek.Miktar;
             if (yeniKalan < 0)
                 throw new IsKuraliHatasi($"{lot.LotNo} girişinde yalnız {lot.KalanAdet} adet var.");
@@ -190,7 +190,7 @@ public class StokDuzeltmeServisi(AppDbContext db) : IStokDuzeltmeServisi
         {
             var admin = await Kullanicilar.AdminGetirAsync(db, kullaniciId, "Hatalı parça kaydı", ct);
             var lot = await db.StokLotlari.SingleOrDefaultAsync(l => l.Id == istek.StokLotuId, ct)
-                      ?? throw new BulunamadiHatasi("Stok girişi bulunamadı.");
+                      ?? throw new BulunamadiHatasi("Lot bulunamadı.");
             if (istek.StoktanDus && istek.Adet > lot.KalanAdet)
                 throw new IsKuraliHatasi($"{lot.LotNo} girişinde yalnız {lot.KalanAdet} adet var.");
             if (!istek.StoktanDus && istek.Adet > lot.GirisAdet)

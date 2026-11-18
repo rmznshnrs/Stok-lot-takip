@@ -157,7 +157,7 @@ function ParcaTablosu({ gruplar, aranan, ilkAcik }: {
                       <span className="parca-ok" aria-hidden="true">{acikMi ? "▾" : "▸"}</span>
                       {p.ad}
                     </button>{" "}
-                    <span className="lot-etiket">· {g.lotlar.length} giriş</span>
+                    <span className="lot-etiket">· {g.lotlar.length} lot</span>
                   </td>
                   <td className="sag">{p.toplamStok}</td>
                   <td className={`sag${p.minAltinda ? " uyari-metin" : ""}`}>
@@ -171,7 +171,7 @@ function ParcaTablosu({ gruplar, aranan, ilkAcik }: {
                   <tr className="acilan-satir">
                     <td colSpan={6}>
                       <div className="giris-bas">
-                        {p.ad} · stok girişleri ({g.lotlar.length})
+                        {p.ad} · lotlar ({g.lotlar.length})
                         <Link href={`/parcalar?parca=${encodeURIComponent(p.kod)}`} className="btn-baglanti">Hatalı Kayıt / Stoktan Düş</Link>
                       </div>
                       <StokGirisleri lotlar={g.lotlar} />

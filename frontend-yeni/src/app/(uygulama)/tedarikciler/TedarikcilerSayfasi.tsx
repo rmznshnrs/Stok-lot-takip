@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
 import FirmaListesi from "@/components/FirmaListesi";
 import SayfaSekmeleri from "@/components/SayfaSekmeleri";
 import { useSayfalama } from "@/components/Sayfalama";
@@ -21,22 +20,17 @@ export default function TedarikcilerSayfasi() {
 }
 
 function Alinanlar({ tedarikciAd }: { tedarikciAd: string }) {
-  const [eldekiler, setEldekiler] = useState(false);
   const { veri: gruplar, hata } = useVeri(() => stok.durum({ bitenler: true }), []);
   const tum = gruplar
     ? gruplar.flatMap((g) => g.lotlar).filter((l) => l.tedarikciAd === tedarikciAd)
         .sort((a, b) => b.siparisTarihi.localeCompare(a.siparisTarihi) || b.id - a.id)
     : null;
-  const liste = tum && tum.filter((l) => !eldekiler || l.kalanAdet > 0);
-  const { gorunen, cubuk } = useSayfalama(liste, String(eldekiler));
+  const { gorunen, cubuk } = useSayfalama(tum, tedarikciAd);
 
   return (
     <div className="form-dikey">
       <div className="bas-satir">
         <h3>Alınanlar {tum && <span className="rozet rozet--kucuk rozet--mavi">{tum.length}</span>}</h3>
-        <label className="onay-etiket">
-          <input type="checkbox" checked={eldekiler} onChange={(e) => setEldekiler(e.target.checked)} /> Yalnız Elde Kalanlar
-        </label>
       </div>
       {hata && <div className="mesaj mesaj--error">{hata}</div>}
       <div className="tablo-kap">
@@ -45,15 +39,15 @@ function Alinanlar({ tedarikciAd }: { tedarikciAd: string }) {
             <tr>
               <th>Sipariş Tarihi</th>
               <th>Parça</th>
-              <th>Stok Giriş No</th>
+              <th>Lot No</th>
               <th>Sipariş No</th>
               <th className="sag">Gelen</th>
               <th className="sag">Elde Kalan</th>
             </tr>
           </thead>
           <tbody>
-            {liste === null && !hata && <tr className="bos"><td colSpan={6}>Yükleniyor…</td></tr>}
-            {liste?.length === 0 && <tr className="bos"><td colSpan={6}>{eldekiler ? "Elde kalan yok." : "Bu tedarikçiden alım yok."}</td></tr>}
+            {tum === null && !hata && <tr className="bos"><td colSpan={6}>Yükleniyor…</td></tr>}
+            {tum?.length === 0 && <tr className="bos"><td colSpan={6}>Bu tedarikçiden alım yok.</td></tr>}
             {gorunen?.map((l) => (
               <tr key={l.id} className="satir-tikla">
                 <td>{tarih(l.siparisTarihi)}</td>

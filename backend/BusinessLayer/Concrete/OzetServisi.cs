@@ -32,13 +32,16 @@ public class OzetServisi(AppDbContext db, IStokServisi stok) : IOzetServisi
             .OrderBy(s => s.IstenenTarih).ThenBy(s => s.No)
             .Select(s => new YaklasanTeslimDto(s.Id, s.No, s.MusteriAd, s.IstenenTarih!.Value, s.Adet - s.Gonderilen)).ToList();
 
+        var kapasiteler = await KapasitelerAsync(parcalar, ct);
         return new AnaSayfaOzetiDto(
             acikSiparisler.Count, bekleyen.Count, bekleyen.Sum(e => e.Kalan),
             bekleyen.Where(e => e.PlanlananTarih <= bugun).Sum(e => e.Kalan),
             sevkiyat.FirstOrDefault(s => s.Key == SevkiyatDurumu.Hazirlaniyor)?.Sayi ?? 0,
             sevkiyat.FirstOrDefault(s => s.Key == SevkiyatDurumu.Kargoda)?.Sayi ?? 0,
             depoda, parcalar.Count(p => p.MinAltinda), acikGeri,
-            await UyarilarAsync(parcalar, ct), yaklasan);
+            [.. kapasiteler.Where(u => u.Uretilebilir <= UyariEsigi)], yaklasan,
+            [.. kapasiteler.Select(u => new UrunKapasitesiDto(u.UrunId, u.UrunAd, u.Uretilebilir))
+                .OrderBy(u => u.UrunAd, StringComparer.CurrentCulture)]);
     }
 
     public async Task<List<TakvimGunuDto>> TakvimAsync(DateOnly baslangic, DateOnly bitis, CancellationToken ct = default)
@@ -130,8 +133,8 @@ public class OzetServisi(AppDbContext db, IStokServisi stok) : IOzetServisi
         p.Id, p.Tarih, p.Parca is null ? null : Donusum.Ozet(p.Parca), p.Adet, p.TedarikciId, p.Tedarikci?.Ad,
         p.Aciklama, p.Tamamlandi, $"{p.OlusturanKullanici!.Ad} {p.OlusturanKullanici.Soyad}");
 
-    /// <summary>Ürün ağacına göre serbest stokla üretilebilecek adet; eşik ve altındakiler, en az olan önce.</summary>
-    private async Task<List<UretilebilirUyariDto>> UyarilarAsync(List<ParcaStokDto> parcalar, CancellationToken ct)
+    /// <summary>Ürün ağacına göre serbest stokla üretilebilecek adet (en az olan önce); kısıtlayanlar: eşik ve altındaki parçalar.</summary>
+    private async Task<List<UretilebilirUyariDto>> KapasitelerAsync(List<ParcaStokDto> parcalar, CancellationToken ct)
     {
         var serbest = parcalar.ToDictionary(p => p.Id);
         var urunler = await db.Urunler.AsNoTracking().Include(u => u.Agac).ThenInclude(a => a.Parca)
@@ -146,7 +149,6 @@ public class OzetServisi(AppDbContext db, IStokServisi stok) : IOzetServisi
                     [.. satirlar.Where(x => x.Adet <= UyariEsigi).OrderBy(x => x.Adet).ThenBy(x => x.Agac.Parca!.Kod)
                         .Select(x => new UretilebilirParcaDto(Donusum.Ozet(x.Agac.Parca!), x.Agac.Adet, x.Serbest))]);
             })
-            .Where(u => u.Uretilebilir <= UyariEsigi)
             .OrderBy(u => u.Uretilebilir).ThenBy(u => u.UrunAd, StringComparer.CurrentCulture)];
     }
 }

@@ -121,10 +121,10 @@ export default function UretimSirasi() {
                         </td>
                         <td className="hucre-dar sag">
                           <div className="dugme-grup dugme-grup--sik">
-                            <button type="button" className="btn-baglanti" aria-label="Yukarı taşı" disabled={i === 0}
-                              onClick={() => calistir(() => sira.tasi(e.id, -1))}>↑</button>
-                            <button type="button" className="btn-baglanti" aria-label="Aşağı taşı" disabled={i === liste.length - 1}
-                              onClick={() => calistir(() => sira.tasi(e.id, 1))}>↓</button>
+                            <button type="button" className="btn btn--ikincil btn--kucuk" title="Bu işi sırada bir öne al" disabled={i === 0}
+                              onClick={() => calistir(() => sira.tasi(e.id, -1))}>↑ Öne Al</button>
+                            <button type="button" className="btn btn--ikincil btn--kucuk" title="Bu işi sırada bir arkaya al" disabled={i === liste.length - 1}
+                              onClick={() => calistir(() => sira.tasi(e.id, 1))}>↓ Arkaya Al</button>
                             <button type="button" className="btn btn--kucuk" aria-expanded={acik === e.id}
                               onClick={() => setAcik(acik === e.id ? null : e.id)}>Üret</button>
                             <button type="button" className="btn-baglanti"

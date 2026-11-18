@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import GeriIleri from "@/components/GeriIleri";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import Mesaj, { type MesajBilgisi } from "@/components/Mesaj";
@@ -55,7 +55,7 @@ export default function SevkiyatFormu({ ilkSiparis }: { ilkSiparis: number | nul
   return (
     <main className="icerik icerik--dikey">
       <div className="bas-satir">
-        <Link href="/sevkiyat" className="not--buyuk">← Sevkiyatlar</Link>
+        <GeriIleri />
       </div>
       <form className="kart kart--genis kart--bosluklu" onSubmit={kaydet}>
         <h2>Yeni Sevkiyat</h2>

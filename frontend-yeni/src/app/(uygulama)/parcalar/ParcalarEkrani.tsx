@@ -27,13 +27,6 @@ export default function ParcalarEkrani() {
   const [bekliyor, setBekliyor] = useState(false);
   const [formAcik, setFormAcik] = useState(false);
 
-  function duzenle(p: ParcaStok) {
-    setDuzenlenen(p);
-    setForm({ kod: p.kod, ad: p.ad, minStok: String(p.minStok) });
-    setMesaj(null);
-    setFormAcik(true);
-  }
-
   function vazgec() {
     setDuzenlenen(null);
     setForm(BOS_FORM);
@@ -136,16 +129,15 @@ export default function ParcalarEkrani() {
                 <th className="sag">Kullanılabilir stok</th>
                 <th className="sag">Hatalı</th>
                 <th>Kullanıldığı ürünler</th>
-                <th className="sutun-ikon"><span className="gorunmez">İşlem</span></th>
               </tr>
             </thead>
             <tbody>
               {liste === null && !listeHatasi && (
-                <tr className="bos"><td colSpan={6}>Yükleniyor…</td></tr>
+                <tr className="bos"><td colSpan={5}>Yükleniyor…</td></tr>
               )}
               {liste?.length === 0 && (
                 <tr className="bos">
-                  <td colSpan={6}>{aranan ? "Sonuç yok." : "Parça yok."}</td>
+                  <td colSpan={5}>{aranan ? "Sonuç yok." : "Parça yok."}</td>
                 </tr>
               )}
               {gorunen?.map((p) => (
@@ -155,11 +147,17 @@ export default function ParcalarEkrani() {
                     yeni={p.id === yeniId}
                     acik={acik === p.kod}
                     ac={() => setAcik(acik === p.kod ? null : p.kod)}
-                    duzenle={() => duzenle(p)}
                   />
                   {acik === p.kod && (
                     <tr className="acilan-satir">
-                      <td colSpan={6}>
+                      <td colSpan={5}>
+                        <ParcaDuzenle
+                          p={p}
+                          kaydedildi={(metin) => {
+                            setMesaj({ tur: "success", metin });
+                            yenile();
+                          }}
+                        />
                         <ParcaGirisleri
                           kod={p.kod}
                           degisti={(metin) => {
@@ -189,14 +187,62 @@ function ParcaGirisleri({ kod, degisti }: { kod: string; degisti: (mesaj: string
   if (!lotlar) return <p className="yukleniyor">Yükleniyor…</p>;
   return (
     <div className="form-dikey">
-      <div className="giris-bas">Stok girişleri ({lotlar.length}) · hatalı kayıt ve stoktan düşme</div>
+      <div className="giris-bas">Lotlar ({lotlar.length}) · hatalı kayıt ve stoktan düşme</div>
       <StokGirisleri lotlar={lotlar} islemler degisti={(m) => { yenile(); degisti(m); }} />
     </div>
   );
 }
 
-function ParcaSatiri({ p, yeni, acik, ac, duzenle }: {
-  p: ParcaStok; yeni: boolean; acik: boolean; ac: () => void; duzenle: () => void;
+/** Satıra basınca açılan düzenleme: kod, ad, minimum stok. */
+function ParcaDuzenle({ p, kaydedildi }: { p: ParcaStok; kaydedildi: (mesaj: string) => void }) {
+  const [form, setForm] = useState({ kod: p.kod, ad: p.ad, minStok: String(p.minStok) });
+  const [hata, setHata] = useState("");
+  const [bekliyor, setBekliyor] = useState(false);
+  const degisti = form.kod !== p.kod || form.ad !== p.ad || form.minStok !== String(p.minStok);
+
+  async function kaydet(e: FormEvent) {
+    e.preventDefault();
+    setHata("");
+    setBekliyor(true);
+    try {
+      const k = await parcalar.guncelle(p.id, { kod: form.kod.trim(), ad: form.ad.trim(), minStok: Number(form.minStok) || 0 });
+      kaydedildi(`${k.kod} kaydedildi.`);
+    } catch (err) {
+      setHata(err instanceof ApiHatasi ? err.message : "Kaydedilemedi.");
+    } finally {
+      setBekliyor(false);
+    }
+  }
+
+  return (
+    <form className="form-dikey parca-duzenle" onSubmit={kaydet}>
+      <div className="izgara-form izgara-form--4">
+        <div className="alan">
+          <label htmlFor={`kod-${p.id}`}>Parça Kodu</label>
+          <input id={`kod-${p.id}`} className="girdi girdi--mono" required maxLength={50} value={form.kod}
+            onChange={(e) => setForm({ ...form, kod: e.target.value })} />
+        </div>
+        <div className="alan">
+          <label htmlFor={`ad-${p.id}`}>Parça Adı</label>
+          <input id={`ad-${p.id}`} className="girdi" required maxLength={200} value={form.ad}
+            onChange={(e) => setForm({ ...form, ad: e.target.value })} />
+        </div>
+        <div className="alan">
+          <label htmlFor={`min-${p.id}`}>Minimum Stok</label>
+          <input id={`min-${p.id}`} type="number" min={0} className="girdi" value={form.minStok}
+            onChange={(e) => setForm({ ...form, minStok: e.target.value })} />
+        </div>
+        <div className="alan alan--dugme">
+          <button type="submit" className="btn" disabled={bekliyor || !degisti}>Değişiklikleri Kaydet</button>
+        </div>
+      </div>
+      {hata && <div className="mesaj mesaj--error" role="alert">{hata}</div>}
+    </form>
+  );
+}
+
+function ParcaSatiri({ p, yeni, acik, ac }: {
+  p: ParcaStok; yeni: boolean; acik: boolean; ac: () => void;
 }) {
   const ipucu = `Kullanılabilir ${p.kullanilabilirStok}${p.ayrilan ? ` (${p.ayrilan} sıraya ayrıldı)` : ""} · toplam ${p.toplamStok} · minimum ${p.minStok}`;
   const stokAdresi = `/stok?parca=${encodeURIComponent(p.kod)}`;
@@ -225,11 +271,6 @@ function ParcaSatiri({ p, yeni, acik, ac, duzenle }: {
       ) : (
         <td className="soluk">Henüz hiçbir ürün ağacında yok</td>
       )}
-      <td className="ikon-hucre">
-        <button type="button" className="btn-ikon" title="Düzenle" aria-label={`${p.kod} düzenle`} onClick={duzenle}>
-          ✎
-        </button>
-      </td>
     </tr>
   );
 }

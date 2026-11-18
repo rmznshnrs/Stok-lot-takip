@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import GeriIleri from "@/components/GeriIleri";
 import { useState, type FormEvent } from "react";
 import GeriCagirmaEylemleri, { DURUM_ADI, acikMi } from "@/components/GeriCagirmaEylemleri";
 import { useAdminMi } from "@/components/Oturum";
@@ -26,11 +27,7 @@ export default function SeriSayfasi({ seriNo }: { seriNo: string }) {
   return (
     <main className="icerik icerik--dikey">
       <div className="bas-satir">
-        {iz?.satis ? (
-          <Link href={`/musteriler?id=${iz.satis.musteriId}`} className="not--buyuk">← {iz.satis.musteriAd}</Link>
-        ) : (
-          <Link href="/uretim?sekme=gecmis" className="not--buyuk">← Üretim geçmişi</Link>
-        )}
+        <GeriIleri />
       </div>
       {hata && <div className="mesaj mesaj--error">{hata}</div>}
       {iz === null && !hata && <p className="yukleniyor">Yükleniyor…</p>}
@@ -88,14 +85,16 @@ function SeriDetayi({ iz, degisti }: { iz: SeriIz; degisti: () => void }) {
             {g.bilgiVerildiZamani && <> · müşteriye bilgi verildi ({tarihSaat(g.bilgiVerildiZamani)})</>}
             <br />
             {g.aciklama} · {tarihSaat(g.zaman)}
-            {admin && <div className="alt-not"><GeriCagirmaEylemleri g={g} degisti={degisti} /></div>}
+            {admin && <div className="alt-not islem-dugmeleri"><GeriCagirmaEylemleri g={g} degisti={degisti} /></div>}
           </div>
         )}
         {iz.geriCagrilanLotlar.length > 0 && (
           <div className="uyari-kutu alt-not">Hatalı lot: <span className="mono">{iz.geriCagrilanLotlar.join(", ")}</span></div>
         )}
-        {admin && !g && !iz.hurda && <TekGeriCagir seriNo={iz.seriNo} degisti={degisti} />}
-        <Link href={`/etiket?seri=${encodeURIComponent(iz.seriNo)}`} className="btn btn--ikincil btn--tam">Etiket yazdır</Link>
+        <div className="islem-dugmeleri">
+          {admin && !g && !iz.hurda && <TekGeriCagir seriNo={iz.seriNo} degisti={degisti} />}
+          <Link href={`/etiket?seri=${encodeURIComponent(iz.seriNo)}`} className="btn btn--ikincil">Etiket yazdır</Link>
+        </div>
       </section>
 
       <section className="kart kart--genis kart--iz-sutun">
@@ -106,7 +105,7 @@ function SeriDetayi({ iz, degisti }: { iz: SeriIz; degisti: () => void }) {
               <tr>
                 <th>Parça</th>
                 <th className="sag">Adet</th>
-                <th>Stok giriş no</th>
+                <th>Lot No</th>
                 <th>Tedarikçi</th>
                 <th>Sipariş tarihi</th>
               </tr>
@@ -160,7 +159,7 @@ function TekGeriCagir({ seriNo, degisti }: { seriNo: string; degisti: () => void
   }
 
   if (!acik) {
-    return <button type="button" className="btn btn--ikincil btn--tam" onClick={() => setAcik(true)}>Bu ürünü geri çağır</button>;
+    return <button type="button" className="btn btn--ikincil" onClick={() => setAcik(true)}>Bu ürünü geri çağır</button>;
   }
   return (
     <form className="form-dikey" onSubmit={kaydet}>

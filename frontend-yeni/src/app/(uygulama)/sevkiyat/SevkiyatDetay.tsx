@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import GeriIleri from "@/components/GeriIleri";
 import { useState, type FormEvent } from "react";
 import Mesaj, { type MesajBilgisi } from "@/components/Mesaj";
 import { ApiHatasi, sevkiyat, type Sevkiyat } from "@/lib/api";
@@ -32,7 +33,7 @@ export default function SevkiyatDetay({ id }: { id: number }) {
   return (
     <main className="icerik icerik--dikey">
       <div className="bas-satir">
-        <Link href="/sevkiyat" className="not--buyuk">← Sevkiyatlar</Link>
+        <GeriIleri />
       </div>
       {hata && <div className="mesaj mesaj--error">{hata}</div>}
       {s === null && !hata && <p className="yukleniyor">Yükleniyor…</p>}

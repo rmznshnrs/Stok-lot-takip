@@ -17,7 +17,7 @@ public class RaporServisi(AppDbContext db, IOzetServisi ozet, ISiparisServisi si
     };
     private static readonly Dictionary<string, string> SevkiyatDurumu = new()
     {
-        ["Hazirlaniyor"] = "Hazırlanıyor", ["Kargoda"] = "Kargoda", ["TeslimEdildi"] = "Teslim edildi",
+        ["Hazirlaniyor"] = "Kargoya verilecek", ["Kargoda"] = "Kargoda", ["TeslimEdildi"] = "Teslim edildi",
     };
     private static readonly Dictionary<string, string> GeriDurumu = new()
     {
@@ -57,7 +57,7 @@ public class RaporServisi(AppDbContext db, IOzetServisi ozet, ISiparisServisi si
             ["Açık sipariş", o.AcikSiparis],
             ["Üretim sırasındaki iş", o.SiradakiIs],
             ["Üretim sırasındaki ürün", o.SiradakiAdet],
-            ["Hazırlanan sevkiyat", o.HazirlananSevkiyat],
+            ["Kargoya verilecek sevkiyat", o.HazirlananSevkiyat],
             ["Kargodaki sevkiyat", o.KargodaSevkiyat],
             ["Depodaki ürün", o.DepodaUrun],
             ["Minimum stok altındaki parça", o.MinAltindaParca],
@@ -108,7 +108,7 @@ public class RaporServisi(AppDbContext db, IOzetServisi ozet, ISiparisServisi si
                 s.KargoZamani is { } k ? Yerel(k) : null, s.TeslimZamani is { } t ? Yerel(t) : null })]);
 
         Tablo(wb.Worksheets.Add("Mal Girişi"), 1,
-            ["Giriş Zamanı", "Stok Giriş No", "Parça Kodu", "Parça", "Tedarikçi", "Sipariş No", "Tedarikçi Lot No", "Gelen", "Elde Kalan"],
+            ["Giriş Zamanı", "Lot No", "Parça Kodu", "Parça", "Tedarikçi", "Sipariş No", "Tedarikçi Lot No", "Gelen", "Elde Kalan"],
             [.. girisler.Select(l => new object?[] {
                 Yerel(l.GirisZamani), l.LotNo, l.ParcaKod, l.ParcaAd, l.TedarikciAd, l.SiparisNo, l.TedarikciLotNo, l.GirisAdet, l.KalanAdet })]);
 
@@ -119,7 +119,7 @@ public class RaporServisi(AppDbContext db, IOzetServisi ozet, ISiparisServisi si
                 string.Join(", ", p.KullanildigiUrunler) })]);
 
         Tablo(wb.Worksheets.Add("Geri Çağırmalar"), 1,
-            ["Seri No", "Ürün", "Tarih", "Durum", "Müşteri", "Neden", "Stok Giriş No"],
+            ["Seri No", "Ürün", "Tarih", "Durum", "Müşteri", "Neden", "Lot No"],
             [.. geriCagirmalar.Select(g => new object?[] {
                 g.SeriNo, g.UrunAd, Yerel(g.Zaman), GeriDurumu.GetValueOrDefault(g.Durum, g.Durum), g.MusteriAd, g.Aciklama, g.LotNo })]);
 

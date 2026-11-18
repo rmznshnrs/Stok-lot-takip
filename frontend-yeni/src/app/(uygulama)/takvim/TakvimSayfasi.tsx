@@ -57,17 +57,6 @@ export default function TakvimSayfasi() {
     return `/takvim?ay=${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
   };
 
-  // Ay toplamları (yalnız bu ayın günleri)
-  const ayOnek = `${y}-${String(a + 1).padStart(2, "0")}`;
-  const toplam = new Map<string, { plan: number; uret: number; ist: number }>();
-  for (const [t, g] of gunVerisi) {
-    if (!t.startsWith(ayOnek)) continue;
-    for (const u of g.urunler) {
-      const x = toplam.get(u.urunAd) ?? { plan: 0, uret: 0, ist: 0 };
-      toplam.set(u.urunAd, { plan: x.plan + u.planlanan, uret: x.uret + u.uretilen, ist: x.ist + u.istenen });
-    }
-  }
-
   return (
     <>
       <SayfaSekmeleri etiket="Takvim" sekmeler={[]} />
@@ -148,33 +137,6 @@ export default function TakvimSayfasi() {
           />
         )}
 
-        {toplam.size > 0 && (
-          <section className="panel">
-            <div className="panel-bas"><h3>{AYLAR[a]} Toplamı</h3></div>
-            <div className="tablo-kap">
-              <table className="tablo">
-                <thead>
-                  <tr>
-                    <th>Ürün</th>
-                    <th className="sag">Planlanan Üretim</th>
-                    <th className="sag">Üretilen</th>
-                    <th className="sag">Teslimi İstenen</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {[...toplam].sort(([x], [z]) => x.localeCompare(z, "tr")).map(([ad, t]) => (
-                    <tr key={ad} className={t.ist > t.plan + t.uret ? "uyari-satir" : undefined}>
-                      <td>{ad}</td>
-                      <td className="sag">{t.plan}</td>
-                      <td className="sag">{t.uret}</td>
-                      <td className="sag">{t.ist}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </section>
-        )}
       </main>
     </>
   );

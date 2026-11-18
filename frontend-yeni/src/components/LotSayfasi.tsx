@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import GeriIleri from "@/components/GeriIleri";
 import { useState } from "react";
 import HataliLotFormu from "@/components/HataliLotFormu";
 import Mesaj, { type MesajBilgisi } from "@/components/Mesaj";
@@ -11,7 +12,7 @@ import { tarih, tarihSaat } from "@/lib/bicim";
 import { useVeri } from "@/lib/kancalar";
 
 /** Lot sayfası (Stok altında): lot bilgisi → kullanıldığı ürünler → ürünlerin gittiği müşteriler. */
-export default function LotSayfasi({ lotNo, geri }: { lotNo: string; geri: string }) {
+export default function LotSayfasi({ lotNo }: { lotNo: string }) {
   const { veri: iz, hata, yenile } = useVeri(async () => {
     try {
       return await izleme.lot(lotNo);
@@ -24,7 +25,7 @@ export default function LotSayfasi({ lotNo, geri }: { lotNo: string; geri: strin
   return (
     <main className="icerik icerik--dikey">
       <div className="bas-satir">
-        <Link href={geri} className="not--buyuk">← Stok listesi</Link>
+        <GeriIleri />
         {iz && (
           <div className="ozet">
             {iz.uretimler.length} üründe kullanıldı ·{" "}
@@ -60,7 +61,7 @@ function LotDetayi({ iz, degisti }: { iz: LotIz; degisti: () => void }) {
   return (
     <div className="akis">
       <section className={`kart kart--iz${lot.sorunlu ? " kart--geri" : ""}`}>
-        <div className="adim-baslik">Stok girişi</div>
+        <div className="adim-baslik">Lot</div>
         <div className="buyuk-numara">{lot.lotNo}</div>
         <div className="iz-ad">{lot.parcaAd} <span className="mono yardim">{lot.parcaKod}</span></div>
         {lot.sorunlu && (

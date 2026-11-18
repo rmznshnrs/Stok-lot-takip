@@ -30,7 +30,7 @@ export default function StokGirisleri({ lotlar, islemler = false, degisti }: {
     <table className="tablo tablo--sik tablo--girisler">
       <thead>
         <tr>
-          <th>Stok giriş no</th>
+          <th>Lot No</th>
           <th>Tedarikçi lot no</th>
           <th>Tedarikçi</th>
           <th>Sipariş tarihi</th>
