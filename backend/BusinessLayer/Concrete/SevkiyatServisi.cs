@@ -5,9 +5,11 @@ namespace BusinessLayer.Concrete;
 public class SevkiyatServisi(AppDbContext db) : ISevkiyatServisi
 {
     public async Task<List<SevkiyatDto>> ListeAsync(string? arama = null, string? durum = null, int? musteriId = null,
-                                                    CancellationToken ct = default)
+                                                    CancellationToken ct = default, DateOnly? baslangic = null)
     {
         var q = Sorgu();
+        if (baslangic is { } b)
+            q = q.Where(s => s.Tarih >= b);
         if (musteriId is { } m)
             q = q.Where(s => s.MusteriId == m);
         if (!string.IsNullOrWhiteSpace(durum))
@@ -26,8 +28,8 @@ public class SevkiyatServisi(AppDbContext db) : ISevkiyatServisi
                              || s.Kalemler.Any(k => EF.Functions.Like(k.Uretim!.SeriNo, desen))
                              || s.Iadeler.Any(i => EF.Functions.Like(i.Uretim!.SeriNo, desen)));
         }
-        var liste = await q.OrderByDescending(s => s.Tarih).ThenByDescending(s => s.Zaman).ThenByDescending(s => s.Id)
-            .Take(500).ToListAsync(ct);
+        var sirali = q.OrderByDescending(s => s.Tarih).ThenByDescending(s => s.Zaman).ThenByDescending(s => s.Id);
+        var liste = await (baslangic is null ? sirali.Take(500) : sirali).ToListAsync(ct);
         return [.. liste.Select(Donustur)];
     }
 

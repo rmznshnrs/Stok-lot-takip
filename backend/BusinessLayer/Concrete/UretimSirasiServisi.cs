@@ -14,7 +14,7 @@ public class UretimSirasiServisi(AppDbContext db, IStokLotuRepository lotlar, IU
         e.SiparisKalemi == null ? null : e.SiparisKalemi.Siparis!.Musteri!.Ad,
         e.OlusturmaZamani, e.OlusturanKullanici!.Ad + " " + e.OlusturanKullanici.Soyad, e.BitisZamani,
         e.Parcalar.OrderBy(p => p.Parca!.Kod).Select(p => new EmirParcasiDto(
-            new ParcaOzetDto(p.Parca!.Id, p.Parca.Kod, p.Parca.Ad, p.Parca.Birim), p.BirimAdet,
+            new ParcaOzetDto(p.Parca!.Id, p.Parca.Kod, p.Parca.Ad), p.BirimAdet,
             e.Durum == UretimEmriDurumu.Bekliyor ? p.BirimAdet * (e.Adet - e.Uretilen) : 0)).ToList(),
         e.Uretimler.OrderBy(u => u.SeriNo).Select(u => u.SeriNo).ToList());
 

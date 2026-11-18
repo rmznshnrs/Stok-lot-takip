@@ -1702,26 +1702,52 @@ h1, h2, h3, h4, label, th, .yan-menu, .sekme, .btn, .btn-baglanti, .rozet, .etik
 .uyari-satiri { padding: 8px 0; border-bottom: 1px solid var(--kenar-ince); align-items: center; }
 .uyari-satiri:last-child { border-bottom: 0; }
 
-/* Takvim: ay görünümü */
+/* Takvim: ay görünümü. Günler düğme: basınca altta günün ayrıntısı ve plan girme açılır. */
 .takvim-baslik { margin: 0 8px; min-width: 140px; text-align: center; }
-.takvim-acikla { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+.takvim-acikla { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 10px; }
 .takvim-kap { overflow-x: auto; }
-.takvim { display: grid; grid-template-columns: repeat(7, minmax(110px, 1fr)); gap: 4px; min-width: 780px; }
+.takvim { display: grid; grid-template-columns: repeat(7, minmax(120px, 1fr)); gap: 4px; min-width: 860px; }
 .takvim-gun-adi { font-size: 12px; font-weight: 600; color: var(--soluk); text-align: center; padding: 4px 0; }
 .takvim-gun {
-  min-height: 92px; border: 1px solid var(--kenar); border-radius: 8px; padding: 6px; background: var(--kart);
-  display: flex; flex-direction: column; gap: 4px;
+  all: unset; box-sizing: border-box; cursor: pointer;
+  min-height: 100px; border: 1px solid var(--kenar); border-radius: 8px; padding: 6px; background: var(--kart);
+  display: flex; flex-direction: column; gap: 3px; font: inherit; color: var(--metin); min-width: 0;
 }
-.takvim-gun--disarida { opacity: .45; }
+.takvim-gun:hover { border-color: var(--ana); }
+.takvim-gun:focus-visible { outline: 2px solid var(--ana); outline-offset: 1px; }
+.takvim-gun--disarida { opacity: .5; }
 .takvim-gun--gecmis { background: var(--zemin); }
 .takvim-gun--bugun { border-color: var(--ana); box-shadow: inset 0 0 0 1px var(--ana); }
-.takvim-gun-no { font-size: 12px; font-weight: 600; color: var(--soluk); }
+.takvim-gun--secili { border-color: var(--ana-koyu); box-shadow: inset 0 0 0 2px var(--ana-koyu); }
+.takvim-gun-no { font-size: 12px; font-weight: 700; color: var(--soluk); }
 .takvim-gun--bugun .takvim-gun-no { color: var(--ana-koyu); }
-.takvim-urun { display: flex; justify-content: space-between; align-items: center; gap: 4px; font-size: 12px; }
-.takvim-urun--eksik .takvim-urun-ad { color: var(--uyari); font-weight: 600; }
-.takvim-urun-ad { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.takvim-sayilar { display: flex; gap: 2px; flex-shrink: 0; }
-.takvim-cip { font-size: 11px; padding: 1px 6px; border-radius: 999px; font-weight: 600; }
-.takvim-cip--plan { background: var(--ana-acik); color: var(--ana-koyu); }
-.takvim-cip--uret { background: var(--kenar); color: var(--metin); }
-.takvim-cip--ist { background: var(--uyari-zemin); color: var(--uyari); }
+.takvim-urun { display: flex; flex-direction: column; gap: 2px; }
+/* Çubuklar boydan boya, canlı ve birbirinden kolay ayrılan renkler */
+.takvim-cubuk {
+  display: block; font-size: 11.5px; font-weight: 700; line-height: 1.35; padding: 2px 6px; border-radius: 5px;
+  color: #fff; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-transform: none;
+}
+.takvim-acikla .takvim-cubuk { display: inline-block; }
+.takvim-cubuk--plan { background: #2563EB; }
+.takvim-cubuk--uret { background: #16A34A; }
+.takvim-cubuk--ist { background: #EA580C; }
+.takvim-cubuk--eksik { background: #DC2626; }
+.takvim-cubuk--alim { background: #9333EA; }
+.takvim-cubuk--tamam { opacity: .45; text-decoration: line-through; }
+strong.takvim-cubuk { font-size: 13px; padding: 4px 8px; }
+.gun-formlari { align-items: start; }
+.kutu--ince { padding: 8px 12px; }
+.ustu-cizili { text-decoration: line-through; }
+.yeni-urun { border-left: 3px solid var(--ana); padding-left: 12px; }
+.alan--genis { flex: 1; min-width: 0; }
+.ozet-kutu--dugme { font: inherit; text-align: left; cursor: pointer; }
+.excel-satiri { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+
+/* Satırın tamamı tıklanır: satırdaki ana bağlantı (satir-bag) bütün satırı kaplar; diğer düğmeler üstte kalır */
+.satir-tikla { position: relative; cursor: pointer; }
+.satir-tikla:hover > td { background: var(--ana-acik); }
+.satir-tikla .satir-bag { position: static; }
+.satir-tikla .satir-bag::after { content: ""; position: absolute; inset: 0; }
+.satir-tikla a:not(.satir-bag), .satir-tikla button:not(.satir-bag), .satir-tikla input, .satir-tikla select, .satir-tikla label {
+  position: relative; z-index: 1;
+}

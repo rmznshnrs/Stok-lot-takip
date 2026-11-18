@@ -115,7 +115,8 @@ public class KullaniciServisi(AppDbContext db) : IKullaniciServisi
                 || await db.SatisIadeleri.AnyAsync(x => x.OlusturanKullaniciId == id, ct)
                 || await db.UrunGeriCagirmalari.AnyAsync(x => x.OlusturanKullaniciId == id || x.KapatanKullaniciId == id, ct)
                 || await db.Siparisler.AnyAsync(x => x.OlusturanKullaniciId == id, ct)
-                || await db.UretimEmirleri.AnyAsync(x => x.OlusturanKullaniciId == id, ct);
+                || await db.UretimEmirleri.AnyAsync(x => x.OlusturanKullaniciId == id, ct)
+                || await db.TakvimPlanlari.AnyAsync(x => x.OlusturanKullaniciId == id, ct);
             if (islemiVar)
                 k.Aktif = false;
             else

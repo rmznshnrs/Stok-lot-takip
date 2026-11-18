@@ -36,7 +36,7 @@ export default function UrunBilgisi({ urun, uretimSayisi }: { urun: UrunDetay; u
               <tr key={s.parcaId}>
                 <td>{s.parcaAd}</td>
                 <td className="mono">{s.parcaKod}</td>
-                <td className="sag">{s.adet} {s.birim}</td>
+                <td className="sag">{s.adet} adet</td>
                 <td className={`sag${s.minAltinda ? " uyari-metin" : ""}`}>{s.kullanilabilirStok}</td>
               </tr>
             ))}

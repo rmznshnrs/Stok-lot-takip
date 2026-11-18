@@ -7,7 +7,9 @@ namespace BusinessLayer.Abstract;
 public interface ISevkiyatServisi
 {
     /// <summary>Yeniden eskiye. Arama: sevkiyat no, müşteri, sipariş no, takip no, seri no. durum: Hazirlaniyor / Kargoda / TeslimEdildi.</summary>
-    Task<List<SevkiyatDto>> ListeAsync(string? arama = null, string? durum = null, int? musteriId = null, CancellationToken ct = default);
+    /// <summary>baslangic verilirse o tarihten sonraki sevkiyatların hepsi (sınırsız; rapor için).</summary>
+    Task<List<SevkiyatDto>> ListeAsync(string? arama = null, string? durum = null, int? musteriId = null, CancellationToken ct = default,
+                                       DateOnly? baslangic = null);
 
     Task<SevkiyatDto> GetirAsync(int id, CancellationToken ct = default);
 

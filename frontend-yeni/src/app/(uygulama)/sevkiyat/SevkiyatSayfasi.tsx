@@ -77,8 +77,8 @@ function SevkiyatListesi() {
               {liste === null && !hata && <tr className="bos"><td colSpan={7}>Yükleniyor…</td></tr>}
               {liste?.length === 0 && <tr className="bos"><td colSpan={7}>{aranan || durum ? "Sonuç yok." : "Henüz sevkiyat yok."}</td></tr>}
               {gorunen?.map((s) => (
-                <tr key={s.id}>
-                  <td className="mono"><Link href={sevkiyatAdresi(s.id)}>{s.no}</Link></td>
+                <tr key={s.id} className="satir-tikla">
+                  <td className="mono"><Link href={sevkiyatAdresi(s.id)} className="satir-bag">{s.no}</Link></td>
                   <td>{s.zaman ? tarihSaat(s.zaman) : tarih(s.tarih)}</td>
                   <td><Link href={`/musteriler?id=${s.musteriId}`}>{s.musteriAd}</Link></td>
                   <td className="mono">{s.siparisId ? <Link href={siparisAdresi(s.siparisId)}>{s.siparisNo}</Link> : <span className="soluk">—</span>}</td>

@@ -44,6 +44,9 @@ async function ilet(istek: NextRequest, { params }: Baglam) {
   const cevapBasliklari = new Headers();
   const turu = yanit.headers.get("Content-Type");
   if (turu) cevapBasliklari.set("Content-Type", turu);
+  // İndirilen dosyalar (Excel raporu) adıyla kaydedilsin
+  const ek = yanit.headers.get("Content-Disposition");
+  if (ek) cevapBasliklari.set("Content-Disposition", ek);
   const govde = yanit.status === 204 ? null : await yanit.arrayBuffer();
   const cevap = new NextResponse(govde, { status: yanit.status, headers: cevapBasliklari });
 

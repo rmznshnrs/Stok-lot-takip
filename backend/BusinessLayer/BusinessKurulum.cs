@@ -14,6 +14,7 @@ public static class BusinessKurulum
         services.AddScoped<ISiparisServisi, SiparisServisi>();
         services.AddScoped<ISevkiyatServisi, SevkiyatServisi>();
         services.AddScoped<IOzetServisi, OzetServisi>();
+        services.AddScoped<IRaporServisi, RaporServisi>();
         services.AddScoped<IIslemGecmisiServisi, IslemGecmisiServisi>();
         services.AddScoped<IGeriCagirmaServisi, GeriCagirmaServisi>();
         services.AddScoped<IIzlemeServisi, IzlemeServisi>();

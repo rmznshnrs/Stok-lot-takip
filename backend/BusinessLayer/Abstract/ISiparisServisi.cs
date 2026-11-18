@@ -4,7 +4,9 @@ namespace BusinessLayer.Abstract;
 public interface ISiparisServisi
 {
     /// <summary>Yeniden eskiye. acik: yalnız bitmemiş (iptal edilmemiş, hepsi gönderilmemiş) siparişler.</summary>
-    Task<List<SiparisDto>> ListeAsync(int? musteriId = null, bool acik = false, CancellationToken ct = default);
+    /// <summary>baslangic verilirse o tarihten sonraki siparişlerin hepsi (sınırsız; rapor için).</summary>
+    Task<List<SiparisDto>> ListeAsync(int? musteriId = null, bool acik = false, CancellationToken ct = default,
+                                      DateOnly? baslangic = null);
 
     Task<SiparisDto> GetirAsync(int id, CancellationToken ct = default);
 

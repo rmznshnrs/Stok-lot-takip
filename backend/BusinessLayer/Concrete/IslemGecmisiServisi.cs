@@ -23,7 +23,7 @@ public class IslemGecmisiServisi(AppDbContext db) : IIslemGecmisiServisi
                 .Where(l => l.OlusturmaZamani < sinir && (yapanId == null || l.OlusturanKullaniciId == yapanId))
                 .OrderByDescending(l => l.OlusturmaZamani).Take(adet)
                 .Select(l => new IslemDto(l.OlusturmaZamani, "giris", l.OlusturanKullanici!.Ad + " " + l.OlusturanKullanici.Soyad,
-                    l.Parca!.Ad + " · " + l.GirisAdet + " " + l.Parca.Birim + " · " + l.Tedarikci!.Ad, l.LotNo, "lot"))
+                    l.Parca!.Ad + " · " + l.GirisAdet + " adet · " + l.Tedarikci!.Ad, l.LotNo, "lot"))
                 .ToListAsync(ct));
         }
 

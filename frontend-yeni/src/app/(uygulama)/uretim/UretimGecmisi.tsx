@@ -60,9 +60,9 @@ export default function UretimGecmisi({ ilkArama = "" }: { ilkArama?: string }) 
                 </tr>
               )}
               {gorunen?.map((u) => (
-                <tr key={u.uretimId}>
+                <tr key={u.uretimId} className="satir-tikla">
                   <td className="mono">
-                    <Link href={seriAdresi(u.seriNo)}>{u.seriNo}</Link>
+                    <Link href={seriAdresi(u.seriNo)} className="satir-bag">{u.seriNo}</Link>
                   </td>
                   <td>{u.urunAd}</td>
                   <td>{tarihSaat(u.tarih)}</td>

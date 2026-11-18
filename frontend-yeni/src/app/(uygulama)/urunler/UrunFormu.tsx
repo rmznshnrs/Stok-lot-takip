@@ -34,7 +34,7 @@ export default function UrunFormu({ urun, parcalar, kaydedildi }: Props) {
     if (agac.some((s) => s.parcaId === p.id)) return setSatirHatasi(`${p.kod} zaten ağaçta; adedini satırdan değiştirin.`);
     setAgac([
       ...agac,
-      { parcaId: p.id, parcaKod: p.kod, parcaAd: p.ad, birim: p.birim, adet, kullanilabilirStok: p.kullanilabilirStok, minAltinda: p.minAltinda },
+      { parcaId: p.id, parcaKod: p.kod, parcaAd: p.ad, adet, kullanilabilirStok: p.kullanilabilirStok, minAltinda: p.minAltinda },
     ].sort((a, b) => a.parcaKod.localeCompare(b.parcaKod)));
     setYeniParca("");
     setYeniAdet("");

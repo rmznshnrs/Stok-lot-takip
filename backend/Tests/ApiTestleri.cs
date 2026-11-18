@@ -107,7 +107,7 @@ public class ApiTestleri(TestVeritabani vt) : IAsyncLifetime
         { "GET", "/api/izleme/lot/L-D-2601" }, { "GET", "/api/izleme/seri/SN-IP-0001" }, { "GET", "/api/izleme/ara?q=L" },
         { "GET", "/api/izleme/hareketler" }, { "POST", "/api/izleme/lot/L-D-2601/sorun" },
         { "GET", "/api/geri-cagirma" }, { "POST", "/api/geri-cagirma" }, { "POST", "/api/geri-cagirma/1/geri-al" }, { "POST", "/api/geri-cagirma/1/satisa-ac" },
-        { "GET", "/api/siparis" }, { "POST", "/api/siparis" }, { "GET", "/api/sevkiyat" }, { "GET", "/api/ozet" }, { "GET", "/api/ozet/takvim?baslangic=2026-11-01&bitis=2026-11-30" }, { "POST", "/api/sevkiyat" }, { "POST", "/api/sevkiyat/1/teslim" }, { "GET", "/api/siparis/hazir?urunId=1" },
+        { "GET", "/api/siparis" }, { "POST", "/api/siparis" }, { "GET", "/api/sevkiyat" }, { "GET", "/api/ozet" }, { "GET", "/api/ozet/excel?ay=1" }, { "POST", "/api/ozet/takvim/plan" }, { "GET", "/api/ozet/takvim?baslangic=2026-11-01&bitis=2026-11-30" }, { "POST", "/api/sevkiyat" }, { "POST", "/api/sevkiyat/1/teslim" }, { "GET", "/api/siparis/hazir?urunId=1" },
     };
 
     [Theory]

@@ -7,15 +7,19 @@ public class SiparisServisi(AppDbContext db) : ISiparisServisi
     public const int EnFazlaAdet = 999;
     private const string NoOneki = "SP-";
 
-    public async Task<List<SiparisDto>> ListeAsync(int? musteriId = null, bool acik = false, CancellationToken ct = default)
+    public async Task<List<SiparisDto>> ListeAsync(int? musteriId = null, bool acik = false, CancellationToken ct = default,
+                                                   DateOnly? baslangic = null)
     {
         var q = Sorgu();
+        if (baslangic is { } b)
+            q = q.Where(s => s.Tarih >= b);
         if (musteriId is { } m)
             q = q.Where(s => s.MusteriId == m);
         if (acik)
             q = q.Where(s => s.IptalZamani == null
                              && s.Kalemler.Any(k => k.Ayrilanlar.Count(u => u.SatisKalemi != null) < k.Adet));
-        var liste = await q.OrderByDescending(s => s.Tarih).ThenByDescending(s => s.Id).Take(500).ToListAsync(ct);
+        var sirali = q.OrderByDescending(s => s.Tarih).ThenByDescending(s => s.Id);
+        var liste = await (baslangic is null ? sirali.Take(500) : sirali).ToListAsync(ct);
         return [.. liste.Select(Donustur)];
     }
 

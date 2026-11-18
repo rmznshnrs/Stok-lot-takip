@@ -11,4 +11,11 @@ public interface IOzetServisi
 
     /// <summary>Gün gün, ürün ürün planlanan üretim, üretilen ve teslimi istenen sipariş adedi (en çok 62 gün).</summary>
     Task<List<TakvimGunuDto>> TakvimAsync(DateOnly baslangic, DateOnly bitis, CancellationToken ct = default);
+
+    /// <summary>Takvime parça alımı hatırlatıcısı ya da not ekler; stoğa dokunmaz.</summary>
+    Task<TakvimPlaniDto> PlanEkleAsync(TakvimPlaniIstek istek, int kullaniciId, CancellationToken ct = default);
+
+    Task<TakvimPlaniDto> PlanTamamAsync(int id, bool tamamlandi, CancellationToken ct = default);
+
+    Task PlanSilAsync(int id, CancellationToken ct = default);
 }

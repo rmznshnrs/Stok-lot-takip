@@ -15,9 +15,9 @@ public class TanimTestleri(TestVeritabani vt) : IsKuraliTesti(vt)
     [Fact]
     public async Task Parca_olustur_ve_guncelle()
     {
-        var p = await Tanim.ParcaOlusturAsync(new ParcaIstek(" STM32F103 ", " Mikro  denetleyici ", "", 5));
-        Assert.Equal(("STM32F103", "Mikro denetleyici", "adet"), (p.Kod, p.Ad, p.Birim));
-        p = await Tanim.ParcaGuncelleAsync(p.Id, new ParcaIstek("STM32F103", "MCU", "adet", 10));
+        var p = await Tanim.ParcaOlusturAsync(new ParcaIstek(" STM32F103 ", " Mikro  denetleyici ", 5));
+        Assert.Equal(("STM32F103", "Mikro denetleyici"), (p.Kod, p.Ad));
+        p = await Tanim.ParcaGuncelleAsync(p.Id, new ParcaIstek("STM32F103", "MCU", 10));
         Assert.Equal("MCU", p.Ad);
         Assert.Equal(10, await Db.Parcalar.Where(x => x.Id == p.Id).Select(x => x.MinStok).SingleAsync());
     }

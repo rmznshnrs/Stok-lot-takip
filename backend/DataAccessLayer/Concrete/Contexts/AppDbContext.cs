@@ -30,6 +30,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<SiparisKalemi> SiparisKalemleri => Set<SiparisKalemi>();
     public DbSet<UretimEmri> UretimEmirleri => Set<UretimEmri>();
     public DbSet<UretimEmriParcasi> UretimEmriParcalari => Set<UretimEmriParcasi>();
+    public DbSet<TakvimPlani> TakvimPlanlari => Set<TakvimPlani>();
 
     /// <summary>Müşteri / tedarikçide görüntülenen tek satırlık iletişim: boş olmayan alanlar " · " ile.</summary>
     private const string IletisimSql = "CONCAT_WS(N' · ', NULLIF([Telefon], N''), NULLIF([Eposta], N''), NULLIF([Adres], N''))";
@@ -53,7 +54,6 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             e.ToTable("Parca", t => t.HasCheckConstraint("CK_Parca_MinStok", "[MinStok] >= 0"));
             e.Property(x => x.Kod).HasMaxLength(50);
             e.Property(x => x.Ad).HasMaxLength(200);
-            e.Property(x => x.Birim).HasMaxLength(20);
             e.HasIndex(x => x.Kod).IsUnique();
         });
 
@@ -150,6 +150,16 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             e.HasIndex(x => new { x.Durum, x.Sira });
             e.HasOne(x => x.Urun).WithMany().HasForeignKey(x => x.UrunId);
             e.HasOne(x => x.SiparisKalemi).WithMany(k => k.UretimEmirleri).HasForeignKey(x => x.SiparisKalemiId);
+            e.HasOne(x => x.OlusturanKullanici).WithMany().HasForeignKey(x => x.OlusturanKullaniciId);
+        });
+
+        m.Entity<TakvimPlani>(e =>
+        {
+            e.ToTable("TakvimPlani", t => t.HasCheckConstraint("CK_TakvimPlani_Adet", "[Adet] IS NULL OR [Adet] > 0"));
+            e.Property(x => x.Aciklama).HasMaxLength(500);
+            e.HasIndex(x => x.Tarih);
+            e.HasOne(x => x.Parca).WithMany().HasForeignKey(x => x.ParcaId);
+            e.HasOne(x => x.Tedarikci).WithMany().HasForeignKey(x => x.TedarikciId);
             e.HasOne(x => x.OlusturanKullanici).WithMany().HasForeignKey(x => x.OlusturanKullaniciId);
         });
 

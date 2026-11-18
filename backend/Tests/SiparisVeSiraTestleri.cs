@@ -1,3 +1,5 @@
+using Microsoft.EntityFrameworkCore;
+
 namespace Tests;
 
 /// <summary>Üretim sırası (parça ayırma, kısmi üretim) ve siparişler (seri ayırma, durum).</summary>
@@ -241,5 +243,37 @@ public class OzetTestleri(TestVeritabani vt) : IsKuraliTesti(vt)
         await Assert.ThrowsAsync<IsKuraliHatasi>(() => Ozet.TakvimAsync(new(2026, 1, 1), new(2026, 6, 1)));
 
         static (int, int, int) Tek(TakvimGunuDto g) { var u = Assert.Single(g.Urunler); return (u.Planlanan, u.Uretilen, u.Istenen); }
+    }
+
+    [Fact]
+    public async Task Takvime_parca_alimi_hatirlaticisi_eklenir_tamamlanir_silinir()
+    {
+        var p = await Ozet.PlanEkleAsync(new TakvimPlaniIstek(new(2026, 12, 5), Diyot.Id, 50, Ted.Id, "Fiyat sor"), Kullanici.Id);
+        Assert.Equal(("DIY", 50, "Tedarikçi A", false), (p.Parca!.Kod, p.Adet, p.TedarikciAd, p.Tamamlandi));
+        var not = await Ozet.PlanEkleAsync(new TakvimPlaniIstek(new(2026, 12, 5), Aciklama: "Bakım günü"), Kullanici.Id);
+        Assert.Null(not.Parca);
+        await Assert.ThrowsAsync<IsKuraliHatasi>(() => Ozet.PlanEkleAsync(new TakvimPlaniIstek(new(2026, 12, 5)), Kullanici.Id));
+
+        var gun = Assert.Single(await Ozet.TakvimAsync(new(2026, 12, 1), new(2026, 12, 31)));
+        Assert.Equal((new DateOnly(2026, 12, 5), 2), (gun.Tarih, gun.Planlar.Count));
+        Assert.Empty(gun.Urunler);
+        Assert.True((await Ozet.PlanTamamAsync(p.Id, true)).Tamamlandi);
+        await Ozet.PlanSilAsync(not.Id);
+        Assert.Equal([p.Id], (await Ozet.TakvimAsync(new(2026, 12, 1), new(2026, 12, 31)))[0].Planlar.Select(x => x.Id));
+        Assert.Equal(100 + 10 + 3 + 50, await Db.StokLotlari.SumAsync(l => l.KalanAdet));  // stoğa dokunmaz
+    }
+
+    [Fact]
+    public async Task Excel_raporu_bolumleri_ayri_sayfalarda()
+    {
+        await Uretim.UretAsync(Urun.Id, 2, Kullanici.Id);
+        var rapor = new RaporServisi(Db, Ozet, new SiparisServisi(Db), Uretim, new SevkiyatServisi(Db), Sira, Stok, new GeriCagirmaServisi(Db));
+        var (icerik, ad) = await rapor.ExcelAsync(3);
+        Assert.StartsWith("rapor-son-3-ay-", ad);
+        using var wb = new ClosedXML.Excel.XLWorkbook(new MemoryStream(icerik));
+        Assert.Equal(["Özet", "Siparişler", "Üretim Sırası", "Üretim", "Sevkiyat", "Mal Girişi", "Parça Stoğu", "Geri Çağırmalar"],
+                     wb.Worksheets.Select(w => w.Name));
+        Assert.Equal("SN-IP-0002", wb.Worksheet("Üretim").Cell(2, 1).GetString());
+        await Assert.ThrowsAsync<IsKuraliHatasi>(() => rapor.ExcelAsync(2));
     }
 }

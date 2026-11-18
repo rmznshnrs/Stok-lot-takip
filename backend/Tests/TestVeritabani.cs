@@ -42,7 +42,7 @@ public sealed class TestVeritabani : IAsyncLifetime
         await using var db = YeniContext();
         await db.Database.ExecuteSqlRawAsync("""
             UPDATE Uretim SET SiparisKalemiId = NULL, UretimEmriId = NULL; UPDATE Satis SET SiparisId = NULL;
-            DELETE FROM UretimEmriParcasi; DELETE FROM UretimEmri; DELETE FROM SiparisKalemi; DELETE FROM Siparis;
+            DELETE FROM TakvimPlani; DELETE FROM UretimEmriParcasi; DELETE FROM UretimEmri; DELETE FROM SiparisKalemi; DELETE FROM Siparis;
             DELETE FROM SifreSifirlama; DELETE FROM UrunGeriCagirma; DELETE FROM SatisIade; DELETE FROM UretimHurda;
             DELETE FROM SatisKalemi; DELETE FROM Satis; DELETE FROM Musteri; DELETE FROM StokDuzeltme;
             DELETE FROM UretimTuketim; DELETE FROM Uretim; DELETE FROM UrunAgaci; DELETE FROM Urun;

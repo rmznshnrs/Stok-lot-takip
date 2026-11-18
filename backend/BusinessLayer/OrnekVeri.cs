@@ -21,15 +21,15 @@ public class OrnekVeri(AppDbContext db, IUretimServisi uretimServisi, ISatisServ
     private static readonly TimeSpan Istanbul = TimeSpan.FromHours(3);
     private static DateTimeOffset Zaman_(int y, int a, int g, int s, int d) => new(y, a, g, s, d, 0, Istanbul);
 
-    private static readonly (string Kod, string Ad, string Birim, int MinStok)[] Parcalar =
+    private static readonly (string Kod, string Ad, int MinStok)[] Parcalar =
     [
-        ("R-10K", "Direnç 10 kΩ 0805", "adet", 200),
-        ("LED-KR", "LED kırmızı 3 mm", "adet", 50),
-        ("D-1N4007", "Diyot 1N4007", "adet", 30),
-        ("PCB-IP", "İndikatör paneli PCB", "adet", 10),
-        ("PCB-RK", "Röle kartı PCB", "adet", 10),
-        ("KON-2P", "Klemens konnektör 2 pin", "adet", 40),
-        ("ROLE-12", "Röle 12 V", "adet", 20),
+        ("R-10K", "Direnç 10 kΩ 0805", 200),
+        ("LED-KR", "LED kırmızı 3 mm", 50),
+        ("D-1N4007", "Diyot 1N4007", 30),
+        ("PCB-IP", "İndikatör paneli PCB", 10),
+        ("PCB-RK", "Röle kartı PCB", 10),
+        ("KON-2P", "Klemens konnektör 2 pin", 40),
+        ("ROLE-12", "Röle 12 V", 20),
     ];
 
     private static readonly (string Ad, string Eposta, string Telefon)[] Tedarikciler =
@@ -117,7 +117,7 @@ public class OrnekVeri(AppDbContext db, IUretimServisi uretimServisi, ISatisServ
 
         // Tanımlar ve mal girişleri (henüz hiç üretim yok: kalan = giriş)
         var parcalar = Parcalar.ToDictionary(p => p.Kod,
-            p => new Parca { Kod = p.Kod, Ad = p.Ad, Birim = p.Birim, MinStok = p.MinStok });
+            p => new Parca { Kod = p.Kod, Ad = p.Ad, MinStok = p.MinStok });
         var tedarikciler = Tedarikciler.ToDictionary(t => t.Ad, t => new Tedarikci { Ad = t.Ad, Eposta = t.Eposta, Telefon = t.Telefon });
         foreach (var l in Lotlar)
         {
@@ -160,6 +160,7 @@ public class OrnekVeri(AppDbContext db, IUretimServisi uretimServisi, ISatisServ
         await db.Uretimler.ExecuteUpdateAsync(u => u.SetProperty(x => x.SiparisKalemiId, (int?)null)
                                                     .SetProperty(x => x.UretimEmriId, (int?)null), ct);
         await db.Satislar.ExecuteUpdateAsync(x => x.SetProperty(y => y.SiparisId, (int?)null), ct);
+        await db.TakvimPlanlari.ExecuteDeleteAsync(ct);
         await db.UretimEmriParcalari.ExecuteDeleteAsync(ct);
         await db.UretimEmirleri.ExecuteDeleteAsync(ct);
         await db.SiparisKalemleri.ExecuteDeleteAsync(ct);

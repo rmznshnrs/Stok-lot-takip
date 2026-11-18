@@ -10,8 +10,11 @@ import { useSayfalama } from "@/components/Sayfalama";
 import { useGecikmeli, useVeri } from "@/lib/kancalar";
 import { lotAdresi, seriAdresi } from "@/lib/adres";
 
-/** Geri çağrılan ürünler (seri no): müşteride / geri alındı / depoda / hurda / satışa açıldı. */
-export default function GeriCagirmalar() {
+/**
+ * Geri çağrılan ürünler (seri no): müşteride / geri alındı / depoda / hurda / satışa açıldı. Ana sayfada
+ * "Açık geri çağırma" kutusuna basınca açılır; tek ürünün geri çağırma işlemleri seri sayfasında.
+ */
+export default function GeriCagirmalar({ kapat }: { kapat?: () => void }) {
   const admin = useAdminMi();
   const [arama, setArama] = useState("");
   const aranan = useGecikmeli(arama.trim());
@@ -24,11 +27,10 @@ export default function GeriCagirmalar() {
   const sutun = admin ? 6 : 5;
 
   return (
-    <main className="icerik icerik--dikey">
       <section className="panel">
         <div className="panel-bas">
           <div className="baslik-grup">
-            <h2>Geri çağrılan ürünler</h2>
+            <h3>Geri Çağrılan Ürünler</h3>
             {liste && <span className="ozet">{acik} açık · {musteride} müşteriden geri istendi · {liste.length - acik} kapandı</span>}
           </div>
           <div className="arama-satiri">
@@ -39,6 +41,7 @@ export default function GeriCagirmalar() {
               value={arama}
               onChange={(e) => setArama(e.target.value)}
             />
+            {kapat && <button type="button" className="btn btn--ikincil btn--kucuk" onClick={kapat}>Kapat</button>}
           </div>
         </div>
         {hata && <div className="mesaj mesaj--error">{hata}</div>}
@@ -60,9 +63,9 @@ export default function GeriCagirmalar() {
                 <tr className="bos"><td colSpan={sutun}>{aranan ? "Aramaya uyan kayıt yok." : "Henüz geri çağırma yok."}</td></tr>
               )}
               {gorunen?.map((g) => (
-                <tr key={g.id} className={g.durum === "musteride" ? "uyari-satir" : undefined}>
+                <tr key={g.id} className={`satir-tikla${g.durum === "musteride" ? " uyari-satir" : ""}`}>
                   <td className="mono">
-                    <Link href={seriAdresi(g.seriNo)}>{g.seriNo}</Link>
+                    <Link href={seriAdresi(g.seriNo)} className="satir-bag">{g.seriNo}</Link>
                   </td>
                   <td>{g.urunAd}</td>
                   <td>
@@ -88,6 +91,5 @@ export default function GeriCagirmalar() {
         </div>
         {cubuk}
       </section>
-    </main>
   );
 }

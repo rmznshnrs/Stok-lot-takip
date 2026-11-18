@@ -38,8 +38,8 @@ export default function MusteriSiparisleri({ musteriId }: { musteriId: number })
             {liste === null && !hata && <tr className="bos"><td colSpan={5}>Yükleniyor…</td></tr>}
             {liste?.length === 0 && <tr className="bos"><td colSpan={5}>Sipariş yok.</td></tr>}
             {liste?.map((s) => (
-              <tr key={s.id}>
-                <td className="mono"><Link href={siparisAdresi(s.id)}>{s.no}</Link></td>
+              <tr key={s.id} className="satir-tikla">
+                <td className="mono"><Link href={siparisAdresi(s.id)} className="satir-bag">{s.no}</Link></td>
                 <td>{tarih(s.tarih)}</td>
                 <td>{s.kalemler.map((k) => `${k.urunAd} × ${k.adet}`).join(", ")}</td>
                 <td>{s.istenenTarih ? tarih(s.istenenTarih) : <span className="soluk">—</span>}</td>

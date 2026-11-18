@@ -16,7 +16,6 @@ public class TanimServisi(AppDbContext db, IStokServisi stok) : ITanimServisi
     {
         var kod = (istek.Kod ?? "").Trim();
         var ad = Donusum.Sadelestir(istek.Ad);
-        var birim = Donusum.Sadelestir(istek.Birim);
         if (kod.Length == 0 || ad.Length == 0)
             throw new IsKuraliHatasi("Parça kodu ve adı boş olamaz.");
         if (istek.MinStok < 0)
@@ -29,7 +28,7 @@ public class TanimServisi(AppDbContext db, IStokServisi stok) : ITanimServisi
                 : await db.Parcalar.SingleOrDefaultAsync(p => p.Id == id, ct) ?? throw new BulunamadiHatasi("Parça bulunamadı.");
             if (await db.Parcalar.AnyAsync(p => p.Kod == kod && p.Id != parca.Id, ct))
                 throw new IsKuraliHatasi("Bu kodla bir parça zaten var.");
-            (parca.Kod, parca.Ad, parca.Birim, parca.MinStok) = (kod, ad, birim.Length == 0 ? "adet" : birim, istek.MinStok);
+            (parca.Kod, parca.Ad, parca.MinStok) = (kod, ad, istek.MinStok);
             await db.SaveChangesAsync(ct);
             return Donusum.Ozet(parca);
         }, ct);
@@ -58,7 +57,7 @@ public class TanimServisi(AppDbContext db, IStokServisi stok) : ITanimServisi
         var stoklar = (await stok.ParcaStoklariAsync(ct: ct)).ToDictionary(p => p.Id);
         return new UrunDetayDto(urun.Id, urun.Kod, urun.Ad, urun.SeriOneki, !uretimVar,
             [.. urun.Agac.OrderBy(a => a.Parca!.Kod).Select(a => new UrunAgaciSatiriDto(
-                a.ParcaId, a.Parca!.Kod, a.Parca.Ad, a.Parca.Birim, a.Adet,
+                a.ParcaId, a.Parca!.Kod, a.Parca.Ad, a.Adet,
                 stoklar[a.ParcaId].KullanilabilirStok, stoklar[a.ParcaId].MinAltinda))]);
     }
 

@@ -9,7 +9,8 @@ export const rolAdi = (r: Rol) => (r === "Admin" ? "Yönetici" : "Çalışan");
 
 export interface Kullanici { id: number; ad: string; soyad: string; kullaniciAdi: string; rol: Rol; aktif?: boolean }
 
-export interface ParcaOzet { id: number; kod: string; ad: string; birim: string }
+/** Parçalar adetle sayılır. */
+export interface ParcaOzet { id: number; kod: string; ad: string }
 
 export interface Lot {
   id: number; lotNo: string; parcaId: number; parcaKod: string; parcaAd: string; tedarikciAd: string;
@@ -25,7 +26,7 @@ export interface Lot {
 export interface SatisBilgisi { satisId: number; tarih: string; musteriId: number; musteriAd: string; musteriIletisim: string }
 
 export interface ParcaStok {
-  id: number; kod: string; ad: string; birim: string; minStok: number;
+  id: number; kod: string; ad: string; minStok: number;
   toplamStok: number; kullanilabilirStok: number; lotSayisi: number; kullanildigiUrunler: string[];
   /** Hatalı kaydedilen parça adedi (stoktan düşülen + yalnız sayılan). */
   hataliAdet: number;
@@ -182,15 +183,22 @@ export interface AnaSayfaOzeti {
 /** planlanan: sıradaki işlerin o güne planlanan adedi; uretilen: o gün üretilen; istenen: o gün teslimi istenen sipariş adedi. */
 export interface TakvimGunu {
   tarih: string; urunler: { urunId: number; urunAd: string; planlanan: number; uretilen: number; istenen: number }[];
+  planlar: TakvimPlani[];
 }
+/** Parça alımı hatırlatıcısı (parca dolu) ya da not. */
+export interface TakvimPlani {
+  id: number; tarih: string; parca: ParcaOzet | null; adet: number | null; tedarikciId: number | null; tedarikciAd: string | null;
+  aciklama: string; tamamlandi: boolean; kullaniciAd: string;
+}
+export interface TakvimPlaniIstek { tarih: string; parcaId?: number; adet?: number; tedarikciId?: number; aciklama?: string }
 
-export interface ParcaIstek { kod: string; ad: string; birim?: string; minStok?: number }
+export interface ParcaIstek { kod: string; ad: string; minStok?: number }
 /** Seri no öneki gönderilmez: yeni üründe ürün kodundan oluşur (U1 → U1-0001), sonra değişmez. */
 export interface UrunIstek { kod: string; ad: string }
 export interface UrunAgaciSatiriIstek { parcaId: number; adet: number }
 export interface UrunListe { id: number; kod: string; ad: string; seriOneki: string; parcaCesidi: number; uretimSayisi: number }
 export interface UrunAgaciSatiri {
-  parcaId: number; parcaKod: string; parcaAd: string; birim: string; adet: number; kullanilabilirStok: number; minAltinda: boolean;
+  parcaId: number; parcaKod: string; parcaAd: string; adet: number; kullanilabilirStok: number; minAltinda: boolean;
 }
 export interface UrunDetay { id: number; kod: string; ad: string; seriOneki: string; seriOnekiDegistirilebilir: boolean; agac: UrunAgaciSatiri[] }
 /** iletisim: telefon · e-posta · adres tek satırda (görüntüleme için). */
@@ -369,6 +377,10 @@ export const ozet = {
   anaSayfa: () => al<AnaSayfaOzeti>("ozet"),
   /** baslangic, bitis: "YYYY-MM-DD" (en çok 62 gün). */
   takvim: (baslangic: string, bitis: string) => al<TakvimGunu[]>("ozet/takvim", { baslangic, bitis }),
+  /** Parça alımı hatırlatıcısı ya da not; stoğa dokunmaz. */
+  planEkle: (p: TakvimPlaniIstek) => gonder<TakvimPlani>("ozet/takvim/plan", p),
+  planTamam: (id: number, tamamlandi: boolean) => gonder<TakvimPlani>(`ozet/takvim/plan/${id}/tamam?tamamlandi=${tamamlandi}`),
+  planSil: (id: number) => sil<void>(`ozet/takvim/plan/${id}`),
 };
 
 export const satis = {

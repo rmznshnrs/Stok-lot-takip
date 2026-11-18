@@ -1,16 +1,21 @@
 "use client";
 
 import Link from "next/link";
-import { useState, type FormEvent } from "react";
+import { useSearchParams } from "next/navigation";
+import { Fragment, useState, type FormEvent } from "react";
 import Mesaj, { type MesajBilgisi } from "@/components/Mesaj";
-import { ApiHatasi, parcalar, type ParcaStok } from "@/lib/api";
+import StokGirisleri from "@/components/StokGirisleri";
+import { ApiHatasi, parcalar, stok, type ParcaStok } from "@/lib/api";
 import { useSayfalama } from "@/components/Sayfalama";
 import { useGecikmeli, useVeri } from "@/lib/kancalar";
 
-const BOS_FORM = { kod: "", ad: "", birim: "adet", minStok: "0" };
+const BOS_FORM = { kod: "", ad: "", minStok: "0" };
 
+/** Parçalar: tanım, stok özeti; satıra basınca stok girişleri, hatalı kayıt ve stoktan düşme (yönetici). */
 export default function ParcalarEkrani() {
-  const [arama, setArama] = useState("");
+  const ilkParca = useSearchParams().get("parca") ?? "";
+  const [acik, setAcik] = useState<string | null>(ilkParca || null);
+  const [arama, setArama] = useState(ilkParca);
   const aranan = useGecikmeli(arama.trim());
   const { veri: liste, hata: listeHatasi, yenile } = useVeri(() => parcalar.listele(aranan), [aranan]);
   const { gorunen, cubuk } = useSayfalama(liste, aranan);
@@ -24,7 +29,7 @@ export default function ParcalarEkrani() {
 
   function duzenle(p: ParcaStok) {
     setDuzenlenen(p);
-    setForm({ kod: p.kod, ad: p.ad, birim: p.birim, minStok: String(p.minStok) });
+    setForm({ kod: p.kod, ad: p.ad, minStok: String(p.minStok) });
     setMesaj(null);
     setFormAcik(true);
   }
@@ -40,7 +45,7 @@ export default function ParcalarEkrani() {
     e.preventDefault();
     setBekliyor(true);
     setMesaj(null);
-    const istek = { kod: form.kod.trim(), ad: form.ad.trim(), birim: form.birim.trim() || "adet", minStok: Number(form.minStok) || 0 };
+    const istek = { kod: form.kod.trim(), ad: form.ad.trim(), minStok: Number(form.minStok) || 0 };
     try {
       const p = duzenlenen ? await parcalar.guncelle(duzenlenen.id, istek) : await parcalar.olustur(istek);
       setMesaj({ tur: "success", metin: `${p.kod} kaydedildi.` });
@@ -106,10 +111,6 @@ export default function ParcalarEkrani() {
                 <input id="ad" className="girdi" required maxLength={200} {...alan("ad")} />
               </div>
               <div className="alan">
-                <label htmlFor="birim">Birim</label>
-                <input id="birim" className="girdi" maxLength={20} {...alan("birim")} />
-              </div>
-              <div className="alan">
                 <label htmlFor="minStok">Minimum stok</label>
                 <input id="minStok" type="number" min={0} className="girdi" {...alan("minStok")} />
               </div>
@@ -132,7 +133,6 @@ export default function ParcalarEkrani() {
               <tr>
                 <th>Kod</th>
                 <th>Ad</th>
-                <th>Birim</th>
                 <th className="sag">Kullanılabilir stok</th>
                 <th className="sag">Hatalı</th>
                 <th>Kullanıldığı ürünler</th>
@@ -141,20 +141,36 @@ export default function ParcalarEkrani() {
             </thead>
             <tbody>
               {liste === null && !listeHatasi && (
-                <tr className="bos"><td colSpan={7}>Yükleniyor…</td></tr>
+                <tr className="bos"><td colSpan={6}>Yükleniyor…</td></tr>
               )}
               {liste?.length === 0 && (
                 <tr className="bos">
-                  <td colSpan={7}>{aranan ? "Sonuç yok." : "Parça yok."}</td>
+                  <td colSpan={6}>{aranan ? "Sonuç yok." : "Parça yok."}</td>
                 </tr>
               )}
               {gorunen?.map((p) => (
-                <ParcaSatiri
-                  key={p.id}
-                  p={p}
-                  yeni={p.id === yeniId}
-                  duzenle={() => duzenle(p)}
-                />
+                <Fragment key={p.id}>
+                  <ParcaSatiri
+                    p={p}
+                    yeni={p.id === yeniId}
+                    acik={acik === p.kod}
+                    ac={() => setAcik(acik === p.kod ? null : p.kod)}
+                    duzenle={() => duzenle(p)}
+                  />
+                  {acik === p.kod && (
+                    <tr className="acilan-satir">
+                      <td colSpan={6}>
+                        <ParcaGirisleri
+                          kod={p.kod}
+                          degisti={(metin) => {
+                            setMesaj({ tur: "success", metin });
+                            yenile();
+                          }}
+                        />
+                      </td>
+                    </tr>
+                  )}
+                </Fragment>
               ))}
             </tbody>
           </table>
@@ -165,16 +181,35 @@ export default function ParcalarEkrani() {
   );
 }
 
-function ParcaSatiri({ p, yeni, duzenle }: { p: ParcaStok; yeni: boolean; duzenle: () => void }) {
+/** Parçanın stok girişleri ve işlemleri (bitenler dahil). */
+function ParcaGirisleri({ kod, degisti }: { kod: string; degisti: (mesaj: string) => void }) {
+  const { veri, hata, yenile } = useVeri(() => stok.durum({ parca: kod, bitenler: true }), [kod]);
+  const lotlar = veri?.[0]?.lotlar;
+  if (hata) return <div className="mesaj mesaj--error">{hata}</div>;
+  if (!lotlar) return <p className="yukleniyor">Yükleniyor…</p>;
+  return (
+    <div className="form-dikey">
+      <div className="giris-bas">Stok girişleri ({lotlar.length}) · hatalı kayıt ve stoktan düşme</div>
+      <StokGirisleri lotlar={lotlar} islemler degisti={(m) => { yenile(); degisti(m); }} />
+    </div>
+  );
+}
+
+function ParcaSatiri({ p, yeni, acik, ac, duzenle }: {
+  p: ParcaStok; yeni: boolean; acik: boolean; ac: () => void; duzenle: () => void;
+}) {
   const ipucu = `Kullanılabilir ${p.kullanilabilirStok}${p.ayrilan ? ` (${p.ayrilan} sıraya ayrıldı)` : ""} · toplam ${p.toplamStok} · minimum ${p.minStok}`;
   const stokAdresi = `/stok?parca=${encodeURIComponent(p.kod)}`;
   return (
-    <tr className={p.minAltinda ? "uyari-satir" : undefined}>
+    <tr className={`satir-tikla${p.minAltinda ? " uyari-satir" : ""}`}>
       <td className="mono">{p.kod}</td>
       <td>
-        {p.ad} {yeni && <span className="rozet rozet--kucuk rozet--mavi">yeni</span>}
+        <button type="button" className="btn-baglanti parca-ac satir-bag" aria-expanded={acik} onClick={ac}>
+          <span className="parca-ok" aria-hidden="true">{acik ? "▾" : "▸"}</span>
+          {p.ad}
+        </button>{" "}
+        {yeni && <span className="rozet rozet--kucuk rozet--mavi">yeni</span>}
       </td>
-      <td>{p.birim}</td>
       {p.minAltinda ? (
         <td className="sag uyari-metin" title={ipucu}>
           <Link className="uyari-metin" href={stokAdresi}>{p.kullanilabilirStok}</Link> · min altında

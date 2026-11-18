@@ -112,7 +112,7 @@ public class IzlemeServisi(AppDbContext db) : IIzlemeServisi
             .OrderByDescending(l => l.GirisZamani).ThenByDescending(l => l.Id).Take(adet).ToListAsync(ct);
         hareketler.AddRange(lotlar.Select(l => (new HareketDto(
             "giris", Zaman.YerelTarih(l.GirisZamani),
-            $"{l.Parca!.Ad} · {l.GirisAdet} {l.Parca.Birim} · {l.Tedarikci!.Ad}", l.LotNo, l.LotNo, "lot"),
+            $"{l.Parca!.Ad} · {l.GirisAdet} adet · {l.Tedarikci!.Ad}", l.LotNo, l.LotNo, "lot"),
             0, l.GirisZamani.UtcTicks)));
 
         // Tek seferde yapılan üretimler aynı Tarih'i taşır → (ürün, tarih) grubu tek satır

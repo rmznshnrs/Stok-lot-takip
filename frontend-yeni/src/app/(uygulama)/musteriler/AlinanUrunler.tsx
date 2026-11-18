@@ -45,8 +45,8 @@ export default function AlinanUrunler({ musteriId }: { musteriId: number }) {
             {gorunen?.map((s) => {
               const g = s.iade ? undefined : acikGeri?.find((x) => x.seriNo === s.seriNo);
               return (
-                <tr key={`${s.satisId}-${s.seriNo}-${s.iade}`} className={g ? "uyari-satir" : undefined}>
-                  <td className="mono"><Link href={seriAdresi(s.seriNo)}>{s.seriNo}</Link></td>
+                <tr key={`${s.satisId}-${s.seriNo}-${s.iade}`} className={`satir-tikla${g ? " uyari-satir" : ""}`}>
+                  <td className="mono"><Link href={seriAdresi(s.seriNo)} className="satir-bag">{s.seriNo}</Link></td>
                   <td>{s.urunAd}</td>
                   <td>{s.zaman}</td>
                   <td className={g ? "uyari-metin" : s.iade ? "soluk" : undefined}>

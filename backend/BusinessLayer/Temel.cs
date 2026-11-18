@@ -128,7 +128,7 @@ public static class Zaman
 
 internal static class Donusum
 {
-    public static ParcaOzetDto Ozet(Parca p) => new(p.Id, p.Kod, p.Ad, p.Birim);
+    public static ParcaOzetDto Ozet(Parca p) => new(p.Id, p.Kod, p.Ad);
 
     /// <summary>Lot → DTO. Lotun Parca ve Tedarikci'si yüklenmiş olmalı.</summary>
     public static LotDto Lot(StokLotu l, bool sirada = false) => new(

@@ -5,7 +5,8 @@ namespace SharedLayer.DTOs;
 
 // --- Ortak --------------------------------------------------------------------
 
-public record ParcaOzetDto(int Id, string Kod, string Ad, string Birim);
+/// <summary>Parçalar adetle sayılır.</summary>
+public record ParcaOzetDto(int Id, string Kod, string Ad);
 
 public record LotDto(
     int Id, string LotNo, int ParcaId, string ParcaKod, string ParcaAd, string TedarikciAd,
@@ -22,7 +23,7 @@ public record SatisBilgisiDto(int SatisId, DateOnly Tarih, int MusteriId, string
 // --- Stok ---------------------------------------------------------------------
 
 public record ParcaStokDto(
-    int Id, string Kod, string Ad, string Birim, int MinStok,
+    int Id, string Kod, string Ad, int MinStok,
     int ToplamStok, int KullanilabilirStok, int LotSayisi, IReadOnlyList<string> KullanildigiUrunler, int HataliAdet = 0,
     int Ayrilan = 0)
 {
@@ -280,4 +281,10 @@ public record AnaSayfaOzetiDto(
 /// </summary>
 public record TakvimUrunuDto(int UrunId, string UrunAd, int Planlanan, int Uretilen, int Istenen);
 
-public record TakvimGunuDto(DateOnly Tarih, IReadOnlyList<TakvimUrunuDto> Urunler);
+/// <summary>Parça alımı hatırlatıcısı ya da not (parça yoksa yalnız not).</summary>
+public record TakvimPlaniDto(int Id, DateOnly Tarih, ParcaOzetDto? Parca, int? Adet, int? TedarikciId, string? TedarikciAd,
+                             string Aciklama, bool Tamamlandi, string KullaniciAd);
+
+public record TakvimPlaniIstek(DateOnly Tarih, int? ParcaId = null, int? Adet = null, int? TedarikciId = null, string? Aciklama = null);
+
+public record TakvimGunuDto(DateOnly Tarih, IReadOnlyList<TakvimUrunuDto> Urunler, IReadOnlyList<TakvimPlaniDto> Planlar);

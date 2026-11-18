@@ -59,10 +59,10 @@ export default function UrunStokTablosu({ aranan }: { aranan: string }) {
           const acikMi = acik === s.urun.id;
           return (
             <Fragment key={s.urun.id}>
-              <tr>
+              <tr className={s.toplam > 0 ? "satir-tikla" : undefined}>
                 <td>
                   {s.toplam > 0 ? (
-                    <button type="button" className="btn-baglanti" aria-expanded={acikMi} onClick={() => setAcik(acikMi ? null : s.urun.id)}>
+                    <button type="button" className="btn-baglanti satir-bag" aria-expanded={acikMi} onClick={() => setAcik(acikMi ? null : s.urun.id)}>
                       {s.urun.ad}
                     </button>
                   ) : (

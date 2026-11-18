@@ -133,11 +133,6 @@ namespace DataAccessLayer.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
-                    b.Property<string>("Birim")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
-
                     b.Property<string>("Kod")
                         .IsRequired()
                         .HasMaxLength(50)
@@ -536,6 +531,56 @@ namespace DataAccessLayer.Migrations
                             t.HasCheckConstraint("CK_StokLotu_GirisAdet", "[GirisAdet] > 0");
 
                             t.HasCheckConstraint("CK_StokLotu_KalanAdet", "[KalanAdet] >= 0");
+                        });
+                });
+
+            modelBuilder.Entity("EntityLayer.Concrete.TakvimPlani", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Aciklama")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<int?>("Adet")
+                        .HasColumnType("int");
+
+                    b.Property<int>("OlusturanKullaniciId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("OlusturmaZamani")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int?>("ParcaId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("Tamamlandi")
+                        .HasColumnType("bit");
+
+                    b.Property<DateOnly>("Tarih")
+                        .HasColumnType("date");
+
+                    b.Property<int?>("TedarikciId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OlusturanKullaniciId");
+
+                    b.HasIndex("ParcaId");
+
+                    b.HasIndex("Tarih");
+
+                    b.HasIndex("TedarikciId");
+
+                    b.ToTable("TakvimPlani", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_TakvimPlani_Adet", "[Adet] IS NULL OR [Adet] > 0");
                         });
                 });
 
@@ -1056,6 +1101,31 @@ namespace DataAccessLayer.Migrations
                     b.Navigation("Parca");
 
                     b.Navigation("SorunIsaretleyen");
+
+                    b.Navigation("Tedarikci");
+                });
+
+            modelBuilder.Entity("EntityLayer.Concrete.TakvimPlani", b =>
+                {
+                    b.HasOne("EntityLayer.Concrete.Kullanici", "OlusturanKullanici")
+                        .WithMany()
+                        .HasForeignKey("OlusturanKullaniciId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("EntityLayer.Concrete.Parca", "Parca")
+                        .WithMany()
+                        .HasForeignKey("ParcaId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("EntityLayer.Concrete.Tedarikci", "Tedarikci")
+                        .WithMany()
+                        .HasForeignKey("TedarikciId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("OlusturanKullanici");
+
+                    b.Navigation("Parca");
 
                     b.Navigation("Tedarikci");
                 });

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
+import GeriCagirmalar from "@/components/GeriCagirmalar";
 import { ApiHatasi, izleme, ozet as ozetApi, type Aday, type NumaraArama, type NumaraTuru, type AnaSayfaOzeti } from "@/lib/api";
 import { lotAdresi, seriAdresi } from "@/lib/adres";
 import { bugun, tarih } from "@/lib/bicim";
@@ -31,6 +32,7 @@ export default function AnaSayfaEkrani() {
   const [sonuc, setSonuc] = useState<{ q: string; arama: NumaraArama } | null>(null);
   const [hata, setHata] = useState("");
   const [bekliyor, setBekliyor] = useState(false);
+  const [geriAcik, setGeriAcik] = useState(false);
   const { veri: hareketler, hata: hareketHatasi } = useVeri(() => izleme.hareketler(8), []);
   const { veri: o, hata: ozetHatasi } = useVeri(() => ozetApi.anaSayfa(), []);
   const ozet = [
@@ -39,7 +41,7 @@ export default function AnaSayfaEkrani() {
     { ad: "Gönderilmeyi bekleyen sevkiyat", deger: o && o.hazirlananSevkiyat + o.kargodaSevkiyat, alt: o && `${o.hazirlananSevkiyat} hazırlanıyor · ${o.kargodaSevkiyat} kargoda`, yol: "/sevkiyat", dikkat: false },
     { ad: "Depodaki ürün", deger: o?.depodaUrun, yol: "/stok?gorunum=urun", dikkat: false },
     { ad: "Minimum stok altındaki parça", deger: o?.minAltindaParca, yol: "/stok?gorunum=parca", dikkat: true },
-    { ad: "Açık geri çağırma", deger: o?.acikGeriCagirma, yol: "/musteriler?sekme=geri", dikkat: true },
+    { ad: "Açık geri çağırma", deger: o?.acikGeriCagirma, yol: "#geri-cagirmalar", dikkat: true },
   ];
 
   function ara(e: FormEvent) {
@@ -104,12 +106,32 @@ export default function AnaSayfaEkrani() {
 
       {ozetHatasi && <div className="mesaj mesaj--error">{ozetHatasi}</div>}
       <section className="ozet-kutular">
-        {ozet.map((o) => (
-          <Link key={o.ad} href={o.yol} className={`ozet-kutu${o.dikkat && o.deger ? " ozet-kutu--dikkat" : ""}`}>
-            <span>{o.ad}</span>
-            <b>{o.deger ?? "…"}</b>
-            {o.alt && <small className="yardim">{o.alt}</small>}
-          </Link>
+        {ozet.map((o) => {
+          const sinif = `ozet-kutu${o.dikkat && o.deger ? " ozet-kutu--dikkat" : ""}`;
+          const icerik = (
+            <>
+              <span>{o.ad}</span>
+              <b>{o.deger ?? "…"}</b>
+              {o.alt && <small className="yardim">{o.alt}</small>}
+            </>
+          );
+          // Geri çağırmaların ayrı sayfası yok: liste burada açılır
+          return o.yol === "#geri-cagirmalar" ? (
+            <button key={o.ad} type="button" className={`${sinif} ozet-kutu--dugme`} aria-expanded={geriAcik}
+              onClick={() => setGeriAcik(!geriAcik)}>
+              {icerik}
+            </button>
+          ) : (
+            <Link key={o.ad} href={o.yol} className={sinif}>{icerik}</Link>
+          );
+        })}
+      </section>
+      {geriAcik && <GeriCagirmalar kapat={() => setGeriAcik(false)} />}
+
+      <section className="excel-satiri">
+        <span className="not">Excel raporu indir:</span>
+        {[1, 3, 6, 12].map((ay) => (
+          <a key={ay} href={`/api/ozet/excel?ay=${ay}`} download className="btn btn--ikincil btn--kucuk">Son {ay} Ay</a>
         ))}
       </section>
 
@@ -133,11 +155,11 @@ export default function AnaSayfaEkrani() {
               {hareketler === null && !hareketHatasi && <tr className="bos"><td colSpan={4}>Yükleniyor…</td></tr>}
               {hareketler?.length === 0 && <tr className="bos"><td colSpan={4}>Henüz hareket yok.</td></tr>}
               {hareketler?.map((h, i) => (
-                <tr key={i}>
+                <tr key={i} className="satir-tikla">
                   <td>{tarih(h.tarih)}</td>
                   <td><span className={`rozet rozet--kucuk ${h.tur === "giris" ? "rozet--basari" : h.tur === "uretim" ? "rozet--mavi" : "rozet--uyari"}`}>{HAREKET_ADI[h.tur]}</span></td>
                   <td>{h.aciklama}</td>
-                  <td className="sag mono"><Link href={izAdresi(h.numaraTuru, h.numaraIlk)}>{h.numara}</Link></td>
+                  <td className="sag mono"><Link href={izAdresi(h.numaraTuru, h.numaraIlk)} className="satir-bag">{h.numara}</Link></td>
                 </tr>
               ))}
             </tbody>
@@ -169,7 +191,7 @@ function UretimUyarilari({ ozet: o }: { ozet: AnaSayfaOzeti }) {
                 </span>
                 <span className="yardim">
                   {" · "}
-                  {u.kisitlayanlar.map((k) => `${k.parca.ad}: ${k.serbest} ${k.parca.birim} serbest (1 üründe ${k.birimAdet})`).join(" · ")}
+                  {u.kisitlayanlar.map((k) => `${k.parca.ad}: ${k.serbest} adet serbest (1 üründe ${k.birimAdet})`).join(" · ")}
                 </span>
               </span>
               <Link href={`/stok?parca=${encodeURIComponent(u.kisitlayanlar[0]?.parca.kod ?? "")}`} className="btn btn--ikincil btn--kucuk">Parça Stoğu</Link>
@@ -199,9 +221,9 @@ function YaklasanTeslimler({ ozet: o }: { ozet: AnaSayfaOzeti }) {
           </thead>
           <tbody>
             {o.yaklasanTeslimler.map((t) => (
-              <tr key={t.siparisId} className={t.istenenTarih < bugunMetni ? "uyari-satir" : undefined}>
+              <tr key={t.siparisId} className={`satir-tikla${t.istenenTarih < bugunMetni ? " uyari-satir" : ""}`}>
                 <td>{tarih(t.istenenTarih)}{t.istenenTarih < bugunMetni && <span className="uyari-metin"> · gecikti</span>}</td>
-                <td className="mono"><Link href={`/musteriler?siparis=${t.siparisId}`}>{t.no}</Link></td>
+                <td className="mono"><Link href={`/musteriler?siparis=${t.siparisId}`} className="satir-bag">{t.no}</Link></td>
                 <td>{t.musteriAd}</td>
                 <td className="sag">{t.kalan}</td>
               </tr>

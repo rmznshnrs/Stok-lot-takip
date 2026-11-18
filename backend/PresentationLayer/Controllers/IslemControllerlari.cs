@@ -152,7 +152,7 @@ public class SevkiyatController(ISevkiyatServisi sevkiyat) : ControllerBase
 /// <summary>Ana sayfa özeti ve üretim / sipariş takvimi.</summary>
 [ApiController]
 [Route("api/ozet")]
-public class OzetController(IOzetServisi ozet) : ControllerBase
+public class OzetController(IOzetServisi ozet, IRaporServisi rapor) : ControllerBase
 {
     [HttpGet]
     public Task<AnaSayfaOzetiDto> AnaSayfa(CancellationToken ct) => ozet.AnaSayfaAsync(ct);
@@ -160,6 +160,29 @@ public class OzetController(IOzetServisi ozet) : ControllerBase
     [HttpGet("takvim")]
     public Task<List<TakvimGunuDto>> Takvim([FromQuery] DateOnly baslangic, [FromQuery] DateOnly bitis, CancellationToken ct) =>
         ozet.TakvimAsync(baslangic, bitis, ct);
+
+    /// <summary>Takvime parça alımı hatırlatıcısı ya da not.</summary>
+    [HttpPost("takvim/plan")]
+    public Task<TakvimPlaniDto> PlanEkle(TakvimPlaniIstek istek, CancellationToken ct) => ozet.PlanEkleAsync(istek, User.KullaniciId(), ct);
+
+    [HttpPost("takvim/plan/{id:int}/tamam")]
+    public Task<TakvimPlaniDto> PlanTamam(int id, [FromQuery] bool tamamlandi = true, CancellationToken ct = default) =>
+        ozet.PlanTamamAsync(id, tamamlandi, ct);
+
+    [HttpDelete("takvim/plan/{id:int}")]
+    public async Task<IActionResult> PlanSil(int id, CancellationToken ct)
+    {
+        await ozet.PlanSilAsync(id, ct);
+        return NoContent();
+    }
+
+    /// <summary>Son ay (1, 3, 6, 12) için Excel raporu.</summary>
+    [HttpGet("excel")]
+    public async Task<IActionResult> Excel([FromQuery] int ay, CancellationToken ct)
+    {
+        var (icerik, ad) = await rapor.ExcelAsync(ay, ct);
+        return File(icerik, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", ad);
+    }
 }
 
 /// <summary>Satış.</summary>

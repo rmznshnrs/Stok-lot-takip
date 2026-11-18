@@ -99,8 +99,8 @@ function KalemKutusu({ siparis, kalem: k, calistir }: {
           {k.ayrilanlar.map((seri) => {
             const gitti = k.gonderilenler.includes(seri);
             return (
-              <span key={seri} className={`seri-cip${gitti ? " seri-cip--mavi" : ""}`} title={gitti ? "Gönderildi" : "Depoda, siparişe ayrılmış"}>
-                <Link href={seriAdresi(seri)}>{seri}</Link>
+              <span key={seri} className={`seri-cip satir-tikla${gitti ? " seri-cip--mavi" : ""}`} title={gitti ? "Gönderildi" : "Depoda, siparişe ayrılmış"}>
+                <Link href={seriAdresi(seri)} className="satir-bag">{seri}</Link>
                 {acik && !gitti && (
                   <button type="button" className="btn-baglanti" aria-label={`${seri} ayrımını kaldır`}
                     onClick={() => calistir(() => siparisler.birak(k.id, seri), `${seri} serbest bırakıldı.`)}> ×</button>
@@ -115,14 +115,15 @@ function KalemKutusu({ siparis, kalem: k, calistir }: {
           <button type="button" className="btn btn--ikincil btn--kucuk" aria-expanded={ayir} onClick={() => { setAyir(!ayir); setSecili([]); }}>
             Depodan Ayır
           </button>
-          {k.eksik > 0 && (
-            <button type="button" className="btn btn--kucuk"
-              onClick={() => calistir(() => sira.ekle({ urunId: k.urunId, siparisKalemiId: k.id, planlananTarih: siparis.istenenTarih ?? bugun() }),
-                `${k.eksik} adet ${k.urunAd} üretim sırasına eklendi.`)}>
-              Eksik {k.eksik} Adedi Sıraya Ekle
-            </button>
-          )}
         </div>
+      )}
+      {acik && k.eksik > 0 && (
+        <SirayaEkle
+          kalem={k}
+          ilkGun={siparis.istenenTarih && siparis.istenenTarih > bugun() ? siparis.istenenTarih : bugun()}
+          ekle={(adet, gun) => calistir(() => sira.ekle({ urunId: k.urunId, siparisKalemiId: k.id, adet, planlananTarih: gun }),
+            `${adet} adet ${k.urunAd} ${tarih(gun)} gününe üretim sırasına eklendi.`)}
+        />
       )}
       {ayir && (
         <>
@@ -162,14 +163,44 @@ function Sevkiyatlar({ siparis: s }: { siparis: Siparis }) {
         )}
       </div>
       {liste.map((x) => (
-        <div key={x.id} className="bas-satir">
+        <div key={x.id} className="bas-satir satir-tikla kutu kutu--ince">
           <span>
-            <Link href={sevkiyatAdresi(x.id)} className="mono">{x.no}</Link> · {x.zaman ? tarihSaat(x.zaman) : tarih(x.tarih)} · {urunOzeti(x)}
+            <Link href={sevkiyatAdresi(x.id)} className="mono satir-bag">{x.no}</Link> · {x.zaman ? tarihSaat(x.zaman) : tarih(x.tarih)} · {urunOzeti(x)}
             {x.takipNo && <> · {x.kargoFirmasi} <span className="mono">{x.takipNo}</span></>}
           </span>
           {sevkiyatRozeti(x)}
         </div>
       ))}
+    </div>
+  );
+}
+
+/** Eksiğin tamamını ya da bir kısmını seçilen güne sıraya ekler; sipariş böylece farklı günlerde üretilebilir. */
+function SirayaEkle({ kalem: k, ilkGun, ekle }: {
+  kalem: SiparisKalemi;
+  ilkGun: string;
+  ekle: (adet: number, gun: string) => Promise<void>;
+}) {
+  const [adet, setAdet] = useState(String(k.eksik));
+  const [gun, setGun] = useState(ilkGun);
+  const [bekliyor, setBekliyor] = useState(false);
+  const n = Math.floor(Number(adet));
+  const gecerli = n >= 1 && n <= k.eksik && !!gun;
+  return (
+    <div className="satir-ekle satir-ekle--alt">
+      <div className="alan">
+        <label htmlFor={`sira-adet-${k.id}`}>Sıraya Eklenecek Adet (eksik {k.eksik})</label>
+        <input id={`sira-adet-${k.id}`} type="number" min={1} max={k.eksik} className="girdi girdi--kucuk" value={adet}
+          onChange={(e) => setAdet(e.target.value)} />
+      </div>
+      <div className="alan">
+        <label htmlFor={`sira-gun-${k.id}`}>Planlanan Gün</label>
+        <input id={`sira-gun-${k.id}`} type="date" className="girdi girdi--kucuk" value={gun} onChange={(e) => setGun(e.target.value)} />
+      </div>
+      <button type="button" className="btn btn--kucuk" disabled={!gecerli || bekliyor}
+        onClick={async () => { setBekliyor(true); await ekle(n, gun); setBekliyor(false); setAdet(String(Math.max(0, k.eksik - n))); }}>
+        Sıraya Ekle
+      </button>
     </div>
   );
 }

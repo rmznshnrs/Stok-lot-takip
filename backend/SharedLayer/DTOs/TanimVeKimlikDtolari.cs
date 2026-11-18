@@ -31,7 +31,7 @@ public record KullaniciGuncelleIstek([Required] string Ad, [Required] string Soy
 
 // --- Tanımlar: parça, ürün, ürün ağacı -------------------------------------------
 
-public record ParcaIstek([Required] string Kod, [Required] string Ad, string Birim = "adet", int MinStok = 0);
+public record ParcaIstek([Required] string Kod, [Required] string Ad, int MinStok = 0);
 
 /// <summary>SeriOneki boşsa yeni üründe "Kod-" olur, var olan üründe değişmez.</summary>
 public record UrunIstek([Required] string Kod, [Required] string Ad, string? SeriOneki = null);
@@ -40,7 +40,7 @@ public record UrunAgaciSatiriIstek(int ParcaId, int Adet);
 
 public record UrunListeDto(int Id, string Kod, string Ad, string SeriOneki, int ParcaCesidi, int UretimSayisi);
 
-public record UrunAgaciSatiriDto(int ParcaId, string ParcaKod, string ParcaAd, string Birim, int Adet,
+public record UrunAgaciSatiriDto(int ParcaId, string ParcaKod, string ParcaAd, int Adet,
                                  int KullanilabilirStok, bool MinAltinda);
 
 /// <summary>SeriOnekiDegistirilebilir: üretim yapılmışsa önek değişmez (seri no sırası bölünmesin).</summary>

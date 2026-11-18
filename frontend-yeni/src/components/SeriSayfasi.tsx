@@ -115,11 +115,11 @@ function SeriDetayi({ iz, degisti }: { iz: SeriIz; degisti: () => void }) {
               {iz.parcalar.map((p) => {
                 const geri = p.lot.sorunlu;
                 return (
-                  <tr key={p.lot.id} className={geri ? "uyari-satir" : undefined}>
+                  <tr key={p.lot.id} className={`satir-tikla${geri ? " uyari-satir" : ""}`}>
                     <td className={geri ? "kalin" : undefined}>{p.parca.ad} <span className="mono yardim">{p.parca.kod}</span></td>
                     <td className="sag">{p.adet}</td>
                     <td className="mono">
-                      <Link href={lotAdresi(p.lot.lotNo)} className={geri ? "uyari-metin" : undefined}>
+                      <Link href={lotAdresi(p.lot.lotNo)} className={`satir-bag${geri ? " uyari-metin" : ""}`}>
                         {p.lot.lotNo}
                       </Link>
                       {geri && <> <span className="lot-etiket lot-etiket--uyari">· hatalı</span></>}

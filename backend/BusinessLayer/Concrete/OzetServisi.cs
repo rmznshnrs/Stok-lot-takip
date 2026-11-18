@@ -63,16 +63,72 @@ public class OzetServisi(AppDbContext db, IStokServisi stok) : IOzetServisi
             .Select(k => new { Tarih = k.Siparis!.IstenenTarih ?? k.Siparis.Tarih, k.UrunId, k.Adet })
             .Where(k => k.Tarih >= baslangic && k.Tarih <= bitis).ToListAsync(ct);
 
+        var planlar = await PlanSorgu().Where(p => p.Tarih >= baslangic && p.Tarih <= bitis)
+            .OrderBy(p => p.Tamamlandi).ThenBy(p => p.Id).ToListAsync(ct);
+
         var urunAdlari = await db.Urunler.AsNoTracking().ToDictionaryAsync(u => u.Id, u => u.Ad, ct);
         var satirlar = planlanan.Select(p => (p.Tarih, p.UrunId, Plan: p.Adet, Uret: 0, Ist: 0))
             .Concat(uretilen.Select(u => (u.Tarih, u.UrunId, Plan: 0, Uret: 1, Ist: 0)))
-            .Concat(istenen.Select(i => (i.Tarih, i.UrunId, Plan: 0, Uret: 0, Ist: i.Adet)));
-        return [.. satirlar.GroupBy(s => s.Tarih).OrderBy(g => g.Key)
-            .Select(g => new TakvimGunuDto(g.Key, [.. g.GroupBy(s => s.UrunId)
+            .Concat(istenen.Select(i => (i.Tarih, i.UrunId, Plan: 0, Uret: 0, Ist: i.Adet)))
+            .ToList();
+        var gunler = satirlar.Select(s => s.Tarih).Concat(planlar.Select(p => p.Tarih)).Distinct().Order();
+        return [.. gunler.Select(gun => new TakvimGunuDto(gun,
+            [.. satirlar.Where(s => s.Tarih == gun).GroupBy(s => s.UrunId)
                 .Select(u => new TakvimUrunuDto(u.Key, urunAdlari.GetValueOrDefault(u.Key, "?"),
                     u.Sum(x => x.Plan), u.Sum(x => x.Uret), u.Sum(x => x.Ist)))
-                .OrderBy(u => u.UrunAd, StringComparer.CurrentCulture)]))];
+                .OrderBy(u => u.UrunAd, StringComparer.CurrentCulture)],
+            [.. planlar.Where(p => p.Tarih == gun).Select(Donustur)]))];
     }
+
+    public Task<TakvimPlaniDto> PlanEkleAsync(TakvimPlaniIstek istek, int kullaniciId, CancellationToken ct = default) =>
+        Islem.CalistirAsync(db, async () =>
+        {
+            var kullanici = await Kullanicilar.GetirAsync(db, kullaniciId, ct);
+            var aciklama = (istek.Aciklama ?? "").Trim();
+            if (istek.ParcaId is null && aciklama.Length == 0)
+                throw new IsKuraliHatasi("Parça seçin ya da not yazın.");
+            if (aciklama.Length > 500)
+                throw new IsKuraliHatasi("Not en fazla 500 karakter olabilir.");
+            if (istek.Adet is < 1 or > 1_000_000)
+                throw new IsKuraliHatasi("Adet en az 1 olmalı.");
+            if (istek.ParcaId is { } p && !await db.Parcalar.AnyAsync(x => x.Id == p, ct))
+                throw new BulunamadiHatasi("Parça bulunamadı.");
+            if (istek.TedarikciId is { } t && !await db.Tedarikciler.AnyAsync(x => x.Id == t, ct))
+                throw new BulunamadiHatasi("Tedarikçi bulunamadı.");
+            var plan = new TakvimPlani
+            {
+                Tarih = istek.Tarih, ParcaId = istek.ParcaId, Adet = istek.ParcaId is null ? null : istek.Adet,
+                TedarikciId = istek.TedarikciId, Aciklama = aciklama, OlusturanKullanici = kullanici, OlusturmaZamani = Zaman.Simdi(),
+            };
+            db.TakvimPlanlari.Add(plan);
+            await db.SaveChangesAsync(ct);
+            return Donustur(await PlanSorgu().SingleAsync(x => x.Id == plan.Id, ct));
+        }, ct);
+
+    public Task<TakvimPlaniDto> PlanTamamAsync(int id, bool tamamlandi, CancellationToken ct = default) =>
+        Islem.CalistirAsync(db, async () =>
+        {
+            var plan = await db.TakvimPlanlari.SingleOrDefaultAsync(p => p.Id == id, ct) ?? throw new BulunamadiHatasi("Plan bulunamadı.");
+            plan.Tamamlandi = tamamlandi;
+            await db.SaveChangesAsync(ct);
+            return Donustur(await PlanSorgu().SingleAsync(x => x.Id == id, ct));
+        }, ct);
+
+    public Task PlanSilAsync(int id, CancellationToken ct = default) =>
+        Islem.CalistirAsync(db, async () =>
+        {
+            var plan = await db.TakvimPlanlari.SingleOrDefaultAsync(p => p.Id == id, ct) ?? throw new BulunamadiHatasi("Plan bulunamadı.");
+            db.TakvimPlanlari.Remove(plan);
+            await db.SaveChangesAsync(ct);
+            return true;
+        }, ct);
+
+    private IQueryable<TakvimPlani> PlanSorgu() => db.TakvimPlanlari.AsNoTracking()
+        .Include(p => p.Parca).Include(p => p.Tedarikci).Include(p => p.OlusturanKullanici);
+
+    private static TakvimPlaniDto Donustur(TakvimPlani p) => new(
+        p.Id, p.Tarih, p.Parca is null ? null : Donusum.Ozet(p.Parca), p.Adet, p.TedarikciId, p.Tedarikci?.Ad,
+        p.Aciklama, p.Tamamlandi, $"{p.OlusturanKullanici!.Ad} {p.OlusturanKullanici.Soyad}");
 
     /// <summary>Ürün ağacına göre serbest stokla üretilebilecek adet; eşik ve altındakiler, en az olan önce.</summary>
     private async Task<List<UretilebilirUyariDto>> UyarilarAsync(List<ParcaStokDto> parcalar, CancellationToken ct)
