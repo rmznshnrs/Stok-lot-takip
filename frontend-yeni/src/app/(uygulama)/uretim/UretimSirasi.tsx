@@ -42,7 +42,7 @@ export default function UretimSirasi({ uretimde }: { uretimde: boolean }) {
       {sonuc && <UretimSonucKutusu sonuc={sonuc} kapat={() => setSonuc(null)} />}
       <section className="panel">
         <div className="panel-bas">
-          <div className="baslik-grup">
+          <div className="baslik-grup baslik-grup--yan">
             <UretimSekmeleri />
             {liste && (
               <span className="sayac-grubu">

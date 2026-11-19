@@ -286,3 +286,19 @@ public class OzetTestleri(TestVeritabani vt) : IsKuraliTesti(vt)
         await Assert.ThrowsAsync<IsKuraliHatasi>(() => rapor.ExcelAsync(2));
     }
 }
+
+public class LotSilmeTestleri(TestVeritabani vt) : IsKuraliTesti(vt)
+{
+    [Fact]
+    public async Task Kullanilmamis_lot_silinir_kullanilmis_silinmez()
+    {
+        await Assert.ThrowsAsync<YetkiHatasi>(() => Stok.LotSilAsync(DiyotYeni.Id, Kullanici.Id));
+        await Stok.LotSilAsync(DiyotYeni.Id, Admin.Id);
+        Assert.False(await Db.StokLotlari.AnyAsync(l => l.Id == DiyotYeni.Id));
+
+        await Uretim.UretAsync(Urun.Id, 1, Kullanici.Id);
+        var hata = await Assert.ThrowsAsync<IsKuraliHatasi>(() => Stok.LotSilAsync(LedLot.Id, Admin.Id));
+        Assert.Contains("kullanıldı", hata.Message);
+        await Assert.ThrowsAsync<BulunamadiHatasi>(() => Stok.LotSilAsync(-1, Admin.Id));
+    }
+}

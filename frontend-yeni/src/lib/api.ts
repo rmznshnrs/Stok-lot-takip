@@ -302,6 +302,7 @@ export const stok = {
   giris: (g: MalGirisiIstek) => gonder<MalGirisiSonucu>("stok/giris", g),
   duzelt: (d: StokDuzeltmeIstek) => gonder<StokDuzeltmeSonucu>("stok/duzeltme", d),
   hatali: (h: StokHataliIstek) => gonder<StokDuzeltmeSonucu>("stok/hatali", h),
+  lotSil: (id: number) => sil<void>(`stok/lot/${id}`),
 };
 
 export const uretim = {

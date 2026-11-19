@@ -119,6 +119,22 @@ public class StokServisi(AppDbContext db) : IStokServisi
         return $"{StokGirisOneki}{Sira.EnBuyuk(mevcut, StokGirisOneki) + 1:D4}";
     }
 
+    public Task LotSilAsync(int lotId, int kullaniciId, CancellationToken ct = default) =>
+        Islem.CalistirAsync(db, async () =>
+        {
+            await Kullanicilar.AdminGetirAsync(db, kullaniciId, "Lot silme", ct);
+            var lot = await db.StokLotlari.SingleOrDefaultAsync(l => l.Id == lotId, ct)
+                      ?? throw new BulunamadiHatasi("Lot bulunamadı.");
+            if (await db.UretimTuketimleri.AnyAsync(t => t.StokLotuId == lotId, ct))
+                throw new IsKuraliHatasi($"{lot.LotNo} üretimde kullanıldı; silinemez. Kullanıma kapatabilirsiniz.");
+            if (await db.UrunGeriCagirmalari.AnyAsync(g => g.StokLotuId == lotId, ct))
+                throw new IsKuraliHatasi($"{lot.LotNo} geri çağırma kaydında geçiyor; silinemez.");
+            await db.StokDuzeltmeleri.Where(x => x.StokLotuId == lotId).ExecuteDeleteAsync(ct);
+            db.StokLotlari.Remove(lot);
+            await db.SaveChangesAsync(ct);
+            return true;
+        }, ct);
+
     public async Task<ParcaOzetDto> ParcaBulAsync(string metin, CancellationToken ct = default)
     {
         var deger = (metin ?? "").Trim();

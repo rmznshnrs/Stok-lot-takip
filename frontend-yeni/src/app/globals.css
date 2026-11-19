@@ -1738,9 +1738,18 @@ input[type="search"].girdi::placeholder { color: var(--soluk); opacity: .8; }
 .btn-baglanti:not(.satir-bag):not(.parca-ac):disabled { opacity: .5; cursor: default; }
 .seri-cip .btn-baglanti:not(.satir-bag) { padding: 0 2px; background: none; border: 0; font-weight: 700; }
 
-.sayac-grubu { display: inline-flex; gap: 8px; }
-.sayac {
-  display: inline-flex; align-items: baseline; gap: 5px; padding: 4px 12px; border-radius: 999px;
-  background: var(--ana-acik); color: var(--ana-koyu); font-size: 13px; font-weight: 600;
-}
-.sayac b { font-size: 17px; font-weight: 800; }
+
+/* Üretim: iş ve adet sayısı sekmelerin yanında, kutusuz ve büyük */
+.baslik-grup--yan { flex-direction: row; align-items: center; gap: 20px; flex-wrap: wrap; }
+.sayac-grubu { display: inline-flex; align-items: baseline; gap: 18px; }
+.sayac { display: inline-flex; align-items: baseline; gap: 6px; font-size: 16px; font-weight: 600; color: var(--soluk); }
+.sayac b { font-size: 24px; font-weight: 800; color: var(--metin); }
+
+/* Kayma ve hizalama düzeltmeleri */
+html { scrollbar-gutter: stable; }
+.btn--ikincil.btn--kucuk, .btn--geri.btn--kucuk { height: 34px; padding: 0 14px; }
+.btn-baglanti:not(.satir-bag):not(.parca-ac) { min-height: 34px; padding: 0 14px; box-sizing: border-box; vertical-align: middle; }
+.seri-cip .btn-baglanti:not(.satir-bag) { min-height: 0; padding: 0 2px; }
+.sekme, .sekme--aktif, button.sekme, button.sekme.sekme--aktif { font-weight: 600; }
+.dugme-grup, .arama-satiri, .bas-satir { align-items: center; }
+.btn, .btn-baglanti { flex-shrink: 0; }

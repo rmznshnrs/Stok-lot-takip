@@ -28,6 +28,14 @@ public class StokController(IStokServisi stok, IStokDuzeltmeServisi duzeltme) : 
     [Authorize(Policy = Politikalar.Admin)]
     public Task<StokDuzeltmeSonucuDto> Hatali(StokHataliIstek istek, CancellationToken ct) =>
         duzeltme.HataliAsync(istek, User.KullaniciId(), ct);
+
+    [HttpDelete("lot/{id:int}")]
+    [Authorize(Policy = Politikalar.Admin)]
+    public async Task<IActionResult> LotSil(int id, CancellationToken ct)
+    {
+        await stok.LotSilAsync(id, User.KullaniciId(), ct);
+        return NoContent();
+    }
 }
 
 [ApiController]

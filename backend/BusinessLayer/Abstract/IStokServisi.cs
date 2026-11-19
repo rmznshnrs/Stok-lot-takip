@@ -10,4 +10,6 @@ public interface IStokServisi
     Task<MalGirisiSonucuDto> MalGirisiAsync(MalGirisiIstek istek, int kullaniciId, CancellationToken ct = default);
 
     Task<ParcaOzetDto> ParcaBulAsync(string metin, CancellationToken ct = default);
+
+    Task LotSilAsync(int lotId, int kullaniciId, CancellationToken ct = default);
 }

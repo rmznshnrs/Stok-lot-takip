@@ -6,7 +6,7 @@ import HataliLotFormu from "@/components/HataliLotFormu";
 import { AdetDuzeltFormu } from "@/components/LotIslemFormlari";
 import { useAdminMi } from "@/components/Oturum";
 import { lotAdresi } from "@/lib/adres";
-import type { Lot } from "@/lib/api";
+import { ApiHatasi, izleme, stok, type Lot } from "@/lib/api";
 import { tarih } from "@/lib/bicim";
 
 type LotIslemi = "hata" | "duzelt";
@@ -18,11 +18,24 @@ export default function StokGirisleri({ lotlar, islemler = false, degisti }: {
 }) {
   const admin = useAdminMi() && islemler;
   const [acik, setAcik] = useState<{ lotId: number; islem: LotIslemi } | null>(null);
+  const [hata, setHata] = useState("");
+
+  async function calistir(is_: () => Promise<unknown>, basari: string) {
+    setHata("");
+    try {
+      await is_();
+      degisti?.(basari);
+    } catch (err) {
+      setHata(err instanceof ApiHatasi ? err.message : "İşlem yapılamadı.");
+    }
+  }
   const sutun = admin ? 8 : 7;
   const ac = (lotId: number, islem: LotIslemi) =>
     setAcik(acik?.lotId === lotId && acik.islem === islem ? null : { lotId, islem });
   if (!lotlar.length) return <p className="not">Stok yok.</p>;
   return (
+    <>
+    {hata && <div className="mesaj mesaj--error" role="alert">{hata}</div>}
     <table className="tablo tablo--sik tablo--girisler">
       <thead>
         <tr>
@@ -72,6 +85,20 @@ export default function StokGirisleri({ lotlar, islemler = false, degisti }: {
                           {ad}
                         </button>
                       ))}
+                      {lot.sorunlu && (
+                        <button type="button" className="btn btn--ikincil btn--kucuk"
+                          onClick={() => calistir(() => izleme.sorun(lot.lotNo, { sorunlu: true, uretimdeKullan: lot.geriCagrildi, aciklama: lot.sorunAciklama }),
+                            lot.geriCagrildi ? `${lot.lotNo} yeniden kullanıma açıldı.` : `${lot.lotNo} kullanıma kapatıldı.`)}>
+                          {lot.geriCagrildi ? "Kullanıma Aç" : "Kullanıma Kapat"}
+                        </button>
+                      )}
+                      {lot.sorunlu && (
+                        <button type="button" className="btn btn--geri btn--kucuk"
+                          onClick={() => confirm(`${lot.lotNo} tamamen silinsin mi? Bu geri alınamaz.`)
+                            && calistir(() => stok.lotSil(lot.id), `${lot.lotNo} silindi.`)}>
+                          Sil
+                        </button>
+                      )}
                     </span>
                   </td>
                 )}
@@ -99,5 +126,6 @@ export default function StokGirisleri({ lotlar, islemler = false, degisti }: {
         })}
       </tbody>
     </table>
+    </>
   );
 }
