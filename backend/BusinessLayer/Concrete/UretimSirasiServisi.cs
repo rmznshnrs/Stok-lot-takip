@@ -12,7 +12,7 @@ public class UretimSirasiServisi(AppDbContext db, IStokLotuRepository lotlar, IU
         e.SiparisKalemi == null ? null : e.SiparisKalemi.SiparisId,
         e.SiparisKalemi == null ? null : e.SiparisKalemi.Siparis!.No,
         e.SiparisKalemi == null ? null : e.SiparisKalemi.Siparis!.Musteri!.Ad,
-        e.OlusturmaZamani, e.OlusturanKullanici!.Ad + " " + e.OlusturanKullanici.Soyad, e.BitisZamani,
+        e.OlusturmaZamani, e.OlusturanKullanici!.Ad + " " + e.OlusturanKullanici.Soyad, e.BaslamaZamani, e.BitisZamani,
         e.Parcalar.OrderBy(p => p.Parca!.Kod).Select(p => new EmirParcasiDto(
             new ParcaOzetDto(p.Parca!.Id, p.Parca.Kod, p.Parca.Ad), p.BirimAdet,
             e.Durum == UretimEmriDurumu.Bekliyor ? p.BirimAdet * (e.Adet - e.Uretilen) : 0)).ToList(),
@@ -99,6 +99,7 @@ public class UretimSirasiServisi(AppDbContext db, IStokLotuRepository lotlar, IU
             if (adet < 1 || adet > kalan)
                 throw new IsKuraliHatasi($"1 ile {kalan} arasında adet girin.");
             var urun = await uretim.UrunGetirAsync(emir.UrunId, adet, ct);
+            emir.BaslamaZamani ??= Zaman.Simdi();
             var sonuc = await uretim.UretIcAsync(urun, adet, kullanici, null, emir, ct);
             emir.Uretilen += adet;
             if (emir.Uretilen == emir.Adet)
@@ -108,6 +109,17 @@ public class UretimSirasiServisi(AppDbContext db, IStokLotuRepository lotlar, IU
             }
             await db.SaveChangesAsync(ct);
             return sonuc;
+        }, ct);
+
+    public Task<UretimEmriDto> BaslaAsync(int id, CancellationToken ct = default) =>
+        Islem.CalistirAsync(db, async () =>
+        {
+            var emir = await BekleyenGetirAsync(id, ct);
+            if (emir.BaslamaZamani is not null)
+                throw new IsKuraliHatasi("Bu işin üretimine zaten başlandı.");
+            emir.BaslamaZamani = Zaman.Simdi();
+            await db.SaveChangesAsync(ct);
+            return await GetirAsync(id, ct);
         }, ct);
 
     public Task<UretimEmriDto> IptalAsync(int id, int kullaniciId, CancellationToken ct = default) =>

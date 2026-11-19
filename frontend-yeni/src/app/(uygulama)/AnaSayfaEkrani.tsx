@@ -7,7 +7,6 @@ import GeriCagirmalar from "@/components/GeriCagirmalar";
 import { OnumuzdekiGunler, SiradakiIsler, UretimUyarilari, YaklasanTeslimler } from "./AnaSayfaPanolari";
 import { ApiHatasi, izleme, ozet as ozetApi, type Aday, type NumaraArama, type NumaraTuru } from "@/lib/api";
 import { lotAdresi, seriAdresi } from "@/lib/adres";
-import { tarih } from "@/lib/bicim";
 import { numaraAyikla } from "@/lib/gs1";
 import { useVeri } from "@/lib/kancalar";
 
@@ -24,8 +23,6 @@ const HIZLI = [
   { yol: "/sevkiyat?yeni=1", baslik: "Yeni sevkiyat" },
 ];
 
-const HAREKET_ADI = { giris: "Mal girişi", uretim: "Üretim", satis: "Sevkiyat" } as const;
-
 export default function AnaSayfaEkrani() {
   const router = useRouter();
   const [q, setQ] = useState("");
@@ -33,7 +30,6 @@ export default function AnaSayfaEkrani() {
   const [hata, setHata] = useState("");
   const [bekliyor, setBekliyor] = useState(false);
   const [geriAcik, setGeriAcik] = useState(false);
-  const { veri: hareketler, hata: hareketHatasi } = useVeri(() => izleme.hareketler(8), []);
   const { veri: o, hata: ozetHatasi } = useVeri(() => ozetApi.anaSayfa(), []);
   const ozet = [
     { ad: "Açık sipariş", deger: o?.acikSiparis, yol: "/takvim", dikkat: false },
@@ -133,35 +129,6 @@ export default function AnaSayfaEkrani() {
         {o && <YaklasanTeslimler ozet={o} />}
       </div>
       <OnumuzdekiGunler />
-
-      <section className="panel">
-        <div className="panel-bas"><h3>Son hareketler</h3></div>
-        {hareketHatasi && <div className="panel-ic"><div className="mesaj mesaj--error">{hareketHatasi}</div></div>}
-        <div className="tablo-kap">
-          <table className="tablo">
-            <thead>
-              <tr>
-                <th style={{ width: 120 }}>Tarih</th>
-                <th style={{ width: 120 }}>İşlem</th>
-                <th>Açıklama</th>
-                <th className="sag">Numara</th>
-              </tr>
-            </thead>
-            <tbody>
-              {hareketler === null && !hareketHatasi && <tr className="bos"><td colSpan={4}>Yükleniyor…</td></tr>}
-              {hareketler?.length === 0 && <tr className="bos"><td colSpan={4}>Henüz hareket yok.</td></tr>}
-              {hareketler?.map((h, i) => (
-                <tr key={i} className="satir-tikla">
-                  <td>{tarih(h.tarih)}</td>
-                  <td><span className={`rozet rozet--kucuk ${h.tur === "giris" ? "rozet--basari" : h.tur === "uretim" ? "rozet--mavi" : "rozet--uyari"}`}>{HAREKET_ADI[h.tur]}</span></td>
-                  <td>{h.aciklama}</td>
-                  <td className="sag mono"><Link href={izAdresi(h.numaraTuru, h.numaraIlk)} className="satir-bag">{h.numara}</Link></td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </section>
     </main>
   );
 }

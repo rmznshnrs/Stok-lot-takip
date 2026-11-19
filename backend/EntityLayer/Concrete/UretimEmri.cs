@@ -22,6 +22,7 @@ public class UretimEmri : IDenetimli
     public int? SiparisKalemiId { get; set; }
     public SiparisKalemi? SiparisKalemi { get; set; }
 
+    public DateTimeOffset? BaslamaZamani { get; set; }
     public DateTimeOffset? BitisZamani { get; set; }
 
     public int OlusturanKullaniciId { get; set; }

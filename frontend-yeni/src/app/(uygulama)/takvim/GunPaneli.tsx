@@ -90,11 +90,11 @@ export default function GunPaneli({ gun, veri, isler, kapat, degisti }: {
                   {p.aciklama && ` · ${p.aciklama}`}
                 </span>
                 <span className="dugme-grup">
-                  <button type="button" className="btn-baglanti"
+                  <button type="button" className="btn btn--ikincil btn--kucuk"
                     onClick={() => calistir(() => ozet.planTamam(p.id, !p.tamamlandi), p.tamamlandi ? "Yeniden açıldı." : "Yapıldı olarak işaretlendi.")}>
                     {p.tamamlandi ? "Geri Al" : "Yapıldı"}
                   </button>
-                  <button type="button" className="btn-baglanti"
+                  <button type="button" className="btn btn--ikincil btn--kucuk"
                     onClick={() => confirm("Hatırlatıcı silinsin mi?") && calistir(() => ozet.planSil(p.id), "Hatırlatıcı silindi.")}>
                     Sil
                   </button>

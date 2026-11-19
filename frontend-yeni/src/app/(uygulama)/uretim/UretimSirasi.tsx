@@ -14,7 +14,8 @@ export default function UretimSirasi({ uretimde }: { uretimde: boolean }) {
   const params = useSearchParams();
   const eklendi = Number(params.get("eklendi")) || null;
   const { veri: tumu, hata, yenile } = useVeri(() => sira.liste(), []);
-  const liste = tumu && tumu.filter((e) => (uretimde ? e.uretilen > 0 : e.uretilen === 0));
+  const basladi = (e: UretimEmri) => !!e.baslamaZamani || e.uretilen > 0;
+  const liste = tumu && tumu.filter((e) => basladi(e) === uretimde);
   const [acik, setAcik] = useState<number | null>(null);
   const [sonuc, setSonuc] = useState<UretimSonucu | null>(null);
   const [mesaj, setMesaj] = useState<MesajBilgisi | null>(null);
@@ -101,9 +102,14 @@ export default function UretimSirasi({ uretimde }: { uretimde: boolean }) {
                               onClick={() => calistir(() => sira.tasi(e.id, -1))}>↑ Öne Al</button>
                             <button type="button" className="btn btn--ikincil btn--kucuk" title="Bu işi sırada bir arkaya al" disabled={i === liste.length - 1}
                               onClick={() => calistir(() => sira.tasi(e.id, 1))}>↓ Arkaya Al</button>
-                            <button type="button" className="btn btn--kucuk" aria-expanded={acik === e.id}
-                              onClick={() => setAcik(acik === e.id ? null : e.id)}>Üret</button>
-                            <button type="button" className="btn-baglanti"
+                            {uretimde ? (
+                              <button type="button" className="btn btn--kucuk" aria-expanded={acik === e.id}
+                                onClick={() => setAcik(acik === e.id ? null : e.id)}>Üret</button>
+                            ) : (
+                              <button type="button" className="btn btn--kucuk"
+                                onClick={() => calistir(() => sira.basla(e.id), `${e.urunAd} üretime alındı; Üretimde sekmesinde.`)}>Üretime Başla</button>
+                            )}
+                            <button type="button" className="btn btn--ikincil btn--kucuk"
                               onClick={() => confirm(`${e.urunAd} işi sıradan çıkarılsın mı? Ayrılan parçalar bırakılır.`)
                                 && calistir(() => sira.iptal(e.id), "İş sıradan çıkarıldı.")}>İptal</button>
                           </div>

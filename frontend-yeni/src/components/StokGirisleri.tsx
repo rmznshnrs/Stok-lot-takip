@@ -65,7 +65,7 @@ export default function StokGirisleri({ lotlar, islemler = false, degisti }: {
                         <button
                           key={islem}
                           type="button"
-                          className="btn-baglanti"
+                          className="btn btn--ikincil btn--kucuk"
                           aria-expanded={acik?.lotId === lot.id && acik.islem === islem}
                           onClick={() => ac(lot.id, islem)}
                         >

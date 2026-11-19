@@ -689,6 +689,9 @@ namespace DataAccessLayer.Migrations
                     b.Property<int>("Adet")
                         .HasColumnType("int");
 
+                    b.Property<DateTimeOffset?>("BaslamaZamani")
+                        .HasColumnType("datetimeoffset");
+
                     b.Property<DateTimeOffset?>("BitisZamani")
                         .HasColumnType("datetimeoffset");
 

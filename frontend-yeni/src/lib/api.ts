@@ -109,7 +109,7 @@ export interface UretimEmri {
   id: number; sira: number; urunId: number; urunKod: string; urunAd: string; adet: number; uretilen: number;
   durum: "Bekliyor" | "Tamamlandi" | "Iptal"; planlananTarih: string; aciklama: string;
   siparisId: number | null; siparisNo: string | null; musteriAd: string | null;
-  olusturmaZamani: string; kullaniciAd: string; bitisZamani: string | null;
+  olusturmaZamani: string; kullaniciAd: string; baslamaZamani: string | null; bitisZamani: string | null;
   parcalar: { parca: ParcaOzet; birimAdet: number; ayrilan: number }[]; seriNolar: string[];
 }
 export interface UretimEmriIstek { urunId: number; adet?: number; siparisKalemiId?: number; planlananTarih?: string; aciklama?: string }
@@ -311,6 +311,7 @@ export const uretim = {
 export const sira = {
   liste: (bitenler = false) => al<UretimEmri[]>("uretim/sira", { bitenler }),
   ekle: (e: UretimEmriIstek) => gonder<UretimEmri>("uretim/sira", e),
+  basla: (id: number) => gonder<UretimEmri>(`uretim/sira/${id}/basla`),
   uret: (id: number, adet?: number) => gonder<UretimSonucu>(`uretim/sira/${id}/uret`, { adet }),
   iptal: (id: number) => gonder<UretimEmri>(`uretim/sira/${id}/iptal`),
   tasi: (id: number, yon: -1 | 1) => gonder<UretimEmri[]>(`uretim/sira/${id}/tasi`, { yon }),

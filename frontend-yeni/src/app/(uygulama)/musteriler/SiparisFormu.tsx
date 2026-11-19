@@ -14,13 +14,13 @@ const YENI = "yeni";
 
 interface AgacSatiri { anahtar: number; parcaId: string; adet: string }
 interface Kalem {
-  anahtar: number; urunId: string; adet: string; seriler: string[];
+  anahtar: number; urunId: string; adet: string; seriler: string[]; uretim: boolean;
   yeniKod: string; yeniAd: string; agac: AgacSatiri[];
 }
 
 let sayac = 0;
 const yeniAgacSatiri = (): AgacSatiri => ({ anahtar: ++sayac, parcaId: "", adet: "1" });
-const yeniKalem = (): Kalem => ({ anahtar: ++sayac, urunId: "", adet: "1", seriler: [], yeniKod: "", yeniAd: "", agac: [yeniAgacSatiri()] });
+const yeniKalem = (): Kalem => ({ anahtar: ++sayac, urunId: "", adet: "1", seriler: [], uretim: false, yeniKod: "", yeniAd: "", agac: [yeniAgacSatiri()] });
 
 export default function SiparisFormu({ musteriId }: { musteriId: number }) {
   const router = useRouter();
@@ -65,7 +65,7 @@ export default function SiparisFormu({ musteriId }: { musteriId: number }) {
       const idler = await urunleriHazirla(dolu);
       const s = await siparisler.olustur({
         musteriId,
-        kalemler: dolu.map((k) => ({ urunId: idler.get(k.anahtar)!, adet: Number(k.adet), seriNolar: k.urunId === YENI ? [] : k.seriler })),
+        kalemler: dolu.map((k) => ({ urunId: idler.get(k.anahtar)!, adet: Number(k.adet), seriNolar: k.urunId === YENI || k.uretim ? [] : k.seriler })),
         tarih: bugun(),
         istenenTarih: istenen || undefined,
         aciklama: aciklama.trim(),
@@ -146,7 +146,7 @@ function KalemSatiri({ kalem, sira, digerUrunler, degistir, kaldir }: {
   const urunId = yeni ? 0 : Number(kalem.urunId) || 0;
   const { veri: hazir } = useVeri(() => (urunId ? siparisler.hazir(urunId) : Promise.resolve([])), [urunId]);
   const adet = Math.max(0, Math.floor(Number(kalem.adet)) || 0);
-  const secili = kalem.seriler.slice(0, adet);
+  const secili = kalem.uretim ? [] : kalem.seriler.slice(0, adet);
   const uretilecek = Math.max(0, adet - secili.length);
 
   return (
@@ -176,18 +176,24 @@ function KalemSatiri({ kalem, sira, digerUrunler, degistir, kaldir }: {
       {yeni && <YeniUrun kalem={kalem} degistir={degistir} />}
       {urunId > 0 && (
         <>
+          <div className="sekmeler kaynak-secimi" role="radiogroup" aria-label="Ürünler nereden">
+            <button type="button" role="radio" aria-checked={!kalem.uretim} className={`sekme${kalem.uretim ? "" : " sekme--aktif"}`}
+              onClick={() => degistir({ uretim: false })}>Depodan Ver</button>
+            <button type="button" role="radio" aria-checked={kalem.uretim} className={`sekme${kalem.uretim ? " sekme--aktif" : ""}`}
+              onClick={() => degistir({ uretim: true, seriler: [] })}>Üretime Gönder</button>
+          </div>
           <div className="bas-satir">
             <span className="not">
-              Depoda hazır: {hazir?.length ?? "…"} · seçilen {secili.length} · üretilecek {uretilecek}
+              {kalem.uretim ? `${adet} adet üretilecek` : `Depoda hazır: ${hazir?.length ?? "…"} · seçilen ${secili.length} · üretilecek ${uretilecek}`}
             </span>
-            {hazir && hazir.length > 0 && (
+            {!kalem.uretim && hazir && hazir.length > 0 && (
               <button type="button" className="btn-baglanti"
                 onClick={() => degistir({ seriler: hazir.slice(0, adet).map((h) => h.seriNo) })}>
                 Hazırdan {Math.min(adet, hazir.length)} Tane Seç
               </button>
             )}
           </div>
-          {hazir && hazir.length > 0 && (
+          {!kalem.uretim && hazir && hazir.length > 0 && (
             <SeriSecimi
               adaylar={hazir.map((h) => ({ seriNo: h.seriNo, alt: tarih(h.tarih) }))}
               secili={secili}

@@ -1716,3 +1716,15 @@ strong.takvim-cubuk { font-size: 13px; padding: 4px 8px; }
 }
 .biten-lot-dugmesi { align-self: flex-start; }
 .tablo-kap.tablo-kap--bes { max-height: 300px; }
+
+/* Açılan ayrıntı satırının üzerine gelince sayfanın rengi verilmez */
+.tablo tbody tr.acilan-satir:hover > td, :root[data-tema="koyu"] .tablo tbody tr.acilan-satir:hover > td { background: var(--tablo-bas); }
+.giris-bas { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+
+/* Düğmeler arasında rahat boşluk */
+.dugme-grup { gap: 10px; }
+.dugme-grup--sik { gap: 10px; }
+.dugme-grup--sag { gap: 8px 12px; }
+.tablo .dugme-grup .btn--kucuk { white-space: nowrap; }
+.tablo td.hucre-dar { padding-left: 16px; }
+.kaynak-secimi { align-self: flex-start; }

@@ -176,7 +176,7 @@ public record EmirParcasiDto(ParcaOzetDto Parca, int BirimAdet, int Ayrilan);
 public record UretimEmriDto(
     int Id, int Sira, int UrunId, string UrunKod, string UrunAd, int Adet, int Uretilen, string Durum,
     DateOnly PlanlananTarih, string Aciklama, int? SiparisId, string? SiparisNo, string? MusteriAd,
-    DateTimeOffset OlusturmaZamani, string KullaniciAd, DateTimeOffset? BitisZamani,
+    DateTimeOffset OlusturmaZamani, string KullaniciAd, DateTimeOffset? BaslamaZamani, DateTimeOffset? BitisZamani,
     IReadOnlyList<EmirParcasiDto> Parcalar, IReadOnlyList<string> SeriNolar);
 
 public record EmirUretIstek(int? Adet = null);

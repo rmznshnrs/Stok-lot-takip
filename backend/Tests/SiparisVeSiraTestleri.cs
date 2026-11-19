@@ -48,6 +48,19 @@ public class UretimSirasiTestleri(TestVeritabani vt) : IsKuraliTesti(vt)
     }
 
     [Fact]
+    public async Task Uretime_baslaninca_uretimde_olur()
+    {
+        var e = await Sira.EkleAsync(new UretimEmriIstek(Urun.Id, 2), Kullanici.Id);
+        Assert.Null(e.BaslamaZamani);
+        e = await Sira.BaslaAsync(e.Id);
+        Assert.NotNull(e.BaslamaZamani);
+        Assert.Equal(0, e.Uretilen);
+        await Assert.ThrowsAsync<IsKuraliHatasi>(() => Sira.BaslaAsync(e.Id));
+        await Sira.UretAsync(e.Id, new EmirUretIstek(), Kullanici.Id);
+        Assert.Equal("Tamamlandi", (await Sira.GetirAsync(e.Id)).Durum);
+    }
+
+    [Fact]
     public async Task Sira_tasinir()
     {
         var a = await Sira.EkleAsync(new UretimEmriIstek(Urun.Id, 1), Kullanici.Id);
