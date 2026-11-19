@@ -1699,4 +1699,4 @@ strong.takvim-cubuk { font-size: 13px; padding: 4px 8px; }
 .kart--iz .alt-not, .kart--iz .btn--tam, .kart--iz .geri-cagir-formu { margin-top: 0; }
 .kart--iz .adim-baslik.alt-not { margin-top: 6px; padding-top: 10px; border-top: 1px solid var(--kenar-ince); }
 
-.form-dikey > .kutu { flex-grow: 0; }
+.kutu { flex-grow: 0; }

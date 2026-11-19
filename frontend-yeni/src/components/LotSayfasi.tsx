@@ -103,7 +103,6 @@ function LotDetayi({ iz, degisti }: { iz: LotIz; degisti: () => void }) {
         )}
       </section>
 
-      <div className="akis-ok" aria-hidden="true">→</div>
 
       <section className="kart kart--genis kart--iz-sutun">
         <div className="adim-baslik">Kullanıldığı ürünler</div>
@@ -119,7 +118,6 @@ function LotDetayi({ iz, degisti }: { iz: LotIz; degisti: () => void }) {
         {!iz.uretimler.length && <p className="not">Kullanılmadı.</p>}
       </section>
 
-      <div className="akis-ok" aria-hidden="true">→</div>
 
       <section className="kart kart--genis kart--iz-sutun">
         <div className="adim-baslik">Ürünlerin gittiği müşteriler</div>

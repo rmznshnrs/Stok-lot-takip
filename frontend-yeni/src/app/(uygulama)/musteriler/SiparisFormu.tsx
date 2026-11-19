@@ -123,10 +123,8 @@ export default function SiparisFormu({ musteriId }: { musteriId: number }) {
         </div>
 
         <label className="onay-etiket">
-          <input type="checkbox" checked={siraya} onChange={(e) => setSiraya(e.target.checked)} /> Depoda olmayanları üretim sırasına ekle
-          {istenen && <span className="soluk"> (planlanan gün {tarih(istenen)})</span>}
+          <input type="checkbox" checked={siraya} onChange={(e) => setSiraya(e.target.checked)} /> Depoda olmayanları kaydedince üretime gönder
         </label>
-        <span className="not">Siparişi farklı günlerde üretmek için sipariş ayrıntısından istediğin adet ve günle ayrı ayrı sıraya ekleyebilirsin.</span>
         <div className="kart-alt">
           <span />
           <button type="submit" className="btn" disabled={bekliyor}>{bekliyor ? "Kaydediliyor…" : "Siparişi Kaydet"}</button>
@@ -294,7 +292,7 @@ function YeniParca({ kapat, eklendi }: { kapat: () => void; eklendi: (parcaId: n
   return (
     <div className="kutu kutu--ince form-dikey"
       onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); kaydet(); } }}>
-      <strong className="not">Yeni Parça (Parçalar sayfasına da eklenir)</strong>
+      <strong className="not">Yeni Parça</strong>
       <div className="satir-ekle satir-ekle--alt">
         <div className="alan">
           <label htmlFor="yp-kod">Parça Kodu</label>
