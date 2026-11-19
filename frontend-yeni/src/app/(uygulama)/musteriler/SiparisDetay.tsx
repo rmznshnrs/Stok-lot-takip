@@ -11,6 +11,7 @@ import { seriAdresi } from "@/lib/adres";
 import { bugun, tarih, tarihSaat } from "@/lib/bicim";
 import { useVeri } from "@/lib/kancalar";
 import { durumRozeti } from "./MusteriSiparisleri";
+import SiparisUrunleri from "./SiparisUrunleri";
 import { sevkiyatAdresi, sevkiyatRozeti, urunOzeti } from "../sevkiyat/ortak";
 
 export default function SiparisDetay({ id }: { id: number }) {
@@ -60,6 +61,10 @@ export default function SiparisDetay({ id }: { id: number }) {
             {s.iptalZamani && <div className="bilgi"><span>İptal</span><span>{tarihSaat(s.iptalZamani)}</span></div>}
           </div>
           <Mesaj mesaj={mesaj} />
+          <div className="kutu form-dikey">
+            <strong>Ürünler ve Teslimat</strong>
+            <SiparisUrunleri key={s.kalemler.map((k) => k.ayrilanlar.length + k.uretimde).join()} siparisId={s.id} />
+          </div>
           <Sevkiyatlar siparis={s} />
           {s.kalemler.map((k) => (
             <KalemKutusu key={k.id} siparis={s} kalem={k} calistir={calistir} />

@@ -153,6 +153,12 @@ export interface UretilebilirUyari {
   urunId: number; urunKod: string; urunAd: string; uretilebilir: number;
   kisitlayanlar: { parca: ParcaOzet; birimAdet: number; serbest: number }[];
 }
+export type SiparisUrunDurumu = "sirada" | "uretimde" | "depoda" | "hurda" | SevkiyatDurumu;
+export interface SiparisUrunu {
+  durum: SiparisUrunDurumu; urunAd: string; adet: number; seriNo: string | null; partiAdi: string | null; planlananTarih: string | null;
+  uretimZamani: string | null; sevkiyatId: number | null; sevkiyatNo: string | null; kargoFirmasi: string; takipNo: string;
+  kargoZamani: string | null; teslimZamani: string | null;
+}
 export interface GrafikVerisi {
   haftalikUretim: { haftaBasi: string; adet: number }[];
   siparisDurumlari: { durum: SiparisDurumu; sayi: number }[];
@@ -165,6 +171,7 @@ export interface AnaSayfaOzeti {
   uyarilar: UretilebilirUyari[];
   yaklasanTeslimler: { siparisId: number; no: string; musteriAd: string; istenenTarih: string; kalan: number }[];
   kapasiteler: { urunId: number; urunAd: string; uretilebilir: number }[];
+  minUyarilari: ParcaStok[];
 }
 export interface TakvimGunu {
   tarih: string; urunler: { urunId: number; urunAd: string; planlanan: number; uretilen: number; istenen: number }[];
@@ -330,6 +337,7 @@ export const sira = {
 export const siparisler = {
   liste: (musteriId?: number, acik = false) => al<Siparis[]>("siparis", { musteriId, acik }),
   getir: (id: number) => al<Siparis>(`siparis/${id}`),
+  urunler: (id: number) => al<SiparisUrunu[]>(`siparis/${id}/urunler`),
   olustur: (s: SiparisIstek) => gonder<Siparis>("siparis", s),
   iptal: (id: number) => gonder<Siparis>(`siparis/${id}/iptal`),
   ayir: (kalemId: number, seriNolar: string[]) => gonder<Siparis>(`siparis/kalem/${kalemId}/ayir`, { seriNolar }),

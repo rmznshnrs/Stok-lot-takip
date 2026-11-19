@@ -41,7 +41,8 @@ public class OzetServisi(AppDbContext db, IStokServisi stok) : IOzetServisi
             depoda, parcalar.Count(p => p.MinAltinda), acikGeri,
             [.. kapasiteler.Where(u => u.Uretilebilir <= UyariEsigi)], yaklasan,
             [.. kapasiteler.Select(u => new UrunKapasitesiDto(u.UrunId, u.UrunAd, u.Uretilebilir))
-                .OrderBy(u => u.UrunAd, StringComparer.CurrentCulture)]);
+                .OrderBy(u => u.UrunAd, StringComparer.CurrentCulture)],
+            [.. parcalar.Where(p => p.MinAltinda).OrderBy(p => (double)p.Serbest / p.MinStok).ThenBy(p => p.Kod)]);
     }
 
     public async Task<GrafikVerisiDto> GrafiklerAsync(CancellationToken ct = default)

@@ -137,39 +137,38 @@ export function YaklasanTeslimler({ ozet: o }: { ozet: AnaSayfaOzeti }) {
 export function UretimUyarilari({ ozet: o }: { ozet: AnaSayfaOzeti }) {
   const kapasiteler = (o.kapasiteler ?? []).filter((k) => k.uretilebilir <= 5);
   const enCok = 6;
+  const parcalar = o.minUyarilari ?? [];
   return (
-    <section className={`panel${o.uyarilar.length ? " panel--dikkat" : ""}`}>
+    <section className={`panel${parcalar.length ? " panel--dikkat" : ""}`}>
       <div className="panel-bas">
         <h3>Üretim Uyarıları</h3>
-        {o.uyarilar.length > 0
-          ? <span className="rozet rozet--uyari">{o.uyarilar.length} ürün için parça azaldı</span>
-          : <span className="rozet rozet--basari">Bütün ürünler için yeterli parça var</span>}
+        {parcalar.length > 0
+          ? <span className="rozet rozet--uyari">{parcalar.length} parça min stokta ya da altında</span>
+          : <span className="rozet rozet--basari">Bütün parçalar min stoğun üstünde</span>}
       </div>
       <div className="panel-ic uyari-duzeni">
-        {o.uyarilar.length > 0 && (
+        {parcalar.length > 0 && (
           <div className="uyari-kartlari">
-            {o.uyarilar.map((u) => (
-              <div key={u.urunId} className={`uyari-karti${u.uretilebilir === 0 ? " uyari-karti--kritik" : ""}`}>
+            {parcalar.map((p) => (
+              <Link key={p.id} href={`/parcalar?parca=${encodeURIComponent(p.kod)}`}
+                className={`uyari-karti uyari-karti--bag${p.serbest === 0 ? " uyari-karti--kritik" : ""}`}>
                 <div className="uyari-karti-bas">
-                  <span className="uyari-karti-sayi">{u.uretilebilir}</span>
+                  <span className="uyari-karti-sayi">{p.serbest}</span>
                   <span>
-                    <strong>{u.urunAd}</strong>
-                    <span className="yardim">{u.uretilebilir === 0 ? "Hiç üretilemiyor" : "adet daha üretilebilir"}</span>
+                    <strong>{p.ad} <span className="mono yardim">{p.kod}</span></strong>
+                    <span className="yardim">{p.serbest === 0 ? "Hiç kalmadı" : "adet kullanılabilir"} · Min {p.minStok}</span>
                   </span>
                 </div>
-                {u.kisitlayanlar.map((k) => {
-                  const kac = Math.floor(k.serbest / k.birimAdet);
-                  return (
-                    <Link key={k.parca.id} href={`/parcalar?parca=${encodeURIComponent(k.parca.kod)}`} className="parca-cubugu">
-                      <span className="parca-cubugu-ad">{k.parca.ad} <span className="mono">{k.parca.kod}</span></span>
-                      <span className="parca-cubugu-yol">
-                        <span className="parca-cubugu-dolu" style={{ width: `${Math.min(100, (kac / 6) * 100)}%` }} />
-                      </span>
-                      <span className="parca-cubugu-sayi">{k.serbest} adet · 1 üründe {k.birimAdet}</span>
-                    </Link>
-                  );
-                })}
-              </div>
+                <span className="parca-cubugu">
+                  <span className="parca-cubugu-yol">
+                    <span className="parca-cubugu-dolu" style={{ width: `${Math.min(100, (p.serbest / p.minStok) * 100)}%` }} />
+                  </span>
+                  <span className="parca-cubugu-sayi">
+                    {p.ayrilan > 0 && `${p.ayrilan} adet üretim sırasında · `}
+                    {p.kullanildigiUrunler.length ? p.kullanildigiUrunler.join(", ") : "Hiçbir üründe kullanılmıyor"}
+                  </span>
+                </span>
+              </Link>
             ))}
           </div>
         )}

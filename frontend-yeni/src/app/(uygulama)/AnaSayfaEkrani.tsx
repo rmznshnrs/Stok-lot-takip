@@ -34,11 +34,10 @@ export default function AnaSayfaEkrani() {
   const { veri: o, hata: ozetHatasi } = useVeri(() => ozetApi.anaSayfa(), []);
   const { veri: grafik } = useVeri(() => ozetApi.grafikler(), []);
   const ozet = [
-    { ad: "Açık sipariş", deger: o?.acikSiparis, yol: "/takvim", dikkat: false },
     { ad: "Üretim sırasındaki ürün", deger: o?.siradakiAdet, alt: o && `${o.siradakiIs} iş · bugüne kadar planlanan ${o.bugunPlanlanan}`, yol: "/uretim", dikkat: false },
     { ad: "Gönderilmeyi bekleyen sevkiyat", deger: o && o.hazirlananSevkiyat + o.kargodaSevkiyat, alt: o && `${o.hazirlananSevkiyat} kargoya verilecek · ${o.kargodaSevkiyat} kargoda`, yol: "/sevkiyat", dikkat: false },
     { ad: "Depodaki ürün", deger: o?.depodaUrun, yol: "/stok?gorunum=urun", dikkat: false },
-    { ad: "Minimum stok altındaki parça", deger: o?.minAltindaParca, yol: "/stok?gorunum=parca", dikkat: true },
+    { ad: "Min stokta ya da altında parça", deger: o?.minAltindaParca, yol: "/stok?gorunum=parca", dikkat: true },
     { ad: "Açık geri çağırma", deger: o?.acikGeriCagirma, yol: "#geri-cagirmalar", dikkat: true },
   ];
 
@@ -132,7 +131,7 @@ export default function AnaSayfaEkrani() {
         <SiparisDurumuGrafigi veri={grafik} />
       </div>
 
-      {o && <UretimUyarilari ozet={o} />}
+      {o && (o.minUyarilari ?? []).length > 0 && <UretimUyarilari ozet={o} />}
       <div className="iki-sutun">
         <SiradakiIsler />
         {o && <YaklasanTeslimler ozet={o} />}

@@ -26,6 +26,36 @@ public class SiparisServisi(AppDbContext db) : ISiparisServisi
     public async Task<SiparisDto> GetirAsync(int id, CancellationToken ct = default) =>
         Donustur(await Sorgu().SingleOrDefaultAsync(s => s.Id == id, ct) ?? throw new BulunamadiHatasi("Sipariş bulunamadı."));
 
+    public async Task<List<SiparisUrunuDto>> UrunlerAsync(int id, CancellationToken ct = default)
+    {
+        var siparis = await db.Siparisler.AsNoTracking().Where(s => s.Id == id).Select(s => new { s.No }).SingleOrDefaultAsync(ct)
+                      ?? throw new BulunamadiHatasi("Sipariş bulunamadı.");
+        var emirler = await db.UretimEmirleri.AsNoTracking().Where(e => e.SiparisKalemi!.SiparisId == id).OrderBy(e => e.Id)
+            .Select(e => new { e.Id, e.Durum, e.Adet, e.Uretilen, e.PlanlananTarih, e.BaslamaZamani, UrunAd = e.Urun!.Ad }).ToListAsync(ct);
+        var partiNo = emirler.Select((e, i) => (e.Id, No: i + 1)).ToDictionary(x => x.Id, x => x.No);
+        var urunler = await db.Uretimler.AsNoTracking().Where(u => u.SiparisKalemi!.SiparisId == id)
+            .Select(u => new
+            {
+                u.SeriNo, UrunAd = u.Urun!.Ad, u.Tarih, u.UretimEmriId, Hurda = u.Hurda != null,
+                Satis = u.SatisKalemi == null ? null : new
+                {
+                    u.SatisKalemi.Satis!.Id, u.SatisKalemi.Satis.No, u.SatisKalemi.Satis.Durum, u.SatisKalemi.Satis.KargoFirmasi,
+                    u.SatisKalemi.Satis.TakipNo, u.SatisKalemi.Satis.KargoZamani, u.SatisKalemi.Satis.TeslimZamani,
+                },
+            }).ToListAsync(ct);
+
+        string? Parti(int? emirId) => emirId is { } e && partiNo.TryGetValue(e, out var n) ? $"{siparis.No}/{n}" : null;
+        int Sira(int? emirId) => emirId is { } e && partiNo.TryGetValue(e, out var n) ? n : 0;
+        var satirlar = urunler.Select(u => (Sira: Sira(u.UretimEmriId), Dto: new SiparisUrunuDto(
+            u.Hurda ? "hurda" : u.Satis?.Durum.ToString() ?? "depoda", u.UrunAd, 1, u.SeriNo, Parti(u.UretimEmriId), null, u.Tarih,
+            u.Satis?.Id, u.Satis?.No, u.Satis?.KargoFirmasi ?? "", u.Satis?.TakipNo ?? "", u.Satis?.KargoZamani, u.Satis?.TeslimZamani)));
+        var bekleyen = emirler.Where(e => e.Durum == UretimEmriDurumu.Bekliyor && e.Adet > e.Uretilen)
+            .Select(e => (Sira: Sira(e.Id), Dto: new SiparisUrunuDto(e.BaslamaZamani is not null || e.Uretilen > 0 ? "uretimde" : "sirada",
+                e.UrunAd, e.Adet - e.Uretilen, null, Parti(e.Id), e.PlanlananTarih, null, null, null, "", "", null, null)));
+        return [.. satirlar.Concat(bekleyen).OrderBy(x => x.Sira).ThenBy(x => x.Dto.SeriNo is null)
+            .ThenBy(x => x.Dto.UretimZamani).ThenBy(x => x.Dto.SeriNo, StringComparer.Ordinal).Select(x => x.Dto)];
+    }
+
     public Task<SiparisDto> OlusturAsync(SiparisIstek istek, int kullaniciId, CancellationToken ct = default)
     {
         var kalemler = istek.Kalemler ?? [];

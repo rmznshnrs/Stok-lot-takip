@@ -87,6 +87,24 @@ public class SiparisTestleri(TestVeritabani vt) : IsKuraliTesti(vt)
     }
 
     [Fact]
+    public async Task Siparis_urunleri_parti_uretim_ve_sevkiyat_bilgisiyle()
+    {
+        var s = await Siparis.OlusturAsync(new SiparisIstek(Musteri.Id, [new SiparisKalemiIstek(Urun.Id, 3, ["SN-IP-0001"])]), Kullanici.Id);
+        var k = s.Kalemler[0];
+        var e1 = await Sira.EkleAsync(new UretimEmriIstek(Urun.Id, 1, k.Id), Kullanici.Id);
+        await Sira.EkleAsync(new UretimEmriIstek(Urun.Id, 1, k.Id), Kullanici.Id);
+        await Sira.UretAsync(e1.Id, new EmirUretIstek(), Kullanici.Id);
+        var sv = await new SevkiyatServisi(Db).OlusturAsync(new SevkiyatIstek(s.Id, ["SN-IP-0004"], "Aras Kargo", "777"), Kullanici.Id);
+
+        var u = await Siparis.UrunlerAsync(s.Id);
+        Assert.Equal([("depoda", "SN-IP-0001", null), ("Kargoda", "SN-IP-0004", "SP-0001/1"), ("sirada", null, "SP-0001/2")],
+            u.Select(x => (x.Durum, x.SeriNo, x.PartiAdi)));
+        Assert.Equal((sv.No, "Aras Kargo", "777"), (u[1].SevkiyatNo, u[1].KargoFirmasi, u[1].TakipNo));
+        Assert.NotNull(u[1].UretimZamani);
+        await Assert.ThrowsAsync<BulunamadiHatasi>(() => Siparis.UrunlerAsync(999));
+    }
+
+    [Fact]
     public async Task Hazir_seri_ayrilir_eksik_siradan_uretilip_kaleme_gelir()
     {
         var s = await Siparis.OlusturAsync(new SiparisIstek(Musteri.Id,
@@ -234,6 +252,11 @@ public class OzetTestleri(TestVeritabani vt) : IsKuraliTesti(vt)
         Assert.Equal([("DIY", 2)], u.Kisitlayanlar.Select(k => (k.Parca.Kod, k.Serbest)));
         Assert.Equal((1, 11), (o.SiradakiIs, o.SiradakiAdet));
         Assert.Equal(("İndikatör Paneli", 2), (Assert.Single(o.Kapasiteler).UrunAd, o.Kapasiteler[0].Uretilebilir));
+        Assert.Empty(o.MinUyarilari);
+        await Db.Parcalar.Where(p => p.Id == Diyot.Id).ExecuteUpdateAsync(s => s.SetProperty(p => p.MinStok, 2));
+        o = await Ozet.AnaSayfaAsync();
+        Assert.Equal(("DIY", 2), (Assert.Single(o.MinUyarilari).Kod, o.MinUyarilari[0].Serbest));
+        Assert.Equal(1, o.MinAltindaParca);
     }
 
     [Fact]

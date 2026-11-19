@@ -20,7 +20,7 @@ public record ParcaStokDto(
 {
     public int Serbest => Math.Max(0, KullanilabilirStok - Ayrilan);
 
-    public bool MinAltinda => KullanilabilirStok < MinStok;
+    public bool MinAltinda => MinStok > 0 && Serbest <= MinStok;
 }
 
 public record StokGrubuDto(ParcaStokDto Parca, IReadOnlyList<LotDto> Lotlar, LotDto? Siradaki);
@@ -211,9 +211,13 @@ public record AnaSayfaOzetiDto(
     int AcikSiparis, int SiradakiIs, int SiradakiAdet, int BugunPlanlanan, int HazirlananSevkiyat, int KargodaSevkiyat,
     int DepodaUrun, int MinAltindaParca, int AcikGeriCagirma,
     IReadOnlyList<UretilebilirUyariDto> Uyarilar, IReadOnlyList<YaklasanTeslimDto> YaklasanTeslimler,
-    IReadOnlyList<UrunKapasitesiDto> Kapasiteler);
+    IReadOnlyList<UrunKapasitesiDto> Kapasiteler, IReadOnlyList<ParcaStokDto> MinUyarilari);
 
 public record UrunKapasitesiDto(int UrunId, string UrunAd, int Uretilebilir);
+
+public record SiparisUrunuDto(
+    string Durum, string UrunAd, int Adet, string? SeriNo, string? PartiAdi, DateOnly? PlanlananTarih, DateTimeOffset? UretimZamani,
+    int? SevkiyatId, string? SevkiyatNo, string KargoFirmasi, string TakipNo, DateTimeOffset? KargoZamani, DateTimeOffset? TeslimZamani);
 
 public record HaftalikUretimDto(DateOnly HaftaBasi, int Adet);
 

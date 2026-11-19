@@ -97,6 +97,9 @@ public class SiparisController(ISiparisServisi siparis) : ControllerBase
     [HttpGet("{id:int}")]
     public Task<SiparisDto> Getir(int id, CancellationToken ct) => siparis.GetirAsync(id, ct);
 
+    [HttpGet("{id:int}/urunler")]
+    public Task<List<SiparisUrunuDto>> Urunler(int id, CancellationToken ct) => siparis.UrunlerAsync(id, ct);
+
     [HttpPost]
     public async Task<ActionResult<SiparisDto>> Olustur(SiparisIstek istek, CancellationToken ct)
     {

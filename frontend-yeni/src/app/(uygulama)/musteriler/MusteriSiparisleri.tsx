@@ -1,9 +1,11 @@
 "use client";
 
 import Link from "next/link";
+import { Fragment, useState } from "react";
 import { SIPARIS_DURUM_ADI, siparisler, type Siparis } from "@/lib/api";
 import { tarih } from "@/lib/bicim";
 import { useVeri } from "@/lib/kancalar";
+import SiparisUrunleri from "./SiparisUrunleri";
 
 export const siparisAdresi = (id: number) => `/musteriler?siparis=${id}`;
 
@@ -14,6 +16,7 @@ export function durumRozeti(s: Siparis) {
 
 export default function MusteriSiparisleri({ musteriId }: { musteriId: number }) {
   const { veri: liste, hata } = useVeri(() => siparisler.liste(musteriId), [musteriId]);
+  const [acik, setAcik] = useState<number | null>(null);
   return (
     <div className="form-dikey">
       <div className="bas-satir">
@@ -35,15 +38,33 @@ export default function MusteriSiparisleri({ musteriId }: { musteriId: number })
           <tbody>
             {liste === null && !hata && <tr className="bos"><td colSpan={5}>Yükleniyor…</td></tr>}
             {liste?.length === 0 && <tr className="bos"><td colSpan={5}>Sipariş yok.</td></tr>}
-            {liste?.map((s) => (
-              <tr key={s.id} className="satir-tikla">
-                <td className="mono"><Link href={siparisAdresi(s.id)} className="satir-bag">{s.no}</Link></td>
-                <td>{tarih(s.tarih)}</td>
-                <td>{s.kalemler.map((k) => `${k.urunAd} × ${k.adet}`).join(", ")}</td>
-                <td>{s.istenenTarih ? tarih(s.istenenTarih) : <span className="soluk">—</span>}</td>
-                <td>{durumRozeti(s)}</td>
-              </tr>
-            ))}
+            {liste?.map((s) => {
+              const acikMi = acik === s.id;
+              return (
+                <Fragment key={s.id}>
+                  <tr className="satir-tikla">
+                    <td className="mono"><Link href={siparisAdresi(s.id)}>{s.no}</Link></td>
+                    <td>{tarih(s.tarih)}</td>
+                    <td>
+                      <button type="button" className="btn-baglanti parca-ac satir-bag" aria-expanded={acikMi}
+                        onClick={() => setAcik(acikMi ? null : s.id)}>
+                        <span className="parca-ok" aria-hidden="true">{acikMi ? "▾" : "▸"}</span>
+                        {s.kalemler.map((k) => `${k.urunAd} × ${k.adet}`).join(", ")}
+                      </button>
+                    </td>
+                    <td>{s.istenenTarih ? tarih(s.istenenTarih) : <span className="soluk">—</span>}</td>
+                    <td>{durumRozeti(s)}</td>
+                  </tr>
+                  {acikMi && (
+                    <tr className="acilan-satir">
+                      <td colSpan={5}>
+                        <SiparisUrunleri siparisId={s.id} />
+                      </td>
+                    </tr>
+                  )}
+                </Fragment>
+              );
+            })}
           </tbody>
         </table>
       </div>

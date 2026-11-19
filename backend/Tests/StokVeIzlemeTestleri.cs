@@ -16,6 +16,11 @@ public class StokTestleri(TestVeritabani vt) : IsKuraliTesti(vt)
         Assert.Equal(3, p["DIY"].LotSayisi);
         Assert.True(p["DIY"].MinAltinda);
         Assert.False(p["LED"].MinAltinda);
+        Assert.False(p["YENI"].MinAltinda);
+        await Db.Parcalar.Where(x => x.Id == Diyot.Id).ExecuteUpdateAsync(s => s.SetProperty(x => x.MinStok, 13));
+        Assert.True((await Stok.ParcaStoklariAsync()).Single(x => x.Kod == "DIY").MinAltinda);
+        await Db.Parcalar.Where(x => x.Id == Diyot.Id).ExecuteUpdateAsync(s => s.SetProperty(x => x.MinStok, 12));
+        Assert.False((await Stok.ParcaStoklariAsync()).Single(x => x.Kod == "DIY").MinAltinda);
         Assert.Equal(["İndikatör Paneli"], p["LED"].KullanildigiUrunler);
         Assert.Equal((0, 0), (p["YENI"].ToplamStok, p["YENI"].LotSayisi));
         Assert.Empty(p["YENI"].KullanildigiUrunler);

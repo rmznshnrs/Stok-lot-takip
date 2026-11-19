@@ -1789,3 +1789,6 @@ html { scrollbar-gutter: stable; }
 .dagilim-cubugu { display: flex; gap: 2px; height: 22px; border-radius: 6px; overflow: hidden; }
 .dagilim-cubugu span { display: block; height: 100%; }
 .stok-grafigi .lejant--yan .yardim { margin-left: 4px; }
+@media (min-width: 1200px) { .ozet-kutular { grid-template-columns: repeat(5, minmax(0, 1fr)); } }
+.uyari-karti--bag, .uyari-karti--bag:hover { text-decoration: none; }
+.uyari-karti--bag:hover { border-color: var(--uyari); }
