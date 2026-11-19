@@ -65,6 +65,7 @@ export default function ParcalarEkrani() {
           type="search"
           className="girdi girdi--ara"
           aria-label="Parça ara"
+          placeholder="Parça kodu ya da adı"
           value={arama}
           onChange={(e) => setArama(e.target.value)}
         />
@@ -189,7 +190,6 @@ function ParcaGirisleri({ kod, degisti }: { kod: string; degisti: (mesaj: string
   const guncellendi = (m: string) => { yenile(); degisti(m); };
   return (
     <div className="form-dikey">
-      <div className="giris-bas">Elde Olan Lotlar ({elde.length})</div>
       <StokGirisleri lotlar={elde} islemler degisti={guncellendi} />
       {bitenler.length > 0 && (
         <>
@@ -197,7 +197,7 @@ function ParcaGirisleri({ kod, degisti }: { kod: string; degisti: (mesaj: string
             onClick={() => setBitenlerAcik(!bitenlerAcik)}>
             {bitenlerAcik ? "▾" : "▸"} Biten Lotlar ({bitenler.length})
           </button>
-          {bitenlerAcik && <StokGirisleri lotlar={bitenler} islemler degisti={guncellendi} />}
+          {bitenlerAcik && <StokGirisleri lotlar={bitenler} />}
         </>
       )}
     </div>
@@ -254,7 +254,7 @@ function ParcaDuzenle({ p, kaydedildi }: { p: ParcaStok; kaydedildi: (mesaj: str
 function ParcaSatiri({ p, yeni, acik, ac }: {
   p: ParcaStok; yeni: boolean; acik: boolean; ac: () => void;
 }) {
-  const ipucu = `Kullanılabilir ${p.kullanilabilirStok}${p.ayrilan ? ` (${p.ayrilan} sıraya ayrıldı)` : ""} · toplam ${p.toplamStok} · minimum ${p.minStok}`;
+  const ipucu = `Kullanılabilir ${p.serbest}${p.ayrilan ? ` (${p.ayrilan} üretim sırasında)` : ""} · toplam ${p.toplamStok} · minimum ${p.minStok}`;
   const stokAdresi = `/stok?parca=${encodeURIComponent(p.kod)}`;
   return (
     <tr className={`satir-tikla${p.minAltinda ? " uyari-satir" : ""}`}>
@@ -268,10 +268,10 @@ function ParcaSatiri({ p, yeni, acik, ac }: {
       </td>
       {p.minAltinda ? (
         <td className="sag uyari-metin" title={ipucu}>
-          <Link className="uyari-metin" href={stokAdresi}>{p.kullanilabilirStok}</Link> · min altında
+          <Link className="uyari-metin" href={stokAdresi}>{p.serbest}</Link> · min altında
         </td>
       ) : p.toplamStok ? (
-        <td className="sag" title={ipucu}><Link href={stokAdresi}>{p.kullanilabilirStok}</Link></td>
+        <td className="sag" title={ipucu}><Link href={stokAdresi}>{p.serbest}</Link>{p.ayrilan > 0 && <div className="yardim">{p.ayrilan} üretim sırasında</div>}</td>
       ) : (
         <td className="sag soluk">0</td>
       )}

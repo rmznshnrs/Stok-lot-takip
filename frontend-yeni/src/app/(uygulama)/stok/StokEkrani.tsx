@@ -49,9 +49,6 @@ export default function StokEkrani() {
     <main className="icerik icerik--dikey">
       <div className="sayfa-bas">
         <h1>Stok</h1>
-        <button type="button" className="btn" aria-expanded={formAcik} onClick={() => setFormAcik(!formAcik)}>
-          {formAcik ? "Formu kapat" : "+ Mal girişi"}
-        </button>
       </div>
 
       {formAcik && (
@@ -65,6 +62,7 @@ export default function StokEkrani() {
       )}
 
       <section className="panel">
+        <div className="panel-bas">
         <nav className="sekmeler" aria-label="Görünüm">
           {GORUNUMLER.map((g) => (
             <Link
@@ -78,21 +76,28 @@ export default function StokEkrani() {
             </Link>
           ))}
         </nav>
-        <div className="panel-arac">
+        <div className="arama-satiri">
           <input
             type="search"
             className="girdi girdi--ara"
             aria-label="Stokta ara"
+            placeholder="Parça, ürün, lot ya da seri no"
             value={arama}
             onChange={(e) => setArama(e.target.value)}
           />
-          {parcaKod && (
+          <button type="button" className="btn btn--kucuk" aria-expanded={formAcik} onClick={() => setFormAcik(!formAcik)}>
+            {formAcik ? "Formu Kapat" : "+ Mal Girişi"}
+          </button>
+        </div>
+        </div>
+        {parcaKod && (
+          <div className="panel-arac">
             <span className="filtre">
               Yalnızca <span className="mono">{parcaKod}</span> gösteriliyor ·{" "}
               <Link href={adres({ parca: null, gorunum })} replace>tümünü göster</Link>
             </span>
-          )}
-        </div>
+          </div>
+        )}
         {hata && <div className="panel-ic"><div className="mesaj mesaj--error">{hata}</div></div>}
 
         <div className="tablo-kap">
@@ -159,7 +164,7 @@ function ParcaTablosu({ gruplar, aranan, ilkAcik }: {
                   </td>
                   <td className="sag">{p.toplamStok}</td>
                   <td className={`sag${p.minAltinda ? " uyari-metin" : ""}`}>
-                    {p.kullanilabilirStok}{p.minAltinda && " · min altında"}
+                    {p.serbest}{p.minAltinda && " · min altında"}
                     {p.ayrilan > 0 && <div className="yardim">{p.ayrilan} üretim sırasında</div>}
                   </td>
                   <td className="sag soluk">{p.minStok}</td>

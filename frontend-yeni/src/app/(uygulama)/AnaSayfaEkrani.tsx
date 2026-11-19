@@ -70,6 +70,7 @@ export default function AnaSayfaEkrani() {
               type="search"
               className="girdi"
               aria-label="Lot, seri no veya parça kodu"
+              placeholder="Lot no, seri no ya da parça kodu ara"
               autoFocus
               value={q}
               onChange={(e) => setQ(e.target.value)}

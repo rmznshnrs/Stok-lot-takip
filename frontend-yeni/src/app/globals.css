@@ -1407,20 +1407,8 @@ h1, h2, h3, .sayfa-bas h1, .ust-sekme-satiri h1 { color: var(--metin); }
   --menu-zemin: transparent;
 }
 
-:root:not([data-tema="koyu"]) .duzen:has(.yan-menu a[href="/uretim"].aktif) {
-  --ana: #6B4FB8; --ana-koyu: #4A3593; --ana-acik: #EEE9FB; --ana-acik-kenar: #D9CFF4; --baglanti: #5B44A8; --baglanti-koyu: #45318A;
-}
-:root:not([data-tema="koyu"]) .duzen:has(.yan-menu a[href="/stok"].aktif) {
-  --ana: #2A7D61; --ana-koyu: #1F5C48; --ana-acik: #E3F5EE; --ana-acik-kenar: #C2E8D8; --baglanti: #24715A; --baglanti-koyu: #1A5442;
-}
-:root:not([data-tema="koyu"]) .duzen:has(.yan-menu a[href="/satis"].aktif) {
-  --ana: #A9532A; --ana-koyu: #7E3C1A; --ana-acik: #FDEDE2; --ana-acik-kenar: #F6D3BC; --baglanti: #9A4B24; --baglanti-koyu: #743816;
-}
-:root:not([data-tema="koyu"]) .duzen:has(.yan-menu a[href="/urunler"].aktif) {
+:root:not([data-tema="koyu"]) .duzen {
   --ana: #34709F; --ana-koyu: #24527A; --ana-acik: #E4F0FA; --ana-acik-kenar: #C6DDF1; --baglanti: #2F6893; --baglanti-koyu: #214D70;
-}
-:root:not([data-tema="koyu"]) .duzen:has(.yan-menu a[href="/parcalar"].aktif) {
-  --ana: #876A10; --ana-koyu: #66500B; --ana-acik: #FBF3DA; --ana-acik-kenar: #F0E0AE; --baglanti: #7A600E; --baglanti-koyu: #5C4809;
 }
 :root:not([data-tema="koyu"]) .duzen:has(.yan-menu a[href="/yonetim"].aktif) {
   --ana: #635C70; --ana-koyu: #4A4553; --ana-acik: #EEECF1; --ana-acik-kenar: #DAD6E0; --baglanti: #5A5366; --baglanti-koyu: #433E4C;
@@ -1728,3 +1716,14 @@ strong.takvim-cubuk { font-size: 13px; padding: 4px 8px; }
 .tablo .dugme-grup .btn--kucuk { white-space: nowrap; }
 .tablo td.hucre-dar { padding-left: 16px; }
 .kaynak-secimi { align-self: flex-start; }
+
+/* Arama çubukları: ince çerçeve, beyaz zemin, odakta ana renkli halka */
+input[type="search"].girdi {
+  border: 1px solid var(--kenar); background-color: var(--kart); box-shadow: 0 1px 2px rgba(15, 23, 42, .05);
+  transition: border-color .15s, box-shadow .15s;
+}
+input[type="search"].girdi:hover { border-color: var(--ana-acik-kenar); }
+input[type="search"].girdi:focus { outline: none; border-color: var(--ana); box-shadow: 0 0 0 3px var(--ana-acik); }
+input[type="search"].girdi::placeholder { color: var(--soluk); opacity: .8; }
+.girdi--ara { width: 300px; max-width: 100%; }
+.panel-bas .arama-satiri { flex-wrap: wrap; justify-content: flex-end; }

@@ -71,6 +71,7 @@ export default function UrunDepo({ urunId, degisti }: { urunId: number; degisti?
             type="search"
             className="girdi girdi--mono"
             aria-label="Depoda seri no ara"
+            placeholder="Seri no"
             value={ara}
             onChange={(e) => setAra(e.target.value)}
           />

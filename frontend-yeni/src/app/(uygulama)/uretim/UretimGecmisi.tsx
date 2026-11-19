@@ -5,6 +5,7 @@ import { useState } from "react";
 import { hurdaAdi, uretim, urunler } from "@/lib/api";
 import { tarih, tarihSaat } from "@/lib/bicim";
 import { useSayfalama } from "@/components/Sayfalama";
+import UretimSekmeleri from "./UretimSekmeleri";
 import { useGecikmeli, useVeri } from "@/lib/kancalar";
 import { seriAdresi } from "@/lib/adres";
 
@@ -23,7 +24,7 @@ export default function UretimGecmisi({ ilkArama = "" }: { ilkArama?: string }) 
       <section className="panel">
         <div className="panel-bas">
           <div className="baslik-grup">
-            <h2>Üretilen Ürünler</h2>
+            <UretimSekmeleri />
             {liste && <span className="ozet">{liste.length} ürün · {depoda} depoda · {liste.length - depoda - ayrilan} gönderildi{ayrilan > 0 && ` · ${ayrilan} hurda / kayıp`}</span>}
           </div>
           <div className="arama-satiri">
@@ -35,6 +36,7 @@ export default function UretimGecmisi({ ilkArama = "" }: { ilkArama?: string }) 
               type="search"
               className="girdi girdi--ara"
               aria-label="Üretimlerde ara"
+              placeholder="Seri no, ürün ya da müşteri"
               value={arama}
               onChange={(e) => setArama(e.target.value)}
             />

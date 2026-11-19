@@ -33,6 +33,7 @@ export default function GeriCagirmalar({ kapat }: { kapat?: () => void }) {
               type="search"
               className="girdi girdi--ara"
               aria-label="Geri çağırmalarda ara"
+              placeholder="Seri no, ürün ya da müşteri"
               value={arama}
               onChange={(e) => setArama(e.target.value)}
             />

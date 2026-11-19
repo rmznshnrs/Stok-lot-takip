@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 import SayfaSekmeleri from "@/components/SayfaSekmeleri";
-import { ozet, sira, urunler, type TakvimGunu } from "@/lib/api";
+import { ozet, sira, type TakvimGunu } from "@/lib/api";
 import { bugun, tarih } from "@/lib/bicim";
 import { useVeri } from "@/lib/kancalar";
 import GunPaneli from "./GunPaneli";
@@ -39,11 +39,14 @@ export default function TakvimSayfasi() {
 
   const { veri, hata, yenile } = useVeri(() => ozet.takvim(bas, bit), [bas, bit]);
   const { veri: bekleyen, yenile: siraYenile } = useVeri(() => sira.liste(), []);
-  const { veri: urunListesi } = useVeri(() => urunler.listele(), []);
-  const [urunId, setUrunId] = useState("");
+  const [arama, setArama] = useState("");
+  const aranan = arama.trim().toLocaleLowerCase("tr");
+  const uyar = (metin: string) => !aranan || metin.toLocaleLowerCase("tr").includes(aranan);
   const [secili, setSecili] = useState<string | null>(params.get("gun"));
   const gunVerisi = new Map<string, TakvimGunu>((veri ?? []).map((g) => [g.tarih, {
-    ...g, urunler: g.urunler.filter((u) => !urunId || String(u.urunId) === urunId),
+    ...g,
+    urunler: g.urunler.filter((u) => uyar(u.urunAd)),
+    planlar: g.planlar.filter((p) => uyar(`${p.parca?.kod ?? ""} ${p.parca?.ad ?? ""} ${p.tedarikciAd ?? ""}`)),
   }]));
   const ayAdresi = (fark: number) => {
     const d = new Date(y, a + fark, 1);
@@ -61,11 +64,9 @@ export default function TakvimSayfasi() {
               <h2 className="takvim-baslik">{AYLAR[a]} {y}</h2>
               <Link href={ayAdresi(1)} className="btn btn--ikincil btn--kucuk" aria-label="Sonraki ay">→</Link>
             </div>
-            <div className="dugme-grup">
-              <select className="girdi girdi--kucuk" aria-label="Ürün" value={urunId} onChange={(e) => setUrunId(e.target.value)}>
-                <option value="">Bütün Ürünler</option>
-                {urunListesi?.map((u) => <option key={u.id} value={u.id}>{u.ad}</option>)}
-              </select>
+            <div className="arama-satiri">
+              <input type="search" className="girdi girdi--ara" aria-label="Takvimde ara" placeholder="Ürün ya da parça ara"
+                value={arama} onChange={(e) => setArama(e.target.value)} />
             </div>
           </div>
           <div className="panel-ic">

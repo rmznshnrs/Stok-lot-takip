@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { DURUM_ADI } from "@/components/GeriCagirmaEylemleri";
 import { useSayfalama } from "@/components/Sayfalama";
-import { geriCagirma, satis } from "@/lib/api";
+import { SEVKIYAT_DURUM_ADI, geriCagirma, satis, sevkiyat } from "@/lib/api";
 import { seriAdresi } from "@/lib/adres";
 import { tarih, tarihSaat } from "@/lib/bicim";
 import { useVeri } from "@/lib/kancalar";
@@ -13,6 +13,11 @@ interface Satir { satisId: number; seriNo: string; urunAd: string; zaman: string
 export default function AlinanUrunler({ musteriId }: { musteriId: number }) {
   const { veri: satislar, hata } = useVeri(() => satis.gecmis(undefined, musteriId), [musteriId]);
   const { veri: acikGeri } = useVeri(() => geriCagirma.liste(true), []);
+  const { veri: sevkiyatlar } = useVeri(() => sevkiyat.liste(undefined, undefined, musteriId), [musteriId]);
+  const sevkiyatDurumu = (satisId: number) => {
+    const d = sevkiyatlar?.find((v) => v.id === satisId)?.durum;
+    return d ? SEVKIYAT_DURUM_ADI[d] : "Teslim Edildi";
+  };
   const satirlar: Satir[] | null = satislar && satislar.flatMap((s) => {
     const zaman = s.zaman ? tarihSaat(s.zaman) : tarih(s.tarih);
     return [
@@ -49,7 +54,7 @@ export default function AlinanUrunler({ musteriId }: { musteriId: number }) {
                   <td>{s.urunAd}</td>
                   <td>{s.zaman}</td>
                   <td className={g ? "uyari-metin" : s.iade ? "soluk" : undefined}>
-                    {g ? `Geri çağrıldı · ${DURUM_ADI[g.durum]}` : s.iade ? "İade alındı" : "Müşteride"}
+                    {g ? `Geri çağrıldı · ${DURUM_ADI[g.durum]}` : s.iade ? "İade alındı" : sevkiyatDurumu(s.satisId)}
                   </td>
                 </tr>
               );

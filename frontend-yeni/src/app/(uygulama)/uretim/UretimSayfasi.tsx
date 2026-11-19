@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import GeriIleri from "@/components/GeriIleri";
 import { useSearchParams } from "next/navigation";
 import SirayaEkle from "./SirayaEkle";
@@ -18,17 +17,6 @@ export default function UretimSayfasi() {
     <>
       <div className="ust-sekme-satiri">
         <h1>Üretim</h1>
-        <nav className="sekmeler sekmeler--buyuk" aria-label="Üretim">
-          <Link href="/uretim" className={`sekme${sekme ? "" : " sekme--aktif"}`} aria-current={sekme ? undefined : "page"}>
-            Üretim Sırası
-          </Link>
-          <Link href="/uretim?sekme=uretimde" className={`sekme${uretimde ? " sekme--aktif" : ""}`} aria-current={uretimde ? "page" : undefined}>
-            Üretimde
-          </Link>
-          <Link href="/uretim?sekme=gecmis" className={`sekme${gecmis ? " sekme--aktif" : ""}`} aria-current={gecmis ? "page" : undefined}>
-            Üretildi
-          </Link>
-        </nav>
       </div>
       {gecmis ? <UretimGecmisi key={ara} ilkArama={ara} /> : yeni ? <><div className="geri-ileri-satiri"><GeriIleri /></div><SirayaEkle /></> : <UretimSirasi key={String(uretimde)} uretimde={uretimde} />}
     </>

@@ -67,6 +67,7 @@ export default function SirayaEkle() {
           type="search"
           className="girdi girdi--liste-ara"
           aria-label="Ürün ara"
+          placeholder="Ürün ara"
           value={arama}
           onChange={(e) => setArama(e.target.value)}
         />
