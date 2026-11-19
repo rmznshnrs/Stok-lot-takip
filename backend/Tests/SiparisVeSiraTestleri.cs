@@ -97,7 +97,7 @@ public class SiparisTestleri(TestVeritabani vt) : IsKuraliTesti(vt)
         Assert.Equal(["SN-IP-0003"], (await Siparis.HazirSerilerAsync(Urun.Id)).Select(h => h.SeriNo));
 
         var e = await Sira.EkleAsync(new UretimEmriIstek(Urun.Id, null, k.Id), Kullanici.Id);
-        Assert.Equal((3, "SP-0001", "Atlas"), (e.Adet, e.SiparisNo, e.MusteriAd));
+        Assert.Equal((3, "SP-0001/1", "Atlas"), (e.Adet, e.PartiAdi, e.MusteriAd));
         s = await Siparis.GetirAsync(s.Id);
         Assert.Equal(("uretimde", 0), (s.Durum, s.Kalemler[0].Eksik));
         await Assert.ThrowsAsync<IsKuraliHatasi>(() => Sira.EkleAsync(new UretimEmriIstek(Urun.Id, 1, k.Id), Kullanici.Id));

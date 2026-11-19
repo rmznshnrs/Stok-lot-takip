@@ -72,11 +72,7 @@ export default function FirmaListesi({ tur, kok, ek }: { tur: Tur; kok: string; 
             />
             {!yeni && secili && ek?.(secili)}
           </>
-        ) : (
-          <p className="not not--buyuk">
-            Soldan seçin.
-          </p>
-        )}
+        ) : null}
       </section>
     </main>
   );

@@ -126,18 +126,19 @@ export default function ParcalarEkrani() {
               <tr>
                 <th>Kod</th>
                 <th>Ad</th>
-                <th className="sag">Kullanılabilir stok</th>
+                <th className="sag">Kullanılabilir</th>
+                <th className="sag">Üretim Sırasında</th>
                 <th className="sag">Hatalı</th>
                 <th>Kullanıldığı ürünler</th>
               </tr>
             </thead>
             <tbody>
               {liste === null && !listeHatasi && (
-                <tr className="bos"><td colSpan={5}>Yükleniyor…</td></tr>
+                <tr className="bos"><td colSpan={6}>Yükleniyor…</td></tr>
               )}
               {liste?.length === 0 && (
                 <tr className="bos">
-                  <td colSpan={5}>{aranan ? "Sonuç yok." : "Parça yok."}</td>
+                  <td colSpan={6}>{aranan ? "Sonuç yok." : "Parça yok."}</td>
                 </tr>
               )}
               {gorunen?.map((p) => (
@@ -150,7 +151,7 @@ export default function ParcalarEkrani() {
                   />
                   {acik === p.kod && (
                     <tr className="acilan-satir">
-                      <td colSpan={5}>
+                      <td colSpan={6}>
                         <ParcaDuzenle
                           p={p}
                           kaydedildi={(metin) => {
@@ -271,10 +272,11 @@ function ParcaSatiri({ p, yeni, acik, ac }: {
           <Link className="uyari-metin" href={stokAdresi}>{p.serbest}</Link> · min altında
         </td>
       ) : p.toplamStok ? (
-        <td className="sag" title={ipucu}><Link href={stokAdresi}>{p.serbest}</Link>{p.ayrilan > 0 && <div className="yardim">{p.ayrilan} üretim sırasında</div>}</td>
+        <td className="sag" title={ipucu}><Link href={stokAdresi}>{p.serbest}</Link></td>
       ) : (
         <td className="sag soluk">0</td>
       )}
+      <td className={`sag${p.ayrilan ? "" : " soluk"}`}>{p.ayrilan}</td>
       <td className={`sag${p.hataliAdet ? " uyari-metin" : " soluk"}`}>{p.hataliAdet}</td>
       {p.kullanildigiUrunler.length ? (
         <td>{p.kullanildigiUrunler.join(", ")}</td>

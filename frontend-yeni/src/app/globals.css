@@ -1727,3 +1727,20 @@ input[type="search"].girdi:focus { outline: none; border-color: var(--ana); box-
 input[type="search"].girdi::placeholder { color: var(--soluk); opacity: .8; }
 .girdi--ara { width: 300px; max-width: 100%; }
 .panel-bas .arama-satiri { flex-wrap: wrap; justify-content: flex-end; }
+
+/* Basılan her şey kutu içinde: yazı gibi duran düğmeler küçük düğme görünümünde (tablodaki satır bağlantıları hariç) */
+.btn-baglanti:not(.satir-bag):not(.parca-ac) {
+  display: inline-flex; align-items: center; gap: 4px; padding: 5px 12px; border-radius: 999px;
+  background: var(--ana-acik); border: 1px solid var(--ana-acik-kenar); color: var(--ana-koyu);
+  font-size: 13px; font-weight: 600; text-decoration: none; line-height: 1.3;
+}
+.btn-baglanti:not(.satir-bag):not(.parca-ac):hover { background: var(--ana-acik-kenar); color: var(--ana-koyu); text-decoration: none; }
+.btn-baglanti:not(.satir-bag):not(.parca-ac):disabled { opacity: .5; cursor: default; }
+.seri-cip .btn-baglanti:not(.satir-bag) { padding: 0 2px; background: none; border: 0; font-weight: 700; }
+
+.sayac-grubu { display: inline-flex; gap: 8px; }
+.sayac {
+  display: inline-flex; align-items: baseline; gap: 5px; padding: 4px 12px; border-radius: 999px;
+  background: var(--ana-acik); color: var(--ana-koyu); font-size: 13px; font-weight: 600;
+}
+.sayac b { font-size: 17px; font-weight: 800; }

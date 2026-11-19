@@ -86,7 +86,7 @@ public class RaporServisi(AppDbContext db, IOzetServisi ozet, ISiparisServisi si
         Tablo(wb.Worksheets.Add("Üretim Sırası"), 1,
             ["Sıra", "Ürün", "Adet", "Üretilen", "Planlanan Gün", "Sipariş", "Müşteri", "Ayrılan Parçalar", "Açıklama"],
             [.. bekleyen.Select((e, i) => new object?[] {
-                i + 1, e.UrunAd, e.Adet, e.Uretilen, e.PlanlananTarih, e.SiparisNo, e.MusteriAd,
+                i + 1, e.UrunAd, e.Adet, e.Uretilen, e.PlanlananTarih, e.PartiAdi, e.MusteriAd,
                 string.Join(", ", e.Parcalar.Select(p => $"{p.Parca.Kod} {p.Ayrilan}")), e.Aciklama })]);
 
         Tablo(wb.Worksheets.Add("Üretim"), 1,

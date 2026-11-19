@@ -111,6 +111,8 @@ export interface UretimEmri {
   siparisId: number | null; siparisNo: string | null; musteriAd: string | null;
   olusturmaZamani: string; kullaniciAd: string; baslamaZamani: string | null; bitisZamani: string | null;
   parcalar: { parca: ParcaOzet; birimAdet: number; ayrilan: number }[]; seriNolar: string[];
+  /** Siparişin kaçıncı üretim partisi; partiAdi: SP-0005/2 */
+  partiNo: number | null; partiAdi: string | null;
 }
 export interface UretimEmriIstek { urunId: number; adet?: number; siparisKalemiId?: number; planlananTarih?: string; aciklama?: string }
 

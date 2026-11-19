@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Fragment, useState } from "react";
 import { useSayfalama } from "@/components/Sayfalama";
 import { parcalar, stok, type StokGrubu } from "@/lib/api";
@@ -19,6 +19,7 @@ const GORUNUMLER: { deger: Gorunum; ad: string }[] = [
 
 export default function StokEkrani() {
   const yol = usePathname();
+  const router = useRouter();
   const params = useSearchParams();
   const parcaKod = params.get("parca") ?? "";
   const istenen = params.get("gorunum");
@@ -85,7 +86,10 @@ export default function StokEkrani() {
             value={arama}
             onChange={(e) => setArama(e.target.value)}
           />
-          <button type="button" className="btn btn--kucuk" aria-expanded={formAcik} onClick={() => setFormAcik(!formAcik)}>
+          <button type="button" className="btn btn--kucuk" aria-expanded={formAcik} onClick={() => {
+            if (!formAcik && gorunum !== "parca") router.replace(adres({ gorunum: "parca" }));
+            setFormAcik(!formAcik);
+          }}>
             {formAcik ? "Formu Kapat" : "+ Mal Girişi"}
           </button>
         </div>
@@ -142,12 +146,13 @@ function ParcaTablosu({ gruplar, aranan, ilkAcik }: {
             <th>Parça</th>
             <th className="sag">Toplam</th>
             <th className="sag">Kullanılabilir</th>
+            <th className="sag">Üretim Sırasında</th>
             <th className="sag">Min stok</th>
             <th className="sag">Hatalı</th>
           </tr>
         </thead>
         <tbody>
-          <BosSatir gruplar={gruplar} aranan={aranan} sutun={6} />
+          <BosSatir gruplar={gruplar} aranan={aranan} sutun={7} />
           {gorunen?.map((g) => {
             const { parca: p } = g;
             const acikMi = acik === p.kod;
@@ -165,18 +170,14 @@ function ParcaTablosu({ gruplar, aranan, ilkAcik }: {
                   <td className="sag">{p.toplamStok}</td>
                   <td className={`sag${p.minAltinda ? " uyari-metin" : ""}`}>
                     {p.serbest}{p.minAltinda && " · min altında"}
-                    {p.ayrilan > 0 && <div className="yardim">{p.ayrilan} üretim sırasında</div>}
                   </td>
+                  <td className={`sag${p.ayrilan ? "" : " soluk"}`}>{p.ayrilan}</td>
                   <td className="sag soluk">{p.minStok}</td>
                   <td className={`sag${p.hataliAdet ? " uyari-metin" : " soluk"}`}>{p.hataliAdet}</td>
                 </tr>
                 {acikMi && (
                   <tr className="acilan-satir">
-                    <td colSpan={6}>
-                      <div className="giris-bas">
-                        {p.ad} · lotlar ({g.lotlar.length})
-                        <Link href={`/parcalar?parca=${encodeURIComponent(p.kod)}`} className="btn-baglanti">Hatalı Kayıt / Stoktan Düş</Link>
-                      </div>
+                    <td colSpan={7}>
                       <StokGirisleri lotlar={g.lotlar} />
                     </td>
                   </tr>

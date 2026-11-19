@@ -93,7 +93,7 @@ export function SiradakiIsler() {
                 <td>{tarih(e.planlananTarih)} <KalanGun tarihMetni={e.planlananTarih} /></td>
                 <td><Link href={`/uretim?eklendi=${e.id}`} className="satir-bag">{e.urunAd}</Link></td>
                 <td className="sag"><b>{e.adet - e.uretilen}</b></td>
-                <td>{e.siparisNo ? <>{e.siparisNo} · {e.musteriAd}</> : <span className="soluk">Stok için</span>}</td>
+                <td>{e.siparisNo ? <>{e.partiAdi} · {e.musteriAd}</> : <span className="soluk">Stok için</span>}</td>
               </tr>
             ))}
           </tbody>

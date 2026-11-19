@@ -153,7 +153,6 @@ export default function Kullanicilar() {
               <div className="alan">
                 <label htmlFor="k-sifre">{duzenlenen ? "Yeni şifre" : "Şifre"}</label>
                 <SifreKutusu required={!duzenlenen} minLength={8} autoComplete="new-password" {...alan("sifre")} />
-                {duzenlenen && <span className="yardim">Boşsa değişmez</span>}
               </div>
             </div>
             <div className="dugme-grup">

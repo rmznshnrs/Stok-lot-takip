@@ -19,7 +19,7 @@ export default function UretimSirasi({ uretimde }: { uretimde: boolean }) {
   const [arama, setArama] = useState("");
   const aranan = useGecikmeli(arama.trim().toLocaleLowerCase("tr"));
   const liste = tumu && tumu.filter((e) => basladi(e) === uretimde
-    && (!aranan || `${e.urunAd} ${e.urunKod} ${e.siparisNo ?? ""} ${e.musteriAd ?? ""} ${e.aciklama}`.toLocaleLowerCase("tr").includes(aranan)));
+    && (!aranan || `${e.urunAd} ${e.urunKod} ${e.partiAdi ?? ""} ${e.musteriAd ?? ""} ${e.aciklama}`.toLocaleLowerCase("tr").includes(aranan)));
   const [acik, setAcik] = useState<number | null>(null);
   const [sonuc, setSonuc] = useState<UretimSonucu | null>(null);
   const [mesaj, setMesaj] = useState<MesajBilgisi | null>(null);
@@ -45,7 +45,10 @@ export default function UretimSirasi({ uretimde }: { uretimde: boolean }) {
           <div className="baslik-grup">
             <UretimSekmeleri />
             {liste && (
-              <span className="ozet">{liste.length} iş · {liste.reduce((t, e) => t + e.adet - e.uretilen, 0)} adet</span>
+              <span className="sayac-grubu">
+                <span className="sayac"><b>{liste.length}</b> İş</span>
+                <span className="sayac"><b>{liste.reduce((t, e) => t + e.adet - e.uretilen, 0)}</b> Adet</span>
+              </span>
             )}
           </div>
           <div className="arama-satiri">
@@ -87,7 +90,7 @@ export default function UretimSirasi({ uretimde }: { uretimde: boolean }) {
                     </td>
                     <td>
                       {e.siparisId ? (
-                        <><Link href={siparisAdresi(e.siparisId)} className="mono">{e.siparisNo}</Link> · {e.musteriAd}</>
+                        <><Link href={siparisAdresi(e.siparisId)} className="mono">{e.partiAdi}</Link> · {e.musteriAd}</>
                       ) : (
                         <span className="soluk">Stok için</span>
                       )}
