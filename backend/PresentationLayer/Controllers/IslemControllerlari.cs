@@ -150,6 +150,9 @@ public class OzetController(IOzetServisi ozet, IRaporServisi rapor) : Controller
     [HttpGet]
     public Task<AnaSayfaOzetiDto> AnaSayfa(CancellationToken ct) => ozet.AnaSayfaAsync(ct);
 
+    [HttpGet("grafikler")]
+    public Task<GrafikVerisiDto> Grafikler(CancellationToken ct) => ozet.GrafiklerAsync(ct);
+
     [HttpGet("takvim")]
     public Task<List<TakvimGunuDto>> Takvim([FromQuery] DateOnly baslangic, [FromQuery] DateOnly bitis, CancellationToken ct) =>
         ozet.TakvimAsync(baslangic, bitis, ct);

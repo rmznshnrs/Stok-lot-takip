@@ -6,6 +6,7 @@ public class OzetServisi(AppDbContext db, IStokServisi stok) : IOzetServisi
 {
     public const int UyariEsigi = 5;
     public const int EnFazlaGun = 62;
+    public const int HaftaSayisi = 8;
 
     public async Task<AnaSayfaOzetiDto> AnaSayfaAsync(CancellationToken ct = default)
     {
@@ -41,6 +42,45 @@ public class OzetServisi(AppDbContext db, IStokServisi stok) : IOzetServisi
             [.. kapasiteler.Where(u => u.Uretilebilir <= UyariEsigi)], yaklasan,
             [.. kapasiteler.Select(u => new UrunKapasitesiDto(u.UrunId, u.UrunAd, u.Uretilebilir))
                 .OrderBy(u => u.UrunAd, StringComparer.CurrentCulture)]);
+    }
+
+    public async Task<GrafikVerisiDto> GrafiklerAsync(CancellationToken ct = default)
+    {
+        var bugun = Zaman.Bugun();
+        var buHafta = bugun.AddDays(-(((int)bugun.DayOfWeek + 6) % 7));
+        var ilkHafta = buHafta.AddDays(-7 * (HaftaSayisi - 1));
+        var ilk = new DateTimeOffset(ilkHafta.AddDays(-1).ToDateTime(TimeOnly.MinValue), TimeSpan.Zero);
+        var uretimTarihleri = (await db.Uretimler.AsNoTracking().Where(u => u.Tarih >= ilk).Select(u => u.Tarih).ToListAsync(ct))
+            .Select(Zaman.YerelTarih).Where(t => t >= ilkHafta).ToList();
+        var haftalik = Enumerable.Range(0, HaftaSayisi).Select(i => ilkHafta.AddDays(7 * i))
+            .Select(h => new HaftalikUretimDto(h, uretimTarihleri.Count(t => t >= h && t < h.AddDays(7)))).ToList();
+
+        var siparisler = await new SiparisServisi(db).ListeAsync(ct: ct);
+        var durumlar = siparisler.GroupBy(s => s.Durum).Select(g => new SiparisDurumSayisiDto(g.Key, g.Count())).ToList();
+
+        var gecikenSiparis = siparisler
+            .Where(s => s.Durum is not ("tamamlandi" or "iptal") && s.IstenenTarih is { } t && t < bugun)
+            .Select(s => new GecikenIsDto("siparis", s.Id, s.No, s.MusteriAd, s.IstenenTarih!.Value,
+                s.Kalemler.Sum(k => k.Adet - k.Gonderilenler.Count), s.Id));
+        var gecikenUretim = (await db.UretimEmirleri.AsNoTracking()
+                .Where(e => e.Durum == UretimEmriDurumu.Bekliyor && e.PlanlananTarih < bugun)
+                .Select(e => new { e.Id, e.PlanlananTarih, Kalan = e.Adet - e.Uretilen, UrunAd = e.Urun!.Ad, SiparisId = (int?)e.SiparisKalemi!.SiparisId,
+                    SiparisNo = e.SiparisKalemi!.Siparis!.No })
+                .ToListAsync(ct))
+            .Select(e => new GecikenIsDto("uretim", e.Id, e.SiparisNo ?? "Stok için", e.UrunAd, e.PlanlananTarih, e.Kalan, e.SiparisId));
+        var gecikenler = gecikenSiparis.Concat(gecikenUretim).OrderBy(g => g.Tarih).ThenBy(g => g.No).ToList();
+
+        var urunler = await db.Urunler.AsNoTracking()
+            .Select(u => new
+            {
+                u.Id, u.Ad,
+                Gonderilen = db.Uretimler.Count(x => x.UrunId == u.Id && x.SatisKalemi != null),
+                Depoda = db.Uretimler.Count(x => x.UrunId == u.Id && x.SatisKalemi == null && x.Hurda == null),
+            }).ToListAsync(ct);
+        var dagilim = urunler.Select(u => new UrunDagilimiDto(u.Id, u.Ad, u.Gonderilen, u.Depoda))
+            .OrderByDescending(u => u.Gonderilen).ThenBy(u => u.UrunAd, StringComparer.CurrentCulture).ToList();
+
+        return new GrafikVerisiDto(haftalik, durumlar, gecikenler, dagilim);
     }
 
     public async Task<List<TakvimGunuDto>> TakvimAsync(DateOnly baslangic, DateOnly bitis, CancellationToken ct = default)

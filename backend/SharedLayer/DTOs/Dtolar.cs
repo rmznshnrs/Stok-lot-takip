@@ -215,6 +215,18 @@ public record AnaSayfaOzetiDto(
 
 public record UrunKapasitesiDto(int UrunId, string UrunAd, int Uretilebilir);
 
+public record HaftalikUretimDto(DateOnly HaftaBasi, int Adet);
+
+public record SiparisDurumSayisiDto(string Durum, int Sayi);
+
+public record GecikenIsDto(string Tur, int Id, string No, string Ad, DateOnly Tarih, int Kalan, int? SiparisId);
+
+public record UrunDagilimiDto(int UrunId, string UrunAd, int Gonderilen, int Depoda);
+
+public record GrafikVerisiDto(
+    IReadOnlyList<HaftalikUretimDto> HaftalikUretim, IReadOnlyList<SiparisDurumSayisiDto> SiparisDurumlari,
+    IReadOnlyList<GecikenIsDto> Gecikenler, IReadOnlyList<UrunDagilimiDto> UrunDagilimi);
+
 public record TakvimUrunuDto(int UrunId, string UrunAd, int Planlanan, int Uretilen, int Istenen);
 
 public record TakvimPlaniDto(int Id, DateOnly Tarih, ParcaOzetDto? Parca, int? Adet, int? TedarikciId, string? TedarikciAd,

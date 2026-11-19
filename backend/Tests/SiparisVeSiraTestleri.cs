@@ -255,6 +255,23 @@ public class OzetTestleri(TestVeritabani vt) : IsKuraliTesti(vt)
     }
 
     [Fact]
+    public async Task Grafiklerde_haftalik_uretim_siparis_durumu_ve_gecikenler()
+    {
+        await Uretim.UretAsync(Urun.Id, 2, Kullanici.Id);
+        var siparis = new SiparisServisi(Db);
+        var gec = await siparis.OlusturAsync(new SiparisIstek(Musteri.Id, [new SiparisKalemiIstek(Urun.Id, 3)],
+            Tarih: Zaman.Bugun().AddDays(-10), IstenenTarih: Zaman.Bugun().AddDays(-2)), Kullanici.Id);
+        await Sira.EkleAsync(new UretimEmriIstek(Urun.Id, 1, PlanlananTarih: Zaman.Bugun().AddDays(-1)), Kullanici.Id);
+
+        var g = await Ozet.GrafiklerAsync();
+        Assert.Equal(OzetServisi.HaftaSayisi, g.HaftalikUretim.Count);
+        Assert.Equal(2, g.HaftalikUretim[^1].Adet);
+        Assert.Equal(("bekliyor", 1), (Assert.Single(g.SiparisDurumlari).Durum, g.SiparisDurumlari[0].Sayi));
+        Assert.Equal([("siparis", gec.No, 3), ("uretim", "Stok için", 1)], g.Gecikenler.Select(x => (x.Tur, x.No, x.Kalan)));
+        Assert.Equal((0, 2), (g.UrunDagilimi[0].Gonderilen, g.UrunDagilimi[0].Depoda));
+    }
+
+    [Fact]
     public async Task Takvime_parca_alimi_hatirlaticisi_eklenir_tamamlanir_silinir()
     {
         var p = await Ozet.PlanEkleAsync(new TakvimPlaniIstek(new(2026, 12, 5), Diyot.Id, 50, Ted.Id, "Fiyat sor"), Kullanici.Id);

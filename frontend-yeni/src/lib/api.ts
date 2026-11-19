@@ -153,6 +153,12 @@ export interface UretilebilirUyari {
   urunId: number; urunKod: string; urunAd: string; uretilebilir: number;
   kisitlayanlar: { parca: ParcaOzet; birimAdet: number; serbest: number }[];
 }
+export interface GrafikVerisi {
+  haftalikUretim: { haftaBasi: string; adet: number }[];
+  siparisDurumlari: { durum: SiparisDurumu; sayi: number }[];
+  gecikenler: { tur: "siparis" | "uretim"; id: number; no: string; ad: string; tarih: string; kalan: number; siparisId: number | null }[];
+  urunDagilimi: { urunId: number; urunAd: string; gonderilen: number; depoda: number }[];
+}
 export interface AnaSayfaOzeti {
   acikSiparis: number; siradakiIs: number; siradakiAdet: number; bugunPlanlanan: number;
   hazirlananSevkiyat: number; kargodaSevkiyat: number; depodaUrun: number; minAltindaParca: number; acikGeriCagirma: number;
@@ -341,6 +347,7 @@ export const sevkiyat = {
 
 export const ozet = {
   anaSayfa: () => al<AnaSayfaOzeti>("ozet"),
+  grafikler: () => al<GrafikVerisi>("ozet/grafikler"),
   takvim: (baslangic: string, bitis: string) => al<TakvimGunu[]>("ozet/takvim", { baslangic, bitis }),
   planEkle: (p: TakvimPlaniIstek) => gonder<TakvimPlani>("ozet/takvim/plan", p),
   planTamam: (id: number, tamamlandi: boolean) => gonder<TakvimPlani>(`ozet/takvim/plan/${id}/tamam?tamamlandi=${tamamlandi}`),

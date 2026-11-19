@@ -4,7 +4,8 @@ import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Fragment, useState } from "react";
 import { useSayfalama } from "@/components/Sayfalama";
-import { parcalar, stok, type StokGrubu } from "@/lib/api";
+import { ozet, parcalar, stok, type StokGrubu } from "@/lib/api";
+import { ParcaStoguGrafigi, UrunDagilimi } from "@/components/Grafikler";
 import { useGecikmeli, useVeri } from "@/lib/kancalar";
 import StokGirisleri from "@/components/StokGirisleri";
 import MalGirisiFormu from "./MalGirisiFormu";
@@ -33,6 +34,7 @@ export default function StokEkrani() {
     [aranan, parcaKod, gorunum],
   );
   const { veri: tumParcalar, yenile: parcalariYenile } = useVeri(() => parcalar.listele(), []);
+  const { veri: grafik } = useVeri(() => (gorunum === "urun" ? ozet.grafikler() : Promise.resolve(null)), [gorunum]);
 
   function adres(degisen: Record<string, string | null>) {
     const p = new URLSearchParams(params.toString());
@@ -103,6 +105,7 @@ export default function StokEkrani() {
           </div>
         )}
         {hata && <div className="panel-ic"><div className="mesaj mesaj--error">{hata}</div></div>}
+        {gorunum === "urun" ? <UrunDagilimi veri={grafik} /> : !parcaKod && !aranan && <ParcaStoguGrafigi gruplar={gruplar} />}
 
         <div className="tablo-kap">
           {gorunum === "urun" ? (

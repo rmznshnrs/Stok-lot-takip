@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import GeriCagirmalar from "@/components/GeriCagirmalar";
+import { GecikenIsler, HaftalikUretim, SiparisDurumuGrafigi } from "@/components/Grafikler";
 import { OnumuzdekiGunler, SiradakiIsler, UretimUyarilari, YaklasanTeslimler } from "./AnaSayfaPanolari";
 import { ApiHatasi, izleme, ozet as ozetApi, type Aday, type NumaraArama, type NumaraTuru } from "@/lib/api";
 import { lotAdresi, seriAdresi } from "@/lib/adres";
@@ -31,6 +32,7 @@ export default function AnaSayfaEkrani() {
   const [bekliyor, setBekliyor] = useState(false);
   const [geriAcik, setGeriAcik] = useState(false);
   const { veri: o, hata: ozetHatasi } = useVeri(() => ozetApi.anaSayfa(), []);
+  const { veri: grafik } = useVeri(() => ozetApi.grafikler(), []);
   const ozet = [
     { ad: "Açık sipariş", deger: o?.acikSiparis, yol: "/takvim", dikkat: false },
     { ad: "Üretim sırasındaki ürün", deger: o?.siradakiAdet, alt: o && `${o.siradakiIs} iş · bugüne kadar planlanan ${o.bugunPlanlanan}`, yol: "/uretim", dikkat: false },
@@ -123,6 +125,12 @@ export default function AnaSayfaEkrani() {
         })}
       </section>
       {geriAcik && <GeriCagirmalar kapat={() => setGeriAcik(false)} />}
+
+      <GecikenIsler veri={grafik} />
+      <div className="iki-sutun iki-sutun--grafik">
+        <HaftalikUretim veri={grafik} />
+        <SiparisDurumuGrafigi veri={grafik} />
+      </div>
 
       {o && <UretimUyarilari ozet={o} />}
       <div className="iki-sutun">

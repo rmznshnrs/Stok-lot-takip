@@ -4,6 +4,8 @@ public interface IOzetServisi
 {
     Task<AnaSayfaOzetiDto> AnaSayfaAsync(CancellationToken ct = default);
 
+    Task<GrafikVerisiDto> GrafiklerAsync(CancellationToken ct = default);
+
     Task<List<TakvimGunuDto>> TakvimAsync(DateOnly baslangic, DateOnly bitis, CancellationToken ct = default);
 
     Task<TakvimPlaniDto> PlanEkleAsync(TakvimPlaniIstek istek, int kullaniciId, CancellationToken ct = default);
