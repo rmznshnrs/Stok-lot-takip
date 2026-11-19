@@ -81,7 +81,7 @@ export default function GunPaneli({ gun, veri, isler, kapat, degisti }: {
 
         {veri && veri.planlar.length > 0 && (
           <div className="form-dikey">
-            <strong>Hatırlatıcılar</strong>
+            <strong>Parça Alımları</strong>
             {veri.planlar.map((p) => (
               <div key={p.id} className={`bas-satir kutu kutu--ince${p.tamamlandi ? " soluk" : ""}`}>
                 <span className={p.tamamlandi ? "ustu-cizili" : undefined}>
@@ -136,7 +136,6 @@ function UretimPlani({ gun, calistir }: { gun: string; calistir: Calistir }) {
   return (
     <form className="kutu form-dikey" onSubmit={kaydet}>
       <strong className="takvim-cubuk takvim-cubuk--plan">Ürün Üretimi Planla</strong>
-      <span className="not">Üretim sırasına bu gün için iş eklenir ve parçaları ayrılır.</span>
       <div className="alan">
         <label htmlFor="plan-urun">Ürün</label>
         <select id="plan-urun" className="girdi" required value={urunId} onChange={(e) => setUrunId(e.target.value)}>
@@ -149,7 +148,7 @@ function UretimPlani({ gun, calistir }: { gun: string; calistir: Calistir }) {
         <input id="plan-adet" type="number" min={1} max={999} required className="girdi" value={adet} onChange={(e) => setAdet(e.target.value)} />
       </div>
       <div className="alan">
-        <label htmlFor="plan-aciklama">Açıklama <span className="soluk">(İsteğe bağlı)</span></label>
+        <label htmlFor="plan-aciklama">Açıklama</label>
         <input id="plan-aciklama" className="girdi" maxLength={500} value={aciklama} onChange={(e) => setAciklama(e.target.value)} />
       </div>
       <div><button type="submit" className="btn btn--kucuk">Sıraya Ekle</button></div>
@@ -163,53 +162,44 @@ function AlimPlani({ gun, calistir }: { gun: string; calistir: Calistir }) {
   const [parcaId, setParcaId] = useState("");
   const [adet, setAdet] = useState("");
   const [tedarikciId, setTedarikciId] = useState("");
-  const [aciklama, setAciklama] = useState("");
 
   async function kaydet(e: FormEvent) {
     e.preventDefault();
     const tamam = await calistir(() => ozet.planEkle({
-      tarih: gun, parcaId: parcaId ? Number(parcaId) : undefined, adet: parcaId && adet ? Number(adet) : undefined,
-      tedarikciId: tedarikciId ? Number(tedarikciId) : undefined, aciklama: aciklama.trim(),
-    }), "Hatırlatıcı eklendi.");
+      tarih: gun, parcaId: Number(parcaId), adet: adet ? Number(adet) : undefined,
+      tedarikciId: tedarikciId ? Number(tedarikciId) : undefined,
+    }), "Parça alımı eklendi.");
     if (tamam) {
       setParcaId("");
       setAdet("");
       setTedarikciId("");
-      setAciklama("");
     }
   }
 
   return (
     <form className="kutu form-dikey" onSubmit={kaydet}>
-      <strong className="takvim-cubuk takvim-cubuk--alim">Parça Alımı / Not</strong>
-      <span className="not">Yalnız hatırlatıcıdır; stoğa dokunmaz. Parça seçmeden yalnız not da yazılabilir.</span>
+      <strong className="takvim-cubuk takvim-cubuk--alim">Parça Alımı</strong>
       <div className="alan">
-        <label htmlFor="alim-parca">Parça <span className="soluk">(İsteğe bağlı)</span></label>
-        <select id="alim-parca" className="girdi" value={parcaId} onChange={(e) => setParcaId(e.target.value)}>
-          <option value="">Yalnız not</option>
-          {parcaListesi?.map((p) => <option key={p.id} value={p.id}>{p.kod} · {p.ad} ({p.serbest} adet)</option>)}
+        <label htmlFor="alim-parca">Parça</label>
+        <select id="alim-parca" className="girdi" required value={parcaId} onChange={(e) => setParcaId(e.target.value)}>
+          <option value="">Seçin</option>
+          {parcaListesi?.map((p) => <option key={p.id} value={p.id}>{p.kod} · {p.ad} ({p.kullanilabilirStok} adet)</option>)}
         </select>
       </div>
-      {parcaId && (
-        <div className="izgara-2">
-          <div className="alan">
-            <label htmlFor="alim-adet">Adet</label>
-            <input id="alim-adet" type="number" min={1} className="girdi" value={adet} onChange={(e) => setAdet(e.target.value)} />
-          </div>
-          <div className="alan">
-            <label htmlFor="alim-tedarikci">Tedarikçi</label>
-            <select id="alim-tedarikci" className="girdi" value={tedarikciId} onChange={(e) => setTedarikciId(e.target.value)}>
-              <option value="">Seçin</option>
-              {tedarikciListesi?.map((t) => <option key={t.id} value={t.id}>{t.ad}</option>)}
-            </select>
-          </div>
+      <div className="izgara-2">
+        <div className="alan">
+          <label htmlFor="alim-adet">Adet</label>
+          <input id="alim-adet" type="number" min={1} className="girdi" value={adet} onChange={(e) => setAdet(e.target.value)} />
         </div>
-      )}
-      <div className="alan">
-        <label htmlFor="alim-not">Not {parcaId && <span className="soluk">(İsteğe bağlı)</span>}</label>
-        <input id="alim-not" className="girdi" maxLength={500} required={!parcaId} value={aciklama} onChange={(e) => setAciklama(e.target.value)} />
+        <div className="alan">
+          <label htmlFor="alim-tedarikci">Tedarikçi</label>
+          <select id="alim-tedarikci" className="girdi" value={tedarikciId} onChange={(e) => setTedarikciId(e.target.value)}>
+            <option value="">Seçin</option>
+            {tedarikciListesi?.map((t) => <option key={t.id} value={t.id}>{t.ad}</option>)}
+          </select>
+        </div>
       </div>
-      <div><button type="submit" className="btn btn--kucuk">Hatırlatıcı Ekle</button></div>
+      <div><button type="submit" className="btn btn--kucuk">Parça Alımı Ekle</button></div>
     </form>
   );
 }

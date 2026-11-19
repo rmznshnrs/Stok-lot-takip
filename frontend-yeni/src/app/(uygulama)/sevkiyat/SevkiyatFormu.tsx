@@ -81,17 +81,17 @@ export default function SevkiyatFormu({ ilkSiparis }: { ilkSiparis: number | nul
         )}
         <div className="izgara-2">
           <div className="alan">
-            <label htmlFor="sv-firma">Kargo Firması <span className="soluk">(İsteğe bağlı)</span></label>
+            <label htmlFor="sv-firma">Kargo Firması</label>
             <input id="sv-firma" className="girdi" list="kargo-firmalari" maxLength={100} value={firma} onChange={(e) => setFirma(e.target.value)} />
             <KargoFirmaListesi />
           </div>
           <div className="alan">
-            <label htmlFor="sv-takip">Takip No <span className="soluk">(İsteğe bağlı)</span></label>
+            <label htmlFor="sv-takip">Takip No</label>
             <input id="sv-takip" className="girdi girdi--mono" maxLength={100} value={takipNo} onChange={(e) => setTakipNo(e.target.value)} />
           </div>
         </div>
         <div className="alan">
-          <label htmlFor="sv-aciklama">Açıklama <span className="soluk">(İsteğe bağlı)</span></label>
+          <label htmlFor="sv-aciklama">Açıklama</label>
           <input id="sv-aciklama" className="girdi" maxLength={500} value={aciklama} onChange={(e) => setAciklama(e.target.value)} />
         </div>
         {uyarilar.length > 0 && (
@@ -101,7 +101,7 @@ export default function SevkiyatFormu({ ilkSiparis }: { ilkSiparis: number | nul
           </label>
         )}
         <div className="kart-alt">
-          <span className="not">{takipNo.trim() ? "Takip no girildi: sevkiyat \"Kargoda\" olarak kaydedilir." : "Kargo bilgisi sonra da girilebilir."}</span>
+          <span />
           <button type="submit" className="btn" disabled={bekliyor || !siparis}>
             {bekliyor ? "Kaydediliyor…" : `${secili.length} Ürünü Gönder`}
           </button>

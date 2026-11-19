@@ -97,11 +97,11 @@ export default function SiparisFormu({ musteriId }: { musteriId: number }) {
         <Mesaj mesaj={mesaj} />
         <div className="izgara-2">
           <div className="alan">
-            <label htmlFor="sip-istenen">İstenen Teslim Tarihi <span className="soluk">(İsteğe bağlı)</span></label>
+            <label htmlFor="sip-istenen">İstenen Teslim Tarihi</label>
             <input id="sip-istenen" type="date" className="girdi" min={bugun()} value={istenen} onChange={(e) => setIstenen(e.target.value)} />
           </div>
           <div className="alan">
-            <label htmlFor="sip-aciklama">Açıklama <span className="soluk">(İsteğe bağlı)</span></label>
+            <label htmlFor="sip-aciklama">Açıklama</label>
             <input id="sip-aciklama" className="girdi" maxLength={500} value={aciklama} onChange={(e) => setAciklama(e.target.value)} />
           </div>
         </div>
@@ -220,7 +220,7 @@ function YeniUrun({ kalem, degistir }: { kalem: Kalem; degistir: (d: Partial<Kal
             onChange={(e) => degistir({ yeniAd: e.target.value })} />
         </div>
       </div>
-      <strong className="not">Ürün Ağacı (1 ürün için)</strong>
+      <strong className="not">Ürün Ağacı</strong>
       {kalem.agac.map((a) => (
         <div key={a.anahtar} className="satir-ekle satir-ekle--alt">
           <div className="alan alan--genis">

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Montserrat, Nunito } from "next/font/google";
+import BuyukHarf from "@/components/BuyukHarf";
 import { TEMA_BETIGI } from "@/lib/tema";
 import "./globals.css";
 
@@ -25,7 +26,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <head>
         <script dangerouslySetInnerHTML={{ __html: TEMA_BETIGI }} />
       </head>
-      <body>{children}</body>
+      <body>
+        {children}
+        <BuyukHarf />
+      </body>
     </html>
   );
 }

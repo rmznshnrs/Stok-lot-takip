@@ -6,18 +6,15 @@ import { Fragment, useState, type FormEvent } from "react";
 import Mesaj, { type MesajBilgisi } from "@/components/Mesaj";
 import { ApiHatasi, sira, type UretimEmri, type UretimSonucu } from "@/lib/api";
 import { seriAdresi } from "@/lib/adres";
-import { tarihSaat } from "@/lib/bicim";
 import { ETIKET_TURLERI, etiketTuruKaydet, kayitliEtiketTuru, type EtiketTuru } from "@/lib/etiket";
 import { useVeri } from "@/lib/kancalar";
 import { siparisAdresi } from "../musteriler/MusteriSiparisleri";
 
-const DURUM_ADI: Record<UretimEmri["durum"], string> = { Bekliyor: "Sırada", Tamamlandi: "Tamamlandı", Iptal: "İptal Edildi" };
-
-export default function UretimSirasi() {
+export default function UretimSirasi({ uretimde }: { uretimde: boolean }) {
   const params = useSearchParams();
   const eklendi = Number(params.get("eklendi")) || null;
-  const [bitenler, setBitenler] = useState(false);
-  const { veri: liste, hata, yenile } = useVeri(() => sira.liste(bitenler), [bitenler]);
+  const { veri: tumu, hata, yenile } = useVeri(() => sira.liste(), []);
+  const liste = tumu && tumu.filter((e) => (uretimde ? e.uretilen > 0 : e.uretilen === 0));
   const [acik, setAcik] = useState<number | null>(null);
   const [sonuc, setSonuc] = useState<UretimSonucu | null>(null);
   const [mesaj, setMesaj] = useState<MesajBilgisi | null>(null);
@@ -34,22 +31,19 @@ export default function UretimSirasi() {
     }
   }
 
-  const sutun = bitenler ? 6 : 7;
+  const sutun = 7;
   return (
     <main className="icerik icerik--dikey">
       {sonuc && <UretimSonucKutusu sonuc={sonuc} kapat={() => setSonuc(null)} />}
       <section className="panel">
         <div className="panel-bas">
           <div className="baslik-grup">
-            <h2>{bitenler ? "Biten İşler" : "Üretim Sırası"}</h2>
-            {liste && !bitenler && (
+            <h2>{uretimde ? "Üretimde" : "Üretim Sırası"}</h2>
+            {liste && (
               <span className="ozet">{liste.length} iş · {liste.reduce((t, e) => t + e.adet - e.uretilen, 0)} adet bekliyor</span>
             )}
           </div>
           <div className="dugme-grup">
-            <label className="onay-etiket">
-              <input type="checkbox" checked={bitenler} onChange={(e) => { setBitenler(e.target.checked); setAcik(null); }} /> Biten İşler
-            </label>
             <Link href="/uretim?yeni=1" className="btn btn--kucuk">+ Sıraya Ekle</Link>
           </div>
         </div>
@@ -59,24 +53,24 @@ export default function UretimSirasi() {
           <table className="tablo">
             <thead>
               <tr>
-                {!bitenler && <th className="hucre-dar">Sıra</th>}
+                <th className="hucre-dar">Sıra</th>
                 <th>Ürün</th>
                 <th className="sag">Adet</th>
                 <th>Sipariş</th>
-                <th>{bitenler ? "Bitiş" : "Planlanan Gün"}</th>
-                <th>{bitenler ? "Durum" : "Ayrılan Parçalar"}</th>
+                <th>Planlanan Gün</th>
+                <th>Ayrılan Parçalar</th>
                 <th><span className="gorunmez">İşlem</span></th>
               </tr>
             </thead>
             <tbody>
               {liste === null && !hata && <tr className="bos"><td colSpan={sutun}>Yükleniyor…</td></tr>}
               {liste?.length === 0 && (
-                <tr className="bos"><td colSpan={sutun}>{bitenler ? "Biten iş yok." : "Sırada iş yok."}</td></tr>
+                <tr className="bos"><td colSpan={sutun}>{uretimde ? "Üretimde iş yok." : "Sırada iş yok."}</td></tr>
               )}
               {liste?.map((e, i) => (
                 <Fragment key={e.id}>
                   <tr className={e.id === eklendi ? "secili-satir" : undefined}>
-                    {!bitenler && <td className="hucre-dar">{i + 1}</td>}
+                    <td className="hucre-dar">{i + 1}</td>
                     <td>
                       {e.urunAd} <span className="mono yardim">{e.urunKod}</span>
                       {e.aciklama && <div className="yardim">{e.aciklama}</div>}
@@ -91,21 +85,7 @@ export default function UretimSirasi() {
                         <span className="soluk">Stok için</span>
                       )}
                     </td>
-                    {bitenler ? (
-                      <>
-                        <td>{e.bitisZamani ? tarihSaat(e.bitisZamani) : ""}</td>
-                        <td>
-                          <span className={`rozet rozet--kucuk ${e.durum === "Iptal" ? "rozet--uyari" : "rozet--basari"}`}>{DURUM_ADI[e.durum]}</span>
-                          {e.seriNolar.length > 0 && (
-                            <div className="yardim mono">
-                              <Link href={seriAdresi(e.seriNolar[0])}>{e.seriNolar[0]}</Link>
-                              {e.seriNolar.length > 1 && <> … <Link href={seriAdresi(e.seriNolar.at(-1)!)}>{e.seriNolar.at(-1)}</Link></>}
-                            </div>
-                          )}
-                        </td>
-                        <td />
-                      </>
-                    ) : (
+                    {(
                       <>
                         <td>
                           <input type="date" className="girdi girdi--kucuk" aria-label="Planlanan gün" defaultValue={e.planlananTarih}
@@ -124,7 +104,7 @@ export default function UretimSirasi() {
                             <button type="button" className="btn btn--kucuk" aria-expanded={acik === e.id}
                               onClick={() => setAcik(acik === e.id ? null : e.id)}>Üret</button>
                             <button type="button" className="btn-baglanti"
-                              onClick={() => confirm(`${e.urunAd} işi sıradan çıkarılsın mı? Ayrılan parçalar serbest kalır.`)
+                              onClick={() => confirm(`${e.urunAd} işi sıradan çıkarılsın mı? Ayrılan parçalar bırakılır.`)
                                 && calistir(() => sira.iptal(e.id), "İş sıradan çıkarıldı.")}>İptal</button>
                           </div>
                         </td>

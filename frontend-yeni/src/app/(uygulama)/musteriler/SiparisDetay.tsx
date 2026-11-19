@@ -46,7 +46,7 @@ export default function SiparisDetay({ id }: { id: number }) {
             <h2><span className="mono">{s.no}</span> · {s.musteriAd} {durumRozeti(s)}</h2>
             {!s.iptalZamani && s.durum !== "tamamlandi" && (
               <button type="button" className="btn btn--ikincil btn--kucuk"
-                onClick={() => confirm(`${s.no} iptal edilsin mi? Ayrılan ürünler serbest kalır, sıradaki üretimi kapatılır.`)
+                onClick={() => confirm(`${s.no} iptal edilsin mi? Ayrılan ürünler bırakılır, sıradaki üretimi kapatılır.`)
                   && calistir(() => siparisler.iptal(s.id), "Sipariş iptal edildi.")}>
                 Siparişi İptal Et
               </button>
@@ -99,7 +99,7 @@ function KalemKutusu({ siparis, kalem: k, calistir }: {
                 <Link href={seriAdresi(seri)} className="satir-bag">{seri}</Link>
                 {acik && !gitti && (
                   <button type="button" className="btn-baglanti" aria-label={`${seri} ayrımını kaldır`}
-                    onClick={() => calistir(() => siparisler.birak(k.id, seri), `${seri} serbest bırakıldı.`)}> ×</button>
+                    onClick={() => calistir(() => siparisler.birak(k.id, seri), `${seri} siparişten çıkarıldı.`)}> ×</button>
                 )}
               </span>
             );
@@ -127,7 +127,7 @@ function KalemKutusu({ siparis, kalem: k, calistir }: {
             adaylar={hazir && hazir.map((h) => ({ seriNo: h.seriNo, alt: tarih(h.tarih) }))}
             secili={secili}
             setSecili={(x) => setSecili(x.slice(0, bosYer))}
-            bos="Depoda serbest ürün yok."
+            bos="Depoda ürün yok."
           />
           {secili.length > 0 && (
             <div>

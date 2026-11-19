@@ -80,7 +80,7 @@ export default function IslemGecmisi() {
         </div>
       </div>
       {hata && <div className="mesaj mesaj--error">{hata}</div>}
-      <div className="tablo-kap">
+      <div className="tablo-kap tablo-kap--tam">
         <table className="tablo">
           <thead>
             <tr>

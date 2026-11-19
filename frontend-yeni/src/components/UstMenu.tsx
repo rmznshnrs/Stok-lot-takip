@@ -20,12 +20,17 @@ const GRUPLAR: { ad: string | null; baglantilar: Baglanti[]; admin?: boolean }[]
     ],
   },
   {
+    ad: "Firmalar",
+    baglantilar: [
+      { yol: "/musteriler", ad: "Müşteriler" },
+      { yol: "/tedarikciler", ad: "Tedarikçiler" },
+    ],
+  },
+  {
     ad: "Tanımlar",
     baglantilar: [
       { yol: "/urunler", ad: "Ürünler" },
       { yol: "/parcalar", ad: "Parçalar" },
-      { yol: "/musteriler", ad: "Müşteriler" },
-      { yol: "/tedarikciler", ad: "Tedarikçiler" },
     ],
   },
   { ad: "Sistem", baglantilar: [{ yol: "/yonetim", ad: "Yönetim" }], admin: true },

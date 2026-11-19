@@ -4,7 +4,7 @@ namespace BusinessLayer.Concrete;
 
 public class OzetServisi(AppDbContext db, IStokServisi stok) : IOzetServisi
 {
-    public const int UyariEsigi = 3;
+    public const int UyariEsigi = 5;
     public const int EnFazlaGun = 62;
 
     public async Task<AnaSayfaOzetiDto> AnaSayfaAsync(CancellationToken ct = default)

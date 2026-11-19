@@ -73,8 +73,7 @@ export default function TakvimSayfasi() {
               <span className="takvim-cubuk takvim-cubuk--plan">Planlanan üretim</span>
               <span className="takvim-cubuk takvim-cubuk--uret">Üretilen</span>
               <span className="takvim-cubuk takvim-cubuk--ist">Teslimi istenen sipariş</span>
-              <span className="takvim-cubuk takvim-cubuk--alim">Parça alımı / not</span>
-              <span className="not">Plan girmek ya da ayrıntıyı görmek için bir güne bas.</span>
+              <span className="takvim-cubuk takvim-cubuk--alim">Parça alımı</span>
             </div>
             {hata && <div className="mesaj mesaj--error">{hata}</div>}
             <div className="takvim-kap">

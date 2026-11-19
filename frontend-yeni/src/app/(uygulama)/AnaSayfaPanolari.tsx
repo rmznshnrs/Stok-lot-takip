@@ -65,7 +65,6 @@ export function OnumuzdekiGunler() {
 
 export function SiradakiIsler() {
   const { veri: liste, hata } = useVeri(() => sira.liste(), []);
-  const ilkler = liste?.slice(0, 8);
   return (
     <section className="panel">
       <div className="panel-bas">
@@ -74,7 +73,7 @@ export function SiradakiIsler() {
         <Link href="/uretim" className="btn btn--ikincil btn--kucuk">Sırayı Aç</Link>
       </div>
       {hata && <div className="panel-ic"><div className="mesaj mesaj--error">{hata}</div></div>}
-      <div className="tablo-kap">
+      <div className="tablo-kap tablo-kap--bes">
         <table className="tablo">
           <thead>
             <tr>
@@ -88,7 +87,7 @@ export function SiradakiIsler() {
           <tbody>
             {liste === null && !hata && <tr className="bos"><td colSpan={5}>Yükleniyor…</td></tr>}
             {liste?.length === 0 && <tr className="bos"><td colSpan={5}>Sırada iş yok.</td></tr>}
-            {ilkler?.map((e, i) => (
+            {liste?.map((e, i) => (
               <tr key={e.id} className="satir-tikla">
                 <td className="hucre-dar"><span className="sira-no">{i + 1}</span></td>
                 <td>{tarih(e.planlananTarih)} <KalanGun tarihMetni={e.planlananTarih} /></td>
@@ -108,7 +107,7 @@ export function YaklasanTeslimler({ ozet: o }: { ozet: AnaSayfaOzeti }) {
   return (
     <section className="panel">
       <div className="panel-bas"><h3>Yaklaşan Teslimler</h3></div>
-      <div className="tablo-kap">
+      <div className="tablo-kap tablo-kap--bes">
         <table className="tablo">
           <thead>
             <tr>
@@ -136,8 +135,8 @@ export function YaklasanTeslimler({ ozet: o }: { ozet: AnaSayfaOzeti }) {
 }
 
 export function UretimUyarilari({ ozet: o }: { ozet: AnaSayfaOzeti }) {
-  const kapasiteler = o.kapasiteler ?? [];
-  const enCok = Math.max(10, ...kapasiteler.map((k) => k.uretilebilir));
+  const kapasiteler = (o.kapasiteler ?? []).filter((k) => k.uretilebilir <= 5);
+  const enCok = 6;
   return (
     <section className={`panel${o.uyarilar.length ? " panel--dikkat" : ""}`}>
       <div className="panel-bas">
@@ -164,7 +163,7 @@ export function UretimUyarilari({ ozet: o }: { ozet: AnaSayfaOzeti }) {
                     <Link key={k.parca.id} href={`/parcalar?parca=${encodeURIComponent(k.parca.kod)}`} className="parca-cubugu">
                       <span className="parca-cubugu-ad">{k.parca.ad} <span className="mono">{k.parca.kod}</span></span>
                       <span className="parca-cubugu-yol">
-                        <span className="parca-cubugu-dolu" style={{ width: `${Math.min(100, (kac / 4) * 100)}%` }} />
+                        <span className="parca-cubugu-dolu" style={{ width: `${Math.min(100, (kac / 6) * 100)}%` }} />
                       </span>
                       <span className="parca-cubugu-sayi">{k.serbest} adet · 1 üründe {k.birimAdet}</span>
                     </Link>
@@ -181,7 +180,7 @@ export function UretimUyarilari({ ozet: o }: { ozet: AnaSayfaOzeti }) {
               <div key={k.urunId} className="kapasite-satiri">
                 <span className="kapasite-ad">{k.urunAd}</span>
                 <span className="kapasite-yol">
-                  <span className={`kapasite-dolu${k.uretilebilir <= 3 ? " kapasite-dolu--az" : k.uretilebilir <= 10 ? " kapasite-dolu--orta" : ""}`}
+                  <span className={`kapasite-dolu${k.uretilebilir <= 1 ? " kapasite-dolu--az" : k.uretilebilir <= 3 ? " kapasite-dolu--orta" : ""}`}
                     style={{ width: `${Math.max(3, Math.min(100, (k.uretilebilir / enCok) * 100))}%` }} />
                 </span>
                 <b className="kapasite-sayi">{k.uretilebilir}</b>

@@ -55,7 +55,7 @@ export default function HataliLotFormu({ lot, kapat, kaydedildi }: {
         <label className="onay-etiket"><input type="radio" name={`kullan-${lot.id}`} checked={kullan === false} onChange={() => setKullan(false)} /> kullanılmasın</label>
       </div>
       <div className="alan">
-        <span className="etiket-metni">Bu lottan parça taşıyan ürünler (İsteğe bağlı)</span>
+        <span className="etiket-metni">Bu lottan parça taşıyan ürünler</span>
         <SeriSecimi
           adaylar={adaylar}
           secili={secili}

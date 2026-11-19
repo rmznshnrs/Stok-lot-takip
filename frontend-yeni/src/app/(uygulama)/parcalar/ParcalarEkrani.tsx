@@ -180,13 +180,26 @@ export default function ParcalarEkrani() {
 
 function ParcaGirisleri({ kod, degisti }: { kod: string; degisti: (mesaj: string) => void }) {
   const { veri, hata, yenile } = useVeri(() => stok.durum({ parca: kod, bitenler: true }), [kod]);
+  const [bitenlerAcik, setBitenlerAcik] = useState(false);
   const lotlar = veri?.[0]?.lotlar;
   if (hata) return <div className="mesaj mesaj--error">{hata}</div>;
   if (!lotlar) return <p className="yukleniyor">Yükleniyor…</p>;
+  const elde = lotlar.filter((l) => l.kalanAdet > 0);
+  const bitenler = lotlar.filter((l) => l.kalanAdet === 0);
+  const guncellendi = (m: string) => { yenile(); degisti(m); };
   return (
     <div className="form-dikey">
-      <div className="giris-bas">Lotlar ({lotlar.length}) · hatalı kayıt ve stoktan düşme</div>
-      <StokGirisleri lotlar={lotlar} islemler degisti={(m) => { yenile(); degisti(m); }} />
+      <div className="giris-bas">Elde Olan Lotlar ({elde.length})</div>
+      <StokGirisleri lotlar={elde} islemler degisti={guncellendi} />
+      {bitenler.length > 0 && (
+        <>
+          <button type="button" className="btn btn--ikincil btn--kucuk biten-lot-dugmesi" aria-expanded={bitenlerAcik}
+            onClick={() => setBitenlerAcik(!bitenlerAcik)}>
+            {bitenlerAcik ? "▾" : "▸"} Biten Lotlar ({bitenler.length})
+          </button>
+          {bitenlerAcik && <StokGirisleri lotlar={bitenler} islemler degisti={guncellendi} />}
+        </>
+      )}
     </div>
   );
 }

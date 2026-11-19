@@ -23,7 +23,7 @@ export default function UretimGecmisi({ ilkArama = "" }: { ilkArama?: string }) 
       <section className="panel">
         <div className="panel-bas">
           <div className="baslik-grup">
-            <h2>Üretim geçmişi</h2>
+            <h2>Üretilen Ürünler</h2>
             {liste && <span className="ozet">{liste.length} ürün · {depoda} depoda · {liste.length - depoda - ayrilan} gönderildi{ayrilan > 0 && ` · ${ayrilan} hurda / kayıp`}</span>}
           </div>
           <div className="arama-satiri">
@@ -41,7 +41,7 @@ export default function UretimGecmisi({ ilkArama = "" }: { ilkArama?: string }) 
           </div>
         </div>
         {hata && <div className="mesaj mesaj--error">{hata}</div>}
-        <div className="tablo-kap">
+        <div className="tablo-kap tablo-kap--tam">
           <table className="tablo">
             <thead>
               <tr>

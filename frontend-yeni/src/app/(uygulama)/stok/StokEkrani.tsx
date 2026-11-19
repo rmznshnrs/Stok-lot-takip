@@ -160,7 +160,7 @@ function ParcaTablosu({ gruplar, aranan, ilkAcik }: {
                   <td className="sag">{p.toplamStok}</td>
                   <td className={`sag${p.minAltinda ? " uyari-metin" : ""}`}>
                     {p.kullanilabilirStok}{p.minAltinda && " · min altında"}
-                    {p.ayrilan > 0 && <div className="yardim">{p.ayrilan} üretim sırasına ayrıldı · {p.serbest} serbest</div>}
+                    {p.ayrilan > 0 && <div className="yardim">{p.ayrilan} üretim sırasında</div>}
                   </td>
                   <td className="sag soluk">{p.minStok}</td>
                   <td className={`sag${p.hataliAdet ? " uyari-metin" : " soluk"}`}>{p.hataliAdet}</td>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
+import GeriIleri from "@/components/GeriIleri";
 import { useState } from "react";
 import Barkod, { Karekod } from "@/components/Barkod";
 import { izleme } from "@/lib/api";
@@ -80,6 +81,7 @@ export default function EtiketEkrani() {
 
   return (
     <main className="icerik icerik--dikey">
+      <GeriIleri />
       <section className="kart etiket-ayar">
         <div className="bas-satir">
           <h2>Etiket yazdır</h2>

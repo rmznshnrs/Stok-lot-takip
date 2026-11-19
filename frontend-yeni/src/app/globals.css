@@ -1613,7 +1613,6 @@ strong.takvim-cubuk { font-size: 13px; padding: 4px 8px; }
 .excel-satiri { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
 
 .satir-tikla { position: relative; cursor: pointer; }
-.satir-tikla:hover > td { background: var(--ana-acik); }
 .satir-tikla .satir-bag { position: static; }
 .satir-tikla .satir-bag::after { content: ""; position: absolute; inset: 0; }
 .satir-tikla a:not(.satir-bag), .satir-tikla button:not(.satir-bag), .satir-tikla input, .satir-tikla select, .satir-tikla label {
@@ -1700,3 +1699,20 @@ strong.takvim-cubuk { font-size: 13px; padding: 4px 8px; }
 .kart--iz .adim-baslik.alt-not { margin-top: 6px; padding-top: 10px; border-top: 1px solid var(--kenar-ince); }
 
 .kutu { flex-grow: 0; }
+
+.geri-ileri-satiri { padding: 0 0 12px; }
+@media print { .geri-ileri, .geri-ileri-satiri { display: none !important; } }
+
+/* Listeler: 10 satırdan sonra (küçük ekranda 5) kendi içinde kayar; başlık satırı yerinde kalır */
+.tablo-kap:not(.tablo-kap--tam) { max-height: 560px; overflow: auto; }
+.panel > .tablo-kap:not(.tablo-kap--tam) { overflow: auto; }
+.tablo-kap:not(.tablo-kap--tam) .tablo thead th { position: sticky; top: 0; z-index: 2; background: var(--kart); }
+.kart--liste { max-height: 640px; overflow-y: auto; }
+.liste-kaydir { max-height: 560px; overflow-y: auto; }
+@media (max-height: 820px) {
+  .tablo-kap:not(.tablo-kap--tam) { max-height: 320px; }
+  .kart--liste { max-height: 420px; }
+  .liste-kaydir { max-height: 320px; }
+}
+.biten-lot-dugmesi { align-self: flex-start; }
+.tablo-kap.tablo-kap--bes { max-height: 300px; }

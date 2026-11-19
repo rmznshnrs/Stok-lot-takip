@@ -67,7 +67,7 @@ public class RaporServisi(AppDbContext db, IOzetServisi ozet, ISiparisServisi si
             [$"Dönemde mal girişi", girisler.Count],
         ]);
         var satir = 18;
-        ozetSayfa.Cell(satir - 1, 1).Value = "Üretim uyarıları (parça stoğuyla 3 ve daha az üretilebilen ürünler)";
+        ozetSayfa.Cell(satir - 1, 1).Value = "Üretim uyarıları (parça stoğuyla 5 ve daha az üretilebilen ürünler)";
         ozetSayfa.Cell(satir - 1, 1).Style.Font.Bold = true;
         satir = Tablo(ozetSayfa, satir, ["Ürün", "Üretilebilir", "Yetmeyen parçalar"],
             [.. o.Uyarilar.Select(u => new object?[] { u.UrunAd, u.Uretilebilir,

@@ -83,7 +83,7 @@ export default function MalGirisiFormu({ parcalar, kaydedildi }: { parcalar: Par
             />
           </div>
           <div className="alan">
-            <label htmlFor="tedarikciLotNo">Tedarikçi lot no (İsteğe bağlı)</label>
+            <label htmlFor="tedarikciLotNo">Tedarikçi lot no</label>
             <input className="girdi girdi--mono" maxLength={100} {...alan("tedarikciLotNo")} />
           </div>
           <div className="alan">

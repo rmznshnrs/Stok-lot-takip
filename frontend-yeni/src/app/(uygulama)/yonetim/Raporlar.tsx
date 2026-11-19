@@ -1,14 +1,12 @@
 "use client";
 
 const SURELER = [1, 3, 6, 12];
-const SAYFALAR = ["Özet", "Siparişler", "Üretim Sırası", "Üretim", "Sevkiyat", "Mal Girişi", "Parça Stoğu", "Geri Çağırmalar"];
 
 export default function Raporlar() {
   return (
     <section className="panel">
       <div className="panel-bas"><h3>Excel Raporu</h3></div>
       <div className="panel-ic form-dikey">
-        <p className="not">Dosyada şu sayfalar var: {SAYFALAR.join(", ")}.</p>
         <div className="rapor-dugmeleri">
           {SURELER.map((ay) => (
             <a key={ay} href={`/api/ozet/excel?ay=${ay}`} download className="rapor-dugmesi">

@@ -123,7 +123,7 @@ export default function SirayaEkle() {
                 <input id="sira-tarih" type="date" className="girdi" value={planlanan} onChange={(e) => setPlanlanan(e.target.value)} />
               </div>
               <div className="alan">
-                <label htmlFor="sira-aciklama">Açıklama <span className="soluk">(İsteğe bağlı)</span></label>
+                <label htmlFor="sira-aciklama">Açıklama</label>
                 <input id="sira-aciklama" className="girdi" maxLength={500} value={aciklama} onChange={(e) => setAciklama(e.target.value)} />
               </div>
             </div>
@@ -146,7 +146,7 @@ export default function SirayaEkle() {
                       <tr>
                         <th>Parça</th>
                         <th className="sag">Gereken</th>
-                        <th className="sag">Serbest</th>
+                        <th className="sag">Stokta</th>
                         <th>Kullanılacak Lotlar</th>
                         <th>Durum</th>
                       </tr>
