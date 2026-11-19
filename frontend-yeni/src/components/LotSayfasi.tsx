@@ -11,7 +11,6 @@ import { seriAdresi } from "@/lib/adres";
 import { tarih, tarihSaat } from "@/lib/bicim";
 import { useVeri } from "@/lib/kancalar";
 
-/** Lot sayfası (Stok altında): lot bilgisi → kullanıldığı ürünler → ürünlerin gittiği müşteriler. */
 export default function LotSayfasi({ lotNo }: { lotNo: string }) {
   const { veri: iz, hata, yenile } = useVeri(async () => {
     try {

@@ -6,7 +6,6 @@ import { useState, type FormEvent } from "react";
 import SifreKutusu from "@/components/SifreKutusu";
 import { ApiHatasi, hesap } from "@/lib/api";
 
-/** E-postadaki bağlantıyla açılır (?kod=…); yeni şifre belirlenir. */
 export default function SifreSifirlaFormu() {
   const kod = useSearchParams().get("kod") ?? "";
   const [yeni, setYeni] = useState("");

@@ -23,7 +23,7 @@ public class LotNumarasiTestleri(TestVeritabani vt) : IsKuraliTesti(vt)
     public async Task Stok_giris_no_en_buyugun_ustunden_devam_eder()
     {
         await Giris("SG-0041");
-        await Giris("SG-ESKI");  // sıra biçiminde olmayan numara sayılmaz
+        await Giris("SG-ESKI");
         Assert.Equal("SG-0042", (await Giris()).Lot.LotNo);
     }
 
@@ -33,7 +33,7 @@ public class LotNumarasiTestleri(TestVeritabani vt) : IsKuraliTesti(vt)
         var tek = await Giris(tedarikciLotNo: "TD-55");
         Assert.Equal(("lot", tek.Lot.LotNo), Sonuc(await Izleme.NumaraAraAsync("TD-55")));
 
-        var ikinci = await Giris(tedarikciLotNo: "TD-55");  // aynı tedarikçi lotu iki girişte
+        var ikinci = await Giris(tedarikciLotNo: "TD-55");
         var s = await Izleme.NumaraAraAsync("TD-55");
         Assert.Null(s.Tur);
         Assert.Equal([tek.Lot.LotNo, ikinci.Lot.LotNo], s.Adaylar.Select(a => a.Deger));

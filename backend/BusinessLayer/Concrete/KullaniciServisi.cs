@@ -6,7 +6,6 @@ public class KullaniciServisi(AppDbContext db) : IKullaniciServisi
 {
     public const int EnAzSifreUzunlugu = 8;
 
-    // Kullanıcı adı yoksa da aynı sürede yanıt verilsin diye karşılaştırılan sabit bir özet
     private static readonly string SahteOzet = BCrypt.Net.BCrypt.HashPassword("kullanici-yok");
 
     public async Task<KullaniciDto?> DogrulaAsync(string kullaniciAdi, string sifre, CancellationToken ct = default)
@@ -106,7 +105,6 @@ public class KullaniciServisi(AppDbContext db) : IKullaniciServisi
                 && await db.Kullanicilar.CountAsync(x => x.Rol == KullaniciRolu.Admin && x.Aktif, ct) == 1)
                 throw new IsKuraliHatasi("Son Admin silinemez.");
 
-            // Geçmişte kaydı olan kullanıcı silinirse "kim yaptı" bilgisi kaybolur; o yüzden pasif yapılır
             var islemiVar = await db.StokLotlari.AnyAsync(x => x.OlusturanKullaniciId == id || x.SorunIsaretleyenId == id, ct)
                 || await db.Uretimler.AnyAsync(x => x.OlusturanKullaniciId == id, ct)
                 || await db.Satislar.AnyAsync(x => x.OlusturanKullaniciId == id, ct)

@@ -1,5 +1,3 @@
-// Etikette basılacak kod: yok, çizgili barkod veya karekod. Son seçim tarayıcıda hatırlanır.
-
 export type EtiketTuru = "yok" | "cizgili" | "karekod";
 
 export const ETIKET_TURLERI: { deger: EtiketTuru; ad: string }[] = [
@@ -27,6 +25,5 @@ export function etiketTuruKaydet(t: EtiketTuru) {
   try {
     localStorage.setItem(ANAHTAR, t);
   } catch {
-    // hatırlanmazsa sorun değil
   }
 }

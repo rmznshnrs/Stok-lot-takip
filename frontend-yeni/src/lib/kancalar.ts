@@ -2,10 +2,6 @@
 
 import { useCallback, useEffect, useState } from "react";
 
-/**
- * Veriyi yükler; bagimlilar değişince yeniden yükler. Son istek kazanır (eski yanıt
- * yeni yanıtın üstüne yazılmaz).
- */
 export function useVeri<T>(yukle: () => Promise<T>, bagimlilar: unknown[]) {
   const [veri, setVeri] = useState<T | null>(null);
   const [hata, setHata] = useState("");
@@ -33,7 +29,6 @@ export function useVeri<T>(yukle: () => Promise<T>, bagimlilar: unknown[]) {
   return { veri, hata, yenile };
 }
 
-/** Yazarken her harfte istek atmamak için değeri gecikmeli döndürür. */
 export function useGecikmeli<T>(deger: T, ms = 250) {
   const [gecikmeli, setGecikmeli] = useState(deger);
   useEffect(() => {

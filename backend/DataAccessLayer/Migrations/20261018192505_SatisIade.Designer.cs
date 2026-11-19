@@ -14,7 +14,6 @@ namespace DataAccessLayer.Migrations
     [Migration("20261018192505_SatisIade")]
     partial class SatisIade
     {
-        /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618

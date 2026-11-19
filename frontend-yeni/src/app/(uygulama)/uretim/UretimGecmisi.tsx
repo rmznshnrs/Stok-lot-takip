@@ -8,7 +8,6 @@ import { useSayfalama } from "@/components/Sayfalama";
 import { useGecikmeli, useVeri } from "@/lib/kancalar";
 import { seriAdresi } from "@/lib/adres";
 
-/** Üretilen seri numaraları: ürün, tarih, depoda / gönderildi / hurda, geri çağırma ve hatalı lot uyarısı. */
 export default function UretimGecmisi({ ilkArama = "" }: { ilkArama?: string }) {
   const [arama, setArama] = useState(ilkArama);
   const [urunId, setUrunId] = useState("");

@@ -10,10 +10,6 @@ import { lotAdresi } from "@/lib/adres";
 import { tarih, tarihSaat } from "@/lib/bicim";
 import { useVeri } from "@/lib/kancalar";
 
-/**
- * Seri no sayfası (Müşteriler altında): üretim tarihi, sevkiyat / iade, içindeki parçalar ve lotları, geri çağırma alanı.
- * Geri bağlantısı gönderildiyse müşteriye, gönderilmediyse Üretim geçmişine gider.
- */
 export default function SeriSayfasi({ seriNo }: { seriNo: string }) {
   const { veri: iz, hata, yenile } = useVeri(async () => {
     try {
@@ -136,7 +132,6 @@ function SeriDetayi({ iz, degisti }: { iz: SeriIz; degisti: () => void }) {
   );
 }
 
-/** Yalnız yönetici: ürünü lot olmadan tek başına geri çağırır (ör. müşteri şikâyeti). */
 function TekGeriCagir({ seriNo, degisti }: { seriNo: string; degisti: () => void }) {
   const [acik, setAcik] = useState(false);
   const [aciklama, setAciklama] = useState("");

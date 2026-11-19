@@ -2,7 +2,6 @@
 
 import { useState, type InputHTMLAttributes } from "react";
 
-/** Şifre girişi; sağdaki göz düğmesiyle yazılan şifre gösterilir / gizlenir. */
 export default function SifreKutusu({ className = "", ...props }: Omit<InputHTMLAttributes<HTMLInputElement>, "type">) {
   const [goster, setGoster] = useState(false);
   return (

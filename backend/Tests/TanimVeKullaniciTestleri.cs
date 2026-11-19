@@ -41,7 +41,7 @@ public class TanimTestleri(TestVeritabani vt) : IsKuraliTesti(vt)
         Assert.Empty(await Tanim.UrunleriListeleAsync("zzz"));
 
         var d = (await Tanim.UrunGetirAsync(Urun.Id))!;
-        Assert.False(d.SeriOnekiDegistirilebilir);  // üretim var
+        Assert.False(d.SeriOnekiDegistirilebilir);
         Assert.Equal([("DIY", 1, 11), ("LED", 4, 92)], d.Agac.Select(a => (a.ParcaKod, a.Adet, a.KullanilabilirStok)));
         Assert.Null(await Tanim.UrunGetirAsync(-1));
     }
@@ -56,7 +56,6 @@ public class TanimTestleri(TestVeritabani vt) : IsKuraliTesti(vt)
         u = await Tanim.UrunAgaciKaydetAsync(u.Id, [new(Diyot.Id, 2), new(Led.Id, 1)]);
         Assert.Equal([("DIY", 2), ("LED", 1)], u.Agac.Select(a => (a.ParcaKod, a.Adet)));
 
-        // Adet değiştir, satır kaldır: LED gider, DIY 3 olur
         u = await Tanim.UrunAgaciKaydetAsync(u.Id, [new(Diyot.Id, 3)]);
         Assert.Equal([("DIY", 3)], u.Agac.Select(a => (a.ParcaKod, a.Adet)));
     }
@@ -80,7 +79,6 @@ public class TanimTestleri(TestVeritabani vt) : IsKuraliTesti(vt)
         await Assert.ThrowsAsync<IsKuraliHatasi>(() => Tanim.UrunOlusturAsync(new UrunIstek("ip", "X", "SN-X-")));
         await Assert.ThrowsAsync<IsKuraliHatasi>(() => Tanim.UrunOlusturAsync(new UrunIstek("X", "X", "sn-ip-")));
 
-        // Üretim yokken önek değişir, üretim varsa değişmez ama ad değişebilir
         var u = await Tanim.UrunGuncelleAsync(Urun.Id, new UrunIstek("IP", "Panel", "SN-PNL-"));
         Assert.Equal("SN-PNL-", u.SeriOneki);
         await Uretim.UretAsync(Urun.Id, 1, Kullanici.Id);
@@ -126,18 +124,18 @@ public class KullaniciTestleri(TestVeritabani vt) : IsKuraliTesti(vt)
         var yeni = await K.OlusturAsync(new KullaniciOlusturIstek("Ayşe", "Yılmaz", "ayse", "gizli-sifre-1"), Admin.Id);
         Assert.Equal(("ayse", "Kullanici"), (yeni.KullaniciAdi, yeni.Rol));
         var hash = await Db.Kullanicilar.Where(k => k.Id == yeni.Id).Select(k => k.SifreHash).SingleAsync();
-        Assert.NotEqual("gizli-sifre-1", hash);  // şifre düz metin saklanmaz
+        Assert.NotEqual("gizli-sifre-1", hash);
 
-        Assert.Equal(yeni.Id, (await K.DogrulaAsync(" AYSE ", "gizli-sifre-1"))!.Id);  // kullanıcı adı harf duyarsız
+        Assert.Equal(yeni.Id, (await K.DogrulaAsync(" AYSE ", "gizli-sifre-1"))!.Id);
         Assert.Null(await K.DogrulaAsync("ayse", "yanlis-sifre"));
         Assert.Null(await K.DogrulaAsync("olmayan", "gizli-sifre-1"));
     }
 
     [Theory]
-    [InlineData("ayse", "kisa", "Admin")]          // şifre kısa
-    [InlineData("ay se", "gizli-sifre-1", "Kullanici")]  // boşluklu ad
-    [InlineData("depo", "gizli-sifre-1", "Kullanici")]   // kullanıcı adı var
-    [InlineData("ayse", "gizli-sifre-1", "Patron")]      // rol yok
+    [InlineData("ayse", "kisa", "Admin")]
+    [InlineData("ay se", "gizli-sifre-1", "Kullanici")]
+    [InlineData("depo", "gizli-sifre-1", "Kullanici")]
+    [InlineData("ayse", "gizli-sifre-1", "Patron")]
     public async Task Olusturma_hatalari(string kullaniciAdi, string sifre, string rol) =>
         await Assert.ThrowsAsync<IsKuraliHatasi>(
             () => K.OlusturAsync(new KullaniciOlusturIstek("A", "B", kullaniciAdi, sifre, rol), Admin.Id));
@@ -159,7 +157,6 @@ public class KullaniciTestleri(TestVeritabani vt) : IsKuraliTesti(vt)
         var k = await K.GuncelleAsync(Kullanici.Id, new KullaniciGuncelleIstek("Depo", "Sorumlusu", "Admin", "yeni-sifre-12"), Admin.Id);
         Assert.Equal(("Sorumlusu", "Admin"), (k.Soyad, k.Rol));
         Assert.NotNull(await K.DogrulaAsync("depo", "yeni-sifre-12"));
-        // Şifre boş bırakılırsa değişmez
         await K.GuncelleAsync(Kullanici.Id, new KullaniciGuncelleIstek("Depo", "Sorumlusu", "Admin"), Admin.Id);
         Assert.NotNull(await K.DogrulaAsync("depo", "yeni-sifre-12"));
     }
@@ -170,7 +167,6 @@ public class KullaniciTestleri(TestVeritabani vt) : IsKuraliTesti(vt)
         var hata = await Assert.ThrowsAsync<IsKuraliHatasi>(
             () => K.GuncelleAsync(Admin.Id, new KullaniciGuncelleIstek("Ad", "Min", "Kullanici"), Admin.Id));
         Assert.Contains("Son Admin", hata.Message);
-        // Başka bir Admin varsa alınabilir
         await K.GuncelleAsync(Kullanici.Id, new KullaniciGuncelleIstek("Depo", "G", "Admin"), Admin.Id);
         Assert.Equal("Kullanici", (await K.GuncelleAsync(Admin.Id, new KullaniciGuncelleIstek("Ad", "Min", "Kullanici"), Admin.Id)).Rol);
     }

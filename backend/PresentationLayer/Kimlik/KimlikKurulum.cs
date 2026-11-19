@@ -9,12 +9,10 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace PresentationLayer.Kimlik;
 
-/// <summary>"Jwt" ayar bölümü. Anahtar appsettings.Development.json veya ortam değişkeninden (Jwt__Anahtar).</summary>
 public class JwtAyarlari
 {
     public const string Bolum = "Jwt";
 
-    /// <summary>HMAC SHA-256 imza anahtarı; en az 32 karakter.</summary>
     [Required, MinLength(32, ErrorMessage = "Jwt:Anahtar en az 32 karakter olmalı.")]
     public string Anahtar { get; set; } = "";
 
@@ -27,10 +25,6 @@ public class JwtAyarlari
 
 public static class KimlikKurulum
 {
-    /// <summary>
-    /// JWT ile kimlik doğrulama ve yetki: login hariç tüm uçlar giriş ister (varsayılan politika).
-    /// Ayarlar ilk ihtiyaçta okunur; eksik/kısa anahtar uygulama açılırken hata verir.
-    /// </summary>
     public static IServiceCollection AddKimlik(this IServiceCollection services)
     {
         services.AddOptions<JwtAyarlari>().BindConfiguration(JwtAyarlari.Bolum).ValidateDataAnnotations().ValidateOnStart();
@@ -41,7 +35,7 @@ public static class KimlikKurulum
             .Configure<IOptions<JwtAyarlari>>((o, ayar) =>
             {
                 var j = ayar.Value;
-                o.MapInboundClaims = false;  // "sub", "role" adları olduğu gibi kalsın
+                o.MapInboundClaims = false;
                 o.TokenValidationParameters = new TokenValidationParameters
                 {
                     ValidIssuer = j.Yayinci,
@@ -97,7 +91,6 @@ public class TokenUretici(IOptions<JwtAyarlari> ayarlar, TimeProvider zaman)
 
 public static class ClaimsUzantilari
 {
-    /// <summary>İşlemi yapan kullanıcının id'si (token'daki "sub"). Kayıtlara bu yazılır.</summary>
     public static int KullaniciId(this ClaimsPrincipal user) =>
         int.TryParse(user.FindFirstValue(JwtRegisteredClaimNames.Sub), out var id)
             ? id

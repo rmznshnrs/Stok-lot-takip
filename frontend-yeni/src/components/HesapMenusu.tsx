@@ -6,10 +6,8 @@ import { useState } from "react";
 import { simdikiTema, temaUygula, type Tema } from "@/lib/tema";
 import { cikisYap } from "./Oturum";
 
-/** Sol menünün altı: profil, açık/koyu mod ve çıkış. */
 export default function HesapMenusu() {
   const simdiki = usePathname();
-  // Sunucuda belge yok: açık tema varsayılır, tarayıcıda seçilen tema okunur
   const [tema, setTema] = useState<Tema>(() => (typeof document === "undefined" ? "acik" : simdikiTema()));
 
   function temaDegistir() {

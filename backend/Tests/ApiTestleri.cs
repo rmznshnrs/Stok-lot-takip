@@ -12,16 +12,14 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace Tests;
 
-/// <summary>API'yi test veritabanı ve test JWT anahtarıyla bellekte ayağa kaldırır.</summary>
 public sealed class ApiFabrikasi : WebApplicationFactory<Program>
 {
     public const string JwtAnahtar = "test-icin-en-az-otuz-iki-karakterlik-jwt-anahtari";
-    /// <summary>SMTP ayarlı olmadığından e-postalar bu klasöre .eml olarak yazılır.</summary>
     public static readonly string PostaKlasoru = Path.Combine(Path.GetTempPath(), "lot-takip-test-posta");
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
-        builder.UseEnvironment("Development");  // Swagger açık
+        builder.UseEnvironment("Development");
         builder.ConfigureAppConfiguration((_, c) => c.AddInMemoryCollection(new Dictionary<string, string?>
         {
             ["ConnectionStrings:LotTakip"] = TestVeritabani.Baglanti,
@@ -34,10 +32,6 @@ public sealed class ApiFabrikasi : WebApplicationFactory<Program>
     }
 }
 
-/// <summary>
-/// API testleri. API her istekte kendi bağlamını kullandığı için veri commit edilir; her test
-/// başında veritabanı temizlenip örnek veri yüklenir. Kullanıcılar: admin (Admin), depo (Kullanici).
-/// </summary>
 [Collection(VeritabaniKoleksiyonu.Ad)]
 public class ApiTestleri(TestVeritabani vt) : IAsyncLifetime
 {
@@ -91,8 +85,6 @@ public class ApiTestleri(TestVeritabani vt) : IAsyncLifetime
     private static async Task<JsonElement> Problem(HttpResponseMessage y) =>
         JsonDocument.Parse(await y.Content.ReadAsStringAsync()).RootElement;
 
-    // --- Giriş zorunluluğu ----------------------------------------------------------
-
     public static TheoryData<string, string> KorunanUclar => new()
     {
         { "GET", "/api/kimlik/ben" }, { "POST", "/api/kimlik/sifre" },
@@ -124,7 +116,6 @@ public class ApiTestleri(TestVeritabani vt) : IAsyncLifetime
     [Fact]
     public async Task Giris_ucu_girissiz_acik()
     {
-        // Giriş ucuna girişsiz ulaşılır: yanlış şifredeki 401 uç'un kendi yanıtıdır (başlığı "Giriş başarısız")
         var y = await Istemci().PostAsJsonAsync("/api/kimlik/giris", new GirisIstek("x", "y"));
         Assert.Equal("Giriş başarısız", (await Problem(y)).GetProperty("title").GetString());
     }
@@ -146,12 +137,10 @@ public class ApiTestleri(TestVeritabani vt) : IAsyncLifetime
         Assert.Equal(HttpStatusCode.OK, (await Istemci(gecerli).GetAsync("/api/parcalar")).StatusCode);
     }
 
-    // --- Giriş ------------------------------------------------------------------------
-
     [Fact]
     public async Task Giris_token_ve_kullanici_doner()
     {
-        var g = await GirisYap("ADMIN", TestVeritabani.AdminSifre);  // kullanıcı adı harf duyarsız
+        var g = await GirisYap("ADMIN", TestVeritabani.AdminSifre);
         Assert.Equal(("admin", Roller.Admin), (g.Kullanici.KullaniciAdi, g.Kullanici.Rol));
         Assert.InRange(g.GecerlilikSonu, DateTimeOffset.UtcNow.AddHours(7.9), DateTimeOffset.UtcNow.AddHours(8.1));
         var ben = await Istemci(g.Token).GetFromJsonAsync<KullaniciDto>("/api/kimlik/ben");
@@ -186,8 +175,6 @@ public class ApiTestleri(TestVeritabani vt) : IAsyncLifetime
         Assert.Equal(HttpStatusCode.NoContent, (await c.PostAsJsonAsync("/api/kimlik/sifre", new SifreDegistirIstek(DepoSifre, "yeni-sifre-12"))).StatusCode);
         await GirisYap("depo", "yeni-sifre-12");
     }
-
-    // --- Roller -----------------------------------------------------------------------
 
     [Fact]
     public async Task Admin_islemleri_kullaniciya_403()
@@ -236,7 +223,6 @@ public class ApiTestleri(TestVeritabani vt) : IAsyncLifetime
         Assert.Equal(Roller.Admin, (await y.Content.ReadFromJsonAsync<KullaniciDto>())!.Rol);
         Assert.Equal(3, (await admin.GetFromJsonAsync<List<KullaniciDto>>("/api/kullanicilar"))!.Count);
 
-        // Son Admin kuralı: ayşe tekrar Kullanici, sonra admin kendini düşürmeye çalışır
         await admin.PutAsJsonAsync($"/api/kullanicilar/{ayse.Id}", new KullaniciGuncelleIstek("Ayşe", "Yılmaz", Roller.Kullanici));
         y = await admin.PutAsJsonAsync($"/api/kullanicilar/{_adminId}", new KullaniciGuncelleIstek("Sistem", "Yöneticisi", Roller.Kullanici));
         Assert.Equal(HttpStatusCode.BadRequest, y.StatusCode);
@@ -246,7 +232,6 @@ public class ApiTestleri(TestVeritabani vt) : IAsyncLifetime
     [Fact]
     public async Task Rolu_dusurulen_kullanicinin_eski_tokeni_admin_islemi_yapamaz()
     {
-        // Token'da hâlâ "Admin" yazsa da Business veritabanındaki rolü denetler
         var admin = await Admin();
         var y = await admin.PostAsJsonAsync("/api/kullanicilar", new KullaniciOlusturIstek("Geçici", "Admin", "gecici", "gecici-sifre-1", Roller.Admin));
         var gecici = (await y.Content.ReadFromJsonAsync<KullaniciDto>())!;
@@ -256,8 +241,6 @@ public class ApiTestleri(TestVeritabani vt) : IAsyncLifetime
         y = await geciciIstemci.PostAsJsonAsync("/api/izleme/lot/L-D-2601/sorun", new LotSorunIstek(true, false, "x"));
         Assert.Equal(HttpStatusCode.Forbidden, y.StatusCode);
     }
-
-    // --- İşlemi yapan kullanıcı ---------------------------------------------------------
 
     [Fact]
     public async Task Islemi_yapan_kullanici_tokendan_alinip_kayitlara_yazilir()
@@ -282,7 +265,6 @@ public class ApiTestleri(TestVeritabani vt) : IAsyncLifetime
         Assert.Equal(_depoId, await db.Satislar.Where(s => s.Kalemler.Any(k => k.Uretim!.SeriNo == seri)).Select(s => s.OlusturanKullaniciId).SingleAsync());
     }
 
-    /// <summary>Sıraya ekler ve hepsini üretir; üretim yanıtını döner.</summary>
     private static async Task<HttpResponseMessage> SiradanUret(HttpClient c, int urunId, int adet)
     {
         var y = await c.PostAsJsonAsync("/api/uretim/sira", new UretimEmriIstek(urunId, adet));
@@ -290,8 +272,6 @@ public class ApiTestleri(TestVeritabani vt) : IAsyncLifetime
         var emir = (await y.Content.ReadFromJsonAsync<UretimEmriDto>())!;
         return await c.PostAsJsonAsync($"/api/uretim/sira/{emir.Id}/uret", new EmirUretIstek());
     }
-
-    // --- Hata yanıtları ---------------------------------------------------------------
 
     [Fact]
     public async Task Yetersiz_stok_409_ve_eksikler()
@@ -309,7 +289,7 @@ public class ApiTestleri(TestVeritabani vt) : IAsyncLifetime
         var eksikler = p.GetProperty("eksikler").EnumerateArray().Select(e => e.GetProperty("parca").GetProperty("kod").GetString()).ToList();
         Assert.Contains("LED-KR", eksikler);
         await using var db = vt.YeniContext();
-        Assert.Equal(9, await db.Uretimler.CountAsync());  // hiçbir şey kaydedilmedi
+        Assert.Equal(9, await db.Uretimler.CountAsync());
     }
 
     [Fact]
@@ -341,8 +321,6 @@ public class ApiTestleri(TestVeritabani vt) : IAsyncLifetime
         Assert.Equal(HttpStatusCode.NotFound, (await c.GetAsync("/api/urunler/99999")).StatusCode);
         Assert.Equal(HttpStatusCode.NotFound, (await c.GetAsync("/api/uretim/onizleme?urunId=99999&adet=1")).StatusCode);
     }
-
-    // --- Uçtan uca ----------------------------------------------------------------------
 
     [Fact]
     public async Task Tanimla_agac_kur_uret_sat_izle()
@@ -378,8 +356,6 @@ public class ApiTestleri(TestVeritabani vt) : IAsyncLifetime
         var stok = (await c.GetFromJsonAsync<List<StokGrubuDto>>("/api/stok?parca=KASA-1"))!;
         Assert.Equal((3, true), (stok.Single().Parca.KullanilabilirStok, stok.Single().Lotlar.Single().Sirada));
     }
-
-    // --- Swagger ------------------------------------------------------------------------
 
     [Fact]
     public async Task Swagger_bearer_yetkilendirmesiyle_acilir()

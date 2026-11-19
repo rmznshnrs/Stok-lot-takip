@@ -12,7 +12,6 @@ import { useVeri } from "@/lib/kancalar";
 import { siparisAdresi } from "../musteriler/MusteriSiparisleri";
 import { sevkiyatRozeti } from "./ortak";
 
-/** Kargo takip görünümü: adımlar (hazırlandı → kargoda → teslim), kargo bilgisi, gönderilen seri numaraları. */
 export default function SevkiyatDetay({ id }: { id: number }) {
   const { veri: s, hata, yenile } = useVeri(() => sevkiyat.getir(id), [id]);
   const [mesaj, setMesaj] = useState<MesajBilgisi | null>(null);
@@ -93,7 +92,6 @@ export default function SevkiyatDetay({ id }: { id: number }) {
   );
 }
 
-/** Kargo takip adımları; geçilen adımlar zamanıyla. */
 function Adimlar({ s }: { s: Sevkiyat }) {
   const adimlar = [
     { ad: "Hazırlandı", zaman: s.zaman ?? s.olusturmaZamani, tamam: true },
@@ -112,7 +110,6 @@ function Adimlar({ s }: { s: Sevkiyat }) {
   );
 }
 
-/** Kargo firması ve takip no (elle); "Kargoda takip et" bağlantısı firmanın takip sayfasını açar. */
 function KargoBilgisi({ s, degisti }: { s: Sevkiyat; degisti: () => void }) {
   const [duzenle, setDuzenle] = useState(!s.takipNo && s.durum !== "TeslimEdildi");
   const [firma, setFirma] = useState(s.kargoFirmasi);

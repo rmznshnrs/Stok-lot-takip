@@ -7,10 +7,6 @@ public enum SevkiyatDurumu
     TeslimEdildi,
 }
 
-/// <summary>
-/// Sevkiyat (SV-0001): müşteriye gönderilen seri numaraları. Sevk edilen ürün satılmış sayılır.
-/// Siparişe bağlıysa ürünler o siparişin ayrılmış ürünlerinden seçilir. Kargo bilgisi elle girilir.
-/// </summary>
 public class Satis : IDenetimli
 {
     public int Id { get; set; }
@@ -20,7 +16,6 @@ public class Satis : IDenetimli
     public int? SiparisId { get; set; }
     public Siparis? Siparis { get; set; }
     public DateOnly Tarih { get; set; }
-    /// <summary>Sevkiyatın saatiyle birlikte zamanı; saat tutulmaya başlanmadan önceki kayıtlarda boş.</summary>
     public DateTimeOffset? Zaman { get; set; }
 
     public SevkiyatDurumu Durum { get; set; }

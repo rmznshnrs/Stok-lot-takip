@@ -2,10 +2,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BusinessLayer;
 
-/// <summary>Sıradaki (bekleyen) üretim işlerine ayrılmış parçalar.</summary>
 internal static class Ayrilan
 {
-    /// <summary>Parça başına ayrılan adet: BirimAdet × kalan üretim. haricEmirId: bu işin ayırdığı sayılmaz.</summary>
     public static async Task<Dictionary<int, int>> ParcalarAsync(AppDbContext db, IReadOnlyCollection<int>? parcaIdleri,
                                                                  int? haricEmirId, CancellationToken ct)
     {

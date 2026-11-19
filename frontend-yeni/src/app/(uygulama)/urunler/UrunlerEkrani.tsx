@@ -25,7 +25,6 @@ export default function UrunlerEkrani() {
     [seciliId],
   );
 
-  // Seçim yoksa ilk ürünü aç; hiç ürün yoksa yeni ürün formu
   useEffect(() => {
     if (yeni || seciliId || !liste || aranan) return;
     router.replace(liste.length ? `/urunler?urun=${liste[0].id}` : "/urunler?yeni=1");

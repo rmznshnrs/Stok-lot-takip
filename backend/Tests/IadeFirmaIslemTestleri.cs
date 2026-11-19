@@ -20,13 +20,13 @@ public class AramaTestleri(TestVeritabani vt) : IsKuraliTesti(vt)
         await Uretim.UretAsync(Urun.Id, 2, Kullanici.Id);
         var tanim = new TanimServisi(Db, Stok);
 
-        Assert.Single(await tanim.UrunleriListeleAsync("indikatör"));   // ürün "İndikatör Paneli"
+        Assert.Single(await tanim.UrunleriListeleAsync("indikatör"));
         Assert.Single(await tanim.UrunleriListeleAsync("İNDİKATÖR"));
         Assert.Equal(["Diyot"], (await Stok.ParcaStoklariAsync("dıyot")).Select(p => p.Ad));
         Assert.Equal(["Diyot"], (await Stok.ParcaStoklariAsync("DİYOT")).Select(p => p.Ad));
         Assert.Equal(2, (await Uretim.UretimGecmisiAsync("sn-ip")).Count);
         Assert.Equal(2, (await Uretim.UretimGecmisiAsync("indikatör")).Count);
-        Assert.Empty(await Stok.ParcaStoklariAsync("%"));                  // LIKE joker karakteri düz metin
+        Assert.Empty(await Stok.ParcaStoklariAsync("%"));
     }
 }
 
@@ -68,7 +68,7 @@ public class SatisIadeTestleri(TestVeritabani vt) : IsKuraliTesti(vt)
     [Fact]
     public async Task Iade_alinan_urun_depoya_doner_ve_yeniden_satilir()
     {
-        await Uretim.UretAsync(Urun.Id, 3, Kullanici.Id);  // 0001-0003 diyot ESKI lottan
+        await Uretim.UretAsync(Urun.Id, 3, Kullanici.Id);
         var satis = await Satis.SatAsync(new SatisIstek("Atlas", ["SN-IP-0001", "SN-IP-0002"], new(2026, 5, 1)), Kullanici.Id);
 
         var s = await Satis.IadeAlAsync(satis.SatisId, new SatisIadeIstek(["sn-ip-0002"], " Arızalı geldi "), Admin.Id);
@@ -77,7 +77,7 @@ public class SatisIadeTestleri(TestVeritabani vt) : IsKuraliTesti(vt)
         var g = Assert.Single(await Satis.SatisGecmisiAsync());
         Assert.Equal(["SN-IP-0001"], g.SeriNolar);
         Assert.Equal(["SN-IP-0002"], g.IadeEdilenler);
-        Assert.Single(await Satis.SatisGecmisiAsync("0002"));               // iade edilen de aranır
+        Assert.Single(await Satis.SatisGecmisiAsync("0002"));
 
         var iz = (await Izleme.SeriIzleAsync("SN-IP-0002"))!;
         Assert.Null(iz.Satis);
@@ -85,7 +85,6 @@ public class SatisIadeTestleri(TestVeritabani vt) : IsKuraliTesti(vt)
         Assert.Equal(("Atlas", new DateOnly(2026, 5, 1), "Arızalı geldi", "Ad Min"), (iade.MusteriAd, iade.SatisTarihi, iade.Aciklama, iade.KullaniciAd));
         Assert.Contains("SN-IP-0002", (await Izleme.LotIzleAsync("L-D-ESKI"))!.StoktakiUretimler.Select(u => u.SeriNo));
 
-        // Yeniden satılabilir; iade geçmişi kalır
         Assert.Equal("SN-IP-0002", (await Satis.SatilabilirAsync("SN-IP-0002")).SeriNo);
         await Satis.SatAsync(new SatisIstek("Beta", ["SN-IP-0002"], new(2026, 6, 1)), Kullanici.Id);
         iz = (await Izleme.SeriIzleAsync("SN-IP-0002"))!;
@@ -113,7 +112,7 @@ public class SatisIadeTestleri(TestVeritabani vt) : IsKuraliTesti(vt)
 
         await Satis.IadeAlAsync(satis.SatisId, new(["SN-IP-0001", "SN-IP-0002"], "Sipariş iptal"), Admin.Id);
         await Assert.ThrowsAsync<IsKuraliHatasi>(() => Satis.IadeAlAsync(satis.SatisId, new(["SN-IP-0001"], "x"), Admin.Id));
-        var g = Assert.Single(await Satis.SatisGecmisiAsync());           // kalemsiz satış da görünür
+        var g = Assert.Single(await Satis.SatisGecmisiAsync());
         Assert.Empty(g.SeriNolar);
         Assert.Equal(["SN-IP-0001", "SN-IP-0002"], g.IadeEdilenler);
         Assert.DoesNotContain(await Izleme.SonHareketlerAsync(), h => h.Tur == "satis");
@@ -135,7 +134,7 @@ public class IslemGecmisiTestleri(TestVeritabani vt) : IsKuraliTesti(vt)
         var hepsi = await islemler.IslemlerAsync(Admin.Id);
         Assert.Equal(["duzeltme", "giris", "hurda", "iade", "satis", "uretim"], hepsi.Select(i => i.Tur).Distinct().Order());
         Assert.Equal(hepsi.OrderByDescending(i => i.Zaman).Select(i => i.Zaman), hepsi.Select(i => i.Zaman));
-        var uretim = Assert.Single(hepsi, i => i.Tur == "uretim");      // 3 adet tek satır
+        var uretim = Assert.Single(hepsi, i => i.Tur == "uretim");
         Assert.Contains("3 adet", uretim.Aciklama);
         Assert.Equal(("Depo Görevlisi", "SN-IP-0001", "seri"), (uretim.KullaniciAd, uretim.Numara, uretim.NumaraTuru));
         var hurda = Assert.Single(hepsi, i => i.Tur == "hurda");

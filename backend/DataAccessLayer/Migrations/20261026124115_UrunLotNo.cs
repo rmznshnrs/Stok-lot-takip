@@ -4,10 +4,8 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace DataAccessLayer.Migrations
 {
-    /// <inheritdoc />
     public partial class UrunLotNo : Migration
     {
-        /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.AddColumn<string>(
@@ -36,10 +34,8 @@ namespace DataAccessLayer.Migrations
                 table: "StokLotu",
                 column: "TedarikciLotNo");
 
-            // Önceden girilen lot numaraları tedarikçinin numarasıydı; stok giriş no olarak da kalır
             migrationBuilder.Sql("UPDATE StokLotu SET TedarikciLotNo = LotNo;");
 
-            // Eski üretimler: aynı anda üretilenler (aynı ürün, aynı tarih) bir lot; ürün başına sırayla numaralanır
             migrationBuilder.Sql("""
                 WITH Parti AS (
                     SELECT UrunId, Tarih, ROW_NUMBER() OVER (PARTITION BY UrunId ORDER BY Tarih, MIN(Id)) AS Sira
@@ -51,7 +47,6 @@ namespace DataAccessLayer.Migrations
                 """);
         }
 
-        /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropIndex(

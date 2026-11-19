@@ -89,7 +89,6 @@ public class StokServisi(AppDbContext db) : IStokServisi
             var kullanici = await Kullanicilar.GetirAsync(db, kullaniciId, ct);
             var parca = await db.Parcalar.SingleOrDefaultAsync(p => p.Id == istek.ParcaId, ct)
                         ?? throw new BulunamadiHatasi("Parça bulunamadı.");
-            // Numara verilmezse sistem verir; aynı anda verilen numara çakışırsa Islem yeniden dener
             var lotNo = verilenNo.Length > 0 ? verilenNo : await SonrakiStokGirisNoAsync(ct);
             if (await db.StokLotlari.AnyAsync(l => l.LotNo == lotNo, ct))
                 throw new IsKuraliHatasi($"{lotNo} lot numarası zaten kayıtlı.");
@@ -114,7 +113,6 @@ public class StokServisi(AppDbContext db) : IStokServisi
 
     public const string StokGirisOneki = "SG-";
 
-    /// <summary>"SG-" + 4 haneli sıra; yalnız bu biçimdeki numaraların en büyüğü + 1.</summary>
     private async Task<string> SonrakiStokGirisNoAsync(CancellationToken ct)
     {
         var mevcut = await db.StokLotlari.Where(l => l.LotNo.StartsWith(StokGirisOneki)).Select(l => l.LotNo).ToListAsync(ct);
@@ -126,7 +124,7 @@ public class StokServisi(AppDbContext db) : IStokServisi
         var deger = (metin ?? "").Trim();
         if (deger.Length == 0)
             throw new IsKuraliHatasi("Parça kodu veya adı girin.");
-        var kod = deger.Split(" – ")[0].Trim();  // öneri listesindeki "KOD – Ad" biçimi
+        var kod = deger.Split(" – ")[0].Trim();
         var parca = await db.Parcalar.FirstOrDefaultAsync(p => p.Kod == kod, ct)
                     ?? await db.Parcalar.FirstOrDefaultAsync(p => p.Ad == deger, ct);
         if (parca is not null)
@@ -166,7 +164,7 @@ public class StokDuzeltmeServisi(AppDbContext db) : IStokDuzeltmeServisi
             if (yeniKalan < 0)
                 throw new IsKuraliHatasi($"{lot.LotNo} girişinde yalnız {lot.KalanAdet} adet var.");
 
-            lot.KalanAdet = yeniKalan;  // RowVersion: aynı anda değişirse yeniden denenir
+            lot.KalanAdet = yeniKalan;
             var duzeltme = new StokDuzeltme
             {
                 StokLotu = lot, Miktar = istek.Miktar, Tur = tur, Aciklama = aciklama,

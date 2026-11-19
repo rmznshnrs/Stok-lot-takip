@@ -3,7 +3,6 @@
 const SURELER = [1, 3, 6, 12];
 const SAYFALAR = ["Özet", "Siparişler", "Üretim Sırası", "Üretim", "Sevkiyat", "Mal Girişi", "Parça Stoğu", "Geri Çağırmalar"];
 
-/** Excel raporu: seçilen sürenin kayıtları, uygulamadaki sayfaların düzeninde ayrı Excel sayfalarında. */
 export default function Raporlar() {
   return (
     <section className="panel">

@@ -5,10 +5,8 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace DataAccessLayer.Migrations
 {
-    /// <inheritdoc />
     public partial class UrunGeriCagirma : Migration
     {
-        /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.AddColumn<string>(
@@ -38,7 +36,6 @@ namespace DataAccessLayer.Migrations
                 nullable: false,
                 defaultValue: false);
 
-            // Eskiden "geri çağrılmış" lotlar artık sorunlu ve üretime kapalı
             migrationBuilder.Sql(
                 "UPDATE StokLotu SET Sorunlu = 1, SorunAciklama = N'Önceki geri çağırmadan aktarıldı', SorunZamani = SYSDATETIMEOFFSET() WHERE GeriCagrildi = 1");
 
@@ -123,7 +120,6 @@ namespace DataAccessLayer.Migrations
                 onDelete: ReferentialAction.Restrict);
         }
 
-        /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropForeignKey(

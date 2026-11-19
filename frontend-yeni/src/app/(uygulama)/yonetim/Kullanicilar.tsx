@@ -13,7 +13,6 @@ export default function Kullanicilar() {
   const ben = useKullanici();
   const { veri: tumu, hata, yenile } = useVeri(() => kullanicilar.listele(), []);
   const { veri: bekleyenler, yenile: bekleyenleriYenile } = useVeri(() => hesap.onayBekleyenler(), []);
-  // Onay bekleyenler ayrı bölümde; listede yalnız açılmış hesaplar
   const liste = tumu && bekleyenler ? tumu.filter((k) => !bekleyenler.some((b) => b.id === k.id)) : null;
   const [form, setForm] = useState(BOS);
   const [duzenlenen, setDuzenlenen] = useState<Kullanici | null>(null);
@@ -215,7 +214,6 @@ export default function Kullanicilar() {
   );
 }
 
-/** Kendi kaydolup yönetici onayı bekleyen hesaplar: onayla (Çalışan olarak açılır) ya da reddet (silinir). */
 function OnayBekleyenler({ bekleyenler, degisti, hata }: {
   bekleyenler: { id: number; ad: string; soyad: string; kullaniciAdi: string; eposta: string | null }[];
   degisti: (mesaj: string) => void;

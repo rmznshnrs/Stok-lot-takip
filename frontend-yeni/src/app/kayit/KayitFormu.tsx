@@ -7,7 +7,6 @@ import { ApiHatasi, hesap } from "@/lib/api";
 
 const BOS = { ad: "", soyad: "", kullaniciAdi: "", eposta: "", sifre: "", tekrar: "" };
 
-/** Herkese açık kayıt. Hesap Çalışan olarak açılır; yönetici onaylayana kadar giriş yapılamaz. */
 export default function KayitFormu() {
   const [form, setForm] = useState(BOS);
   const [hata, setHata] = useState("");

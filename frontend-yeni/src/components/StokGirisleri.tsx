@@ -11,10 +11,6 @@ import { tarih } from "@/lib/bicim";
 
 type LotIslemi = "hata" | "duzelt";
 
-/**
- * Bir parçanın stok girişleri (FIFO sırasıyla). islemler: yönetici için hatalı işaretleme ve stoktan düşme
- * (Parçalar sayfasında); Stok sayfasında yalnız görüntülenir.
- */
 export default function StokGirisleri({ lotlar, islemler = false, degisti }: {
   lotlar: Lot[];
   islemler?: boolean;

@@ -11,7 +11,6 @@ interface Props {
   kaydedildi: (id: number, mesaj: string) => void;
 }
 
-/** Ürün bilgileri ve ürün ağacı. Ağaç değişiklikleri "Kaydet" ile uygulanır. */
 export default function UrunFormu({ urun, parcalar, kaydedildi }: Props) {
   const [kod, setKod] = useState(urun?.kod ?? "");
   const [ad, setAd] = useState(urun?.ad ?? "");

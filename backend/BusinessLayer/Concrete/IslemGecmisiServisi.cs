@@ -31,7 +31,6 @@ public class IslemGecmisiServisi(AppDbContext db) : IIslemGecmisiServisi
         {
             var gruplar = await db.Uretimler.AsNoTracking()
                 .Where(u => u.OlusturmaZamani < sinir && (yapanId == null || u.OlusturanKullaniciId == yapanId))
-                // Bir seferde üretilenler aynı Tarih'i taşır (kayıt zamanları milisaniye farklı olabilir)
                 .GroupBy(u => new { u.Tarih, u.OlusturanKullaniciId, UrunAd = u.Urun!.Ad,
                                     Kisi = u.OlusturanKullanici!.Ad + " " + u.OlusturanKullanici.Soyad })
                 .Select(g => new { g.Key, Zaman = g.Max(u => u.OlusturmaZamani), Adet = g.Count(),

@@ -2,19 +2,12 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BusinessLayer;
 
-/// <summary>
-/// Deneme için örnek veri.
-/// 7 parça, 3 tedarikçi, 10 lot (biri geri çağrılmış), 2 ürün, 9 üretim, 2 müşteri, 2 satış.
-/// Üretimler gerçek üretim servisiyle (FIFO), satışlar satış servisiyle yapılır; böylece
-/// lotlarda kalan adetler kuralların kendisinden çıkar.
-/// </summary>
 public class OrnekVeri(AppDbContext db, IUretimServisi uretimServisi, ISatisServisi satisServisi)
 {
     public const string AdminKullaniciAdi = "admin";
 
     public sealed record Sonuc(int Parca, int Tedarikci, int Lot, int Urun, int Uretim, int Musteri, int Satis);
 
-    /// <summary>DI olmadan (komut satırı, testler) aynı bağlamla kurar.</summary>
     public static OrnekVeri Olustur(AppDbContext db) =>
         new(db, new UretimServisi(db, new StokLotuRepository(db), new UretimRepository(db)), new SatisServisi(db));
 
@@ -39,7 +32,6 @@ public class OrnekVeri(AppDbContext db, IUretimServisi uretimServisi, ISatisServ
         ("Anadolu PCB", "siparis@anadolupcb.example", "0232 555 30 30"),
     ];
 
-    // Parça siparişten bir hafta sonra gelmiş gibi (giriş saati 09:30)
     private static readonly (string LotNo, string Parca, string Tedarikci, DateOnly Siparis, string SiparisNo, int Adet, bool Geri)[] Lotlar =
     [
         ("L-R-2501", "R-10K", "Elektro Komponent A.Ş.", new(2026, 1, 8), "SP-1001", 1000, false),
@@ -49,7 +41,6 @@ public class OrnekVeri(AppDbContext db, IUretimServisi uretimServisi, ISatisServ
         ("L-D-2603", "D-1N4007", "Mikro Devre Ltd.", new(2026, 3, 5), "SP-1040", 50, false),
         ("L-PCB-IP-01", "PCB-IP", "Anadolu PCB", new(2026, 1, 20), "SP-1010", 25, false),
         ("L-PCB-RK-01", "PCB-RK", "Anadolu PCB", new(2026, 1, 20), "SP-1011", 15, false),
-        // En eski konnektör lotu geri çağrılmış: FIFO bu lotu atlar
         ("L-KON-2511", "KON-2P", "Elektro Komponent A.Ş.", new(2025, 11, 3), "SP-0950", 50, true),
         ("L-KON-2602", "KON-2P", "Elektro Komponent A.Ş.", new(2026, 2, 1), "SP-1015", 100, false),
         ("L-ROLE-2602", "ROLE-12", "Mikro Devre Ltd.", new(2026, 2, 10), "SP-1020", 30, false),
@@ -63,7 +54,6 @@ public class OrnekVeri(AppDbContext db, IUretimServisi uretimServisi, ISatisServ
             [("ROLE-12", 2), ("D-1N4007", 2), ("R-10K", 2), ("PCB-RK", 1), ("KON-2P", 2)]),
     ];
 
-    // Ürün, adet, tarih. Son grupta eski LED lotu biter, yeni lota geçilir (FIFO).
     private static readonly (string Urun, int Adet, DateTimeOffset Tarih)[] Uretimler =
     [
         ("IP", 4, Zaman_(2026, 4, 2, 10, 0)),
@@ -83,14 +73,8 @@ public class OrnekVeri(AppDbContext db, IUretimServisi uretimServisi, ISatisServ
         ("Beta Enerji", new(2026, 5, 20), ["SN-RK-0001"]),
     ];
 
-    /// <summary>
-    /// Örnek veriyi yükler. Veri varsa ve <paramref name="sifirla"/> false ise durur.
-    /// <paramref name="sifirla"/> tüm takip verisini siler (kullanıcılar kalır).
-    /// "admin" kullanıcısı yoksa <paramref name="adminSifre"/> ile oluşturulur.
-    /// </summary>
     public async Task<Sonuc> YukleAsync(string? adminSifre, bool sifirla, CancellationToken ct = default)
     {
-        // Çağıran zaten bir transaction açtıysa (ör. testler) onun içinde çalış
         await using var tx = db.Database.CurrentTransaction is null
             ? await db.Database.BeginTransactionAsync(ct)
             : null;
@@ -115,7 +99,6 @@ public class OrnekVeri(AppDbContext db, IUretimServisi uretimServisi, ISatisServ
             db.Kullanicilar.Add(admin);
         }
 
-        // Tanımlar ve mal girişleri (henüz hiç üretim yok: kalan = giriş)
         var parcalar = Parcalar.ToDictionary(p => p.Kod,
             p => new Parca { Kod = p.Kod, Ad = p.Ad, MinStok = p.MinStok });
         var tedarikciler = Tedarikciler.ToDictionary(t => t.Ad, t => new Tedarikci { Ad = t.Ad, Eposta = t.Eposta, Telefon = t.Telefon });
@@ -140,7 +123,6 @@ public class OrnekVeri(AppDbContext db, IUretimServisi uretimServisi, ISatisServ
         db.Musteriler.AddRange(Musteriler.Select(m => new Musteri { Ad = m.Ad, Eposta = m.Eposta, Telefon = m.Telefon }));
         await db.SaveChangesAsync(ct);
 
-        // Üretim ve satış gerçek iş kurallarıyla
         var uretimSayisi = 0;
         foreach (var (urunKod, adet, tarih) in Uretimler)
             uretimSayisi += (await uretimServisi.UretAsync(urunler[urunKod].Id, adet, admin.Id, tarih, ct)).SeriNolar.Count;
@@ -156,7 +138,6 @@ public class OrnekVeri(AppDbContext db, IUretimServisi uretimServisi, ISatisServ
 
     private async Task SifirlaAsync(CancellationToken ct)
     {
-        // Restrict ilişkileri nedeniyle bağımlı kayıtlardan başlayarak sil
         await db.Uretimler.ExecuteUpdateAsync(u => u.SetProperty(x => x.SiparisKalemiId, (int?)null)
                                                     .SetProperty(x => x.UretimEmriId, (int?)null), ct);
         await db.Satislar.ExecuteUpdateAsync(x => x.SetProperty(y => y.SiparisId, (int?)null), ct);

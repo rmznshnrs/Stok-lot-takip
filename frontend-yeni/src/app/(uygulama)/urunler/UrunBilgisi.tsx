@@ -1,7 +1,6 @@
 import Link from "next/link";
 import type { UrunDetay } from "@/lib/api";
 
-/** Seçili ürünün salt okunur görünümü; değiştirmek için "Düzenle". */
 export default function UrunBilgisi({ urun, uretimSayisi }: { urun: UrunDetay; uretimSayisi?: number }) {
   return (
     <>

@@ -7,13 +7,11 @@ import { useVeri } from "@/lib/kancalar";
 
 export const siparisAdresi = (id: number) => `/musteriler?siparis=${id}`;
 
-/** Durum rozetinin rengi: bitenler yeşil, iptal gri, diğerleri uyarı. */
 export function durumRozeti(s: Siparis) {
   const renk = s.durum === "tamamlandi" || s.durum === "hazir" ? "rozet--basari" : s.durum === "iptal" ? "" : "rozet--uyari";
   return <span className={`rozet rozet--kucuk ${renk}`}>{SIPARIS_DURUM_ADI[s.durum]}</span>;
 }
 
-/** Müşterinin siparişleri (yeniden eskiye) ve yeni sipariş bağlantısı. */
 export default function MusteriSiparisleri({ musteriId }: { musteriId: number }) {
   const { veri: liste, hata } = useVeri(() => siparisler.liste(musteriId), [musteriId]);
   return (

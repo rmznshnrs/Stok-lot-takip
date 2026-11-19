@@ -20,7 +20,7 @@ public class MusteriyeGeriVermeTestleri(TestVeritabani vt) : IsKuraliTesti(vt)
         var g = await Geri.MusteriyeVerAsync(id, Admin.Id);
         Assert.Equal(("musteriye_verildi", "Atlas"), (g.Durum, g.MusteriAd));
         Assert.NotNull(g.KapanmaZamani);
-        Assert.Single(await Db.Satislar.ToListAsync());  // yeni satış yapılmaz
+        Assert.Single(await Db.Satislar.ToListAsync());
         Assert.Empty(await Geri.ListeAsync(acik: true));
         var hata = await Assert.ThrowsAsync<IsKuraliHatasi>(() => Geri.MusteriyeVerAsync(id, Admin.Id));
         Assert.Contains("kapanmış", hata.Message);
@@ -32,7 +32,7 @@ public class MusteriyeGeriVermeTestleri(TestVeritabani vt) : IsKuraliTesti(vt)
         await Uretim.UretAsync(Urun.Id, 1, Kullanici.Id);
         await Satis.SatAsync(new SatisIstek("Atlas", ["SN-IP-0001"], new(2026, 5, 1)), Kullanici.Id);
         var id = await Cagir("SN-IP-0001");
-        await Geri.GeriAlAsync(id, Admin.Id);  // iade al: depoya döner
+        await Geri.GeriAlAsync(id, Admin.Id);
 
         var g = await Geri.MusteriyeVerAsync(id, Admin.Id);
         Assert.Equal(("musteriye_verildi", "Atlas"), (g.Durum, g.MusteriAd));

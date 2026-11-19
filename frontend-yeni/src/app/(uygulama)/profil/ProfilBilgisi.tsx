@@ -6,7 +6,6 @@ import { useKullanici } from "@/components/Oturum";
 import { ApiHatasi, hesap, rolAdi } from "@/lib/api";
 import { useVeri } from "@/lib/kancalar";
 
-/** Giriş yapmış kullanıcının bilgileri. Ad, soyad ve rolü yönetici değiştirir. */
 export default function ProfilBilgisi() {
   const k = useKullanici();
   const rol = rolAdi(k.rol);
@@ -35,13 +34,11 @@ export default function ProfilBilgisi() {
         ))}
       </dl>
 
-
       <EpostaFormu />
     </section>
   );
 }
 
-/** Şifre sıfırlama bağlantısının gideceği e-posta. */
 function EpostaFormu() {
   const { veri } = useVeri(() => hesap.eposta(), []);
   return veri ? <EpostaAlani ilk={veri.eposta ?? ""} /> : null;

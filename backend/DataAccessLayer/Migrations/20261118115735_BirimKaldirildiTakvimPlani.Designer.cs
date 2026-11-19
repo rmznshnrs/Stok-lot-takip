@@ -15,7 +15,6 @@ namespace DataAccessLayer.Migrations
     [Migration("20261118115735_BirimKaldirildiTakvimPlani")]
     partial class BirimKaldirildiTakvimPlani
     {
-        /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618

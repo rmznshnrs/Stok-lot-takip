@@ -7,7 +7,6 @@ import IslemGecmisi from "./IslemGecmisi";
 import Kullanicilar from "./Kullanicilar";
 import Raporlar from "./Raporlar";
 
-/** Yalnız Admin: kullanıcı yönetimi, işlem geçmişi (?sekme=islemler) ve Excel raporu (?sekme=rapor). API de rolü ayrıca denetler. Stok düzeltme Parçalar ekranında. */
 export default function YonetimEkrani() {
   const admin = useAdminMi();
   const sekme = useSearchParams().get("sekme");

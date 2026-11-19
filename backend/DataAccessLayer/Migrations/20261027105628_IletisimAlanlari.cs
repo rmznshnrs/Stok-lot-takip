@@ -4,10 +4,8 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace DataAccessLayer.Migrations
 {
-    /// <inheritdoc />
     public partial class IletisimAlanlari : Migration
     {
-        /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.AddColumn<string>(
@@ -58,8 +56,6 @@ namespace DataAccessLayer.Migrations
                 nullable: false,
                 defaultValue: "");
 
-            // Eski tek alanlı iletişim " · " ile bölünür: @ içeren e-posta, yalnız rakam/boşluk/+()- olan telefon,
-            // kalanı adres. Sonra Iletisim bu üç alandan hesaplanan sütun olur.
             foreach (var tablo in new[] { "Tedarikci", "Musteri" })
             {
                 migrationBuilder.Sql($$"""
@@ -97,7 +93,6 @@ namespace DataAccessLayer.Migrations
                 oldMaxLength: 500);
         }
 
-        /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropColumn(

@@ -35,7 +35,6 @@ function aktifMi(yol: string, simdiki: string) {
   return yol === "/" ? simdiki === "/" : simdiki === yol || simdiki.startsWith(`${yol}/`);
 }
 
-/** Sol menü + sayfa içeriği. Menünün altı (hesap: profil, tema, çıkış) dışarıdan verilir. */
 export function UstMenuCercevesi({ admin = false, sag, children }: { admin?: boolean; sag?: ReactNode; children?: ReactNode }) {
   const simdiki = usePathname();
 

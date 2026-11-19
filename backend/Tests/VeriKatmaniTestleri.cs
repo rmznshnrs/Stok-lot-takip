@@ -47,7 +47,6 @@ public class OrnekVeriTestleri(TestVeritabani vt) : VeritabaniTesti(vt)
     public async Task Lotlarda_kalan_adetler_dogru()
     {
         await OrnekVeriYukle();
-        // Örnek veri yüklendikten sonra (FIFO ile) beklenen kalanlar
         var beklenen = new Dictionary<string, int>
         {
             ["L-R-2501"] = 970, ["L-LED-2412"] = 0, ["L-LED-2602"] = 196, ["L-D-2601"] = 18,
@@ -93,7 +92,6 @@ public class OrnekVeriTestleri(TestVeritabani vt) : VeritabaniTesti(vt)
         await OrnekVeriYukle();
         await Assert.ThrowsAsync<InvalidOperationException>(OrnekVeriYukle);
         Db.ChangeTracker.Clear();
-        // Sonradan eklenen bağımlı kayıtlar da silinebilmeli: hurda, iade, hatalı lot + geri çağırma
         var admin = await Db.Kullanicilar.SingleAsync();
         var uretim = new UretimServisi(Db, new StokLotuRepository(Db), new UretimRepository(Db));
         await uretim.HurdayaAyirAsync(new UretimHurdaIstek(["SN-IP-0005"], "Hurda", "x"), admin.Id);
@@ -105,7 +103,7 @@ public class OrnekVeriTestleri(TestVeritabani vt) : VeritabaniTesti(vt)
         Assert.Equal(0, await Db.UrunGeriCagirmalari.CountAsync() + await Db.SatisIadeleri.CountAsync() + await Db.UretimHurdalari.CountAsync());
         Assert.Equal(9, s.Uretim);
         Assert.Equal(10, await Db.StokLotlari.CountAsync());
-        Assert.Equal(1, await Db.Kullanicilar.CountAsync());  // kullanıcılar silinmez
+        Assert.Equal(1, await Db.Kullanicilar.CountAsync());
     }
 
     [Fact]
@@ -144,7 +142,6 @@ public class KisitTestleri(TestVeritabani vt) : VeritabaniTesti(vt)
         return lot;
     }
 
-    /// <summary>Kayıt veritabanı tarafından reddedilmeli; context sonraki adımlar için temizlenir.</summary>
     private async Task Reddedilir(string beklenenKisit)
     {
         var hata = await Assert.ThrowsAsync<DbUpdateException>(() => Db.SaveChangesAsync());
@@ -157,7 +154,7 @@ public class KisitTestleri(TestVeritabani vt) : VeritabaniTesti(vt)
     {
         Db.Parcalar.Add(new Parca { Kod = "SN-IP", Ad = "A" });
         await Db.SaveChangesAsync();
-        Db.Parcalar.Add(new Parca { Kod = "sn-ip", Ad = "B" });  // Türkçe kuralda "farklı" sayılırdı
+        Db.Parcalar.Add(new Parca { Kod = "sn-ip", Ad = "B" });
         await Reddedilir("IX_Parca_Kod");
     }
 
@@ -214,7 +211,7 @@ public class KisitTestleri(TestVeritabani vt) : VeritabaniTesti(vt)
     public async Task Kalan_adet_negatif_olamaz_ama_sayim_fazlasi_girisi_asabilir()
     {
         var lot = await Lot();
-        lot.KalanAdet = 15;  // + düzeltme sonrası giriş adedini (10) aşabilir
+        lot.KalanAdet = 15;
         await Db.SaveChangesAsync();
         lot.KalanAdet = -1;
         await Reddedilir("CK_StokLotu_KalanAdet");
@@ -255,18 +252,17 @@ public class KisitTestleri(TestVeritabani vt) : VeritabaniTesti(vt)
     public async Task Bagli_kayitlar_silinemez()
     {
         await OrnekVeriYukle();
-        // API'deki gibi temiz bağlam: kısıtı EF değil veritabanı uygulamalı
         Db.ChangeTracker.Clear();
-        Db.Parcalar.Remove(await Db.Parcalar.FirstAsync(p => p.Kod == "R-10K"));  // lotu var
+        Db.Parcalar.Remove(await Db.Parcalar.FirstAsync(p => p.Kod == "R-10K"));
         await Reddedilir("REFERENCE constraint");
 
-        Db.StokLotlari.Remove(await Db.StokLotlari.FirstAsync(l => l.LotNo == "L-D-2601"));  // üretimde kullanıldı
+        Db.StokLotlari.Remove(await Db.StokLotlari.FirstAsync(l => l.LotNo == "L-D-2601"));
         await Reddedilir("REFERENCE constraint");
 
-        Db.Uretimler.Remove(await Db.Uretimler.FirstAsync(u => u.SeriNo == "SN-IP-0001"));  // satıldı, tüketimi var
+        Db.Uretimler.Remove(await Db.Uretimler.FirstAsync(u => u.SeriNo == "SN-IP-0001"));
         await Reddedilir("REFERENCE constraint");
 
-        Db.Urunler.Remove(await Db.Urunler.FirstAsync(u => u.Kod == "IP"));  // üretimi var
+        Db.Urunler.Remove(await Db.Urunler.FirstAsync(u => u.Kod == "IP"));
         await Reddedilir("REFERENCE constraint");
     }
 
@@ -281,15 +277,13 @@ public class KisitTestleri(TestVeritabani vt) : VeritabaniTesti(vt)
 
         await Db.Urunler.Where(u => u.Id == urun.Id).ExecuteDeleteAsync();
         Assert.False(await Db.UrunAgaclari.AnyAsync());
-        Assert.True(await Db.Parcalar.AnyAsync());  // parça kalır
+        Assert.True(await Db.Parcalar.AnyAsync());
     }
 
     [Fact]
     public async Task Bir_seri_no_iki_kez_satilamaz()
     {
         await OrnekVeriYukle();
-        // Temiz bağlam şart: eski kalem bellekte izlenirken EF bire bir ilişkide onu sessizce
-        // silip yenisini yazar. Bu yüzden satış servisi "daha önce satıldı mı"yı açıkça kontrol eder.
         Db.ChangeTracker.Clear();
         var satilmis = await Db.SatisKalemleri.AsNoTracking().FirstAsync();
         var musteri = await Db.Musteriler.AsNoTracking().FirstAsync();
@@ -301,10 +295,6 @@ public class KisitTestleri(TestVeritabani vt) : VeritabaniTesti(vt)
     }
 }
 
-/// <summary>
-/// Eşzamanlılık: iki bağlantı gerçekten ayrı olmalı, bu yüzden bu test transaction
-/// içinde değil, kendi kaydını oluşturup sonunda siler.
-/// </summary>
 [Collection(VeritabaniKoleksiyonu.Ad)]
 public class EszamanlilikTestleri(TestVeritabani vt)
 {
@@ -335,7 +325,7 @@ public class EszamanlilikTestleri(TestVeritabani vt)
             a.KalanAdet -= 4;
             await birinci.SaveChangesAsync();
 
-            b.KalanAdet -= 4;  // eski RowVersion ile: üstüne yazmamalı
+            b.KalanAdet -= 4;
             await Assert.ThrowsAsync<DbUpdateConcurrencyException>(() => ikinci.SaveChangesAsync());
 
             await using var kontrol = vt.YeniContext();

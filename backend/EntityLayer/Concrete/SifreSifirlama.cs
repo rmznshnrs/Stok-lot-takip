@@ -1,9 +1,5 @@
 namespace EntityLayer.Concrete;
 
-/// <summary>
-/// "Şifremi unuttum" isteği: kullanıcının e-postasına tek kullanımlık bir kod gider. Kodun kendisi değil
-/// SHA-256 özeti saklanır; süresi dolan ya da kullanılan kod bir daha işe yaramaz.
-/// </summary>
 public class SifreSifirlama
 {
     public int Id { get; set; }

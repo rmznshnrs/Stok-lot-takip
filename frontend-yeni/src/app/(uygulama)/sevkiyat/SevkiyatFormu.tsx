@@ -11,10 +11,6 @@ import { useVeri } from "@/lib/kancalar";
 import { KargoFirmaListesi } from "./SevkiyatDetay";
 import { sevkiyatAdresi } from "./ortak";
 
-/**
- * Yeni sevkiyat: açık bir sipariş seçilir, siparişe ayrılmış ve henüz gönderilmemiş ürünlerden gönderilecekler
- * işaretlenir (hepsi seçili gelir). Kargo firması ve takip no şimdi ya da sonra girilebilir.
- */
 export default function SevkiyatFormu({ ilkSiparis }: { ilkSiparis: number | null }) {
   const router = useRouter();
   const { veri: acikSiparisler, hata } = useVeri(() => siparisler.liste(undefined, true), []);
@@ -22,7 +18,6 @@ export default function SevkiyatFormu({ ilkSiparis }: { ilkSiparis: number | nul
   const siparis = acikSiparisler?.find((s) => String(s.id) === siparisId) ?? null;
   const bekleyenler = siparis?.kalemler.flatMap((k) =>
     k.ayrilanlar.filter((seri) => !k.gonderilenler.includes(seri)).map((seri) => ({ seriNo: seri, alt: k.urunAd }))) ?? [];
-  // null: henüz dokunulmadı → hepsi seçili
   const [secim, setSecim] = useState<string[] | null>(null);
   const secili = secim ?? bekleyenler.map((b) => b.seriNo);
   const [firma, setFirma] = useState("");

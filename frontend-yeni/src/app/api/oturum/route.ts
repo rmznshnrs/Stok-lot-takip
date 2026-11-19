@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { API_ADRESI, OTURUM_CEREZI } from "@/lib/oturum";
 import { sunucuyaUlasilamadi } from "@/lib/vekil";
 
-// Giriş: API'den token alınır, httpOnly çereze yazılır; tarayıcıya yalnız kullanıcı bilgisi döner.
 export async function POST(istek: NextRequest) {
   let yanit: Response;
   try {
@@ -36,7 +35,6 @@ export async function POST(istek: NextRequest) {
   return cevap;
 }
 
-// Çıkış: çerez silinir.
 export async function DELETE() {
   const cevap = new NextResponse(null, { status: 204 });
   cevap.cookies.delete(OTURUM_CEREZI);

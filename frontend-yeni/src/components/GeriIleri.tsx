@@ -2,7 +2,6 @@
 
 import { useRouter } from "next/navigation";
 
-/** Ayrıntı sayfalarının üstünde büyük Geri / İleri düğmeleri (tarayıcı geçmişinde bir adım). */
 export default function GeriIleri() {
   const router = useRouter();
   return (

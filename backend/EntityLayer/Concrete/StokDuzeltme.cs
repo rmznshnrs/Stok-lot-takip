@@ -5,11 +5,9 @@ public enum StokDuzeltmeTuru
     SayimFarki,
     Fire,
     Diger,
-    /// <summary>Hatalı çıkan parçalar: HataliAdet kaydedilir; stoktan düşülürse Miktar = -HataliAdet, düşülmezse 0.</summary>
     Hatali,
 }
 
-/// <summary>Admin'in açıklamalı stok düzeltmesi. Miktar + (artış) veya - (azalış); hatalı kaydında 0 olabilir.</summary>
 public class StokDuzeltme : IDenetimli
 {
     public int Id { get; set; }

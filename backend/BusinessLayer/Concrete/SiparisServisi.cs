@@ -119,9 +119,6 @@ public class SiparisServisi(AppDbContext db) : ISiparisServisi
         Serbest(db.Uretimler.AsNoTracking().Where(u => u.UrunId == urunId))
             .OrderBy(u => u.SeriNo).Select(u => new HazirSeriDto(u.SeriNo, u.Tarih)).ToListAsync(ct);
 
-    // --- iç ------------------------------------------------------------------
-
-    /// <summary>Depoda serbest: satılmamış, hurda değil, açık geri çağırması yok, siparişe ayrılmamış.</summary>
     private static IQueryable<Uretim> Serbest(IQueryable<Uretim> q) =>
         q.Where(u => u.SatisKalemi == null && u.Hurda == null && u.SiparisKalemiId == null
                      && !u.GeriCagirmalar.Any(g => g.KapanmaZamani == null));
@@ -136,7 +133,6 @@ public class SiparisServisi(AppDbContext db) : ISiparisServisi
         return kalem;
     }
 
-    /// <summary>Seçilen serbest seri numaralarını kaleme ayırır; biri uygun değilse hiçbiri ayrılmaz.</summary>
     private async Task AyirAsync(SiparisKalemi kalem, IReadOnlyList<string>? seriNolar, CancellationToken ct)
     {
         var seriler = SeriListesi.Temizle(seriNolar);

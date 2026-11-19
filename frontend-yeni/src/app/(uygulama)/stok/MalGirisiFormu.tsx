@@ -32,7 +32,6 @@ export default function MalGirisiFormu({ parcalar, kaydedildi }: { parcalar: Par
       const s = await stok.giris({
         parcaId: Number(form.parcaId),
         tedarikciAdi: form.tedarikci.trim(),
-        // Stok giriş no sistemce verilir. Tedarikçinin GS1 karekodu okutulduysa içinden lot numarası alınır
         tedarikciLotNo: numaraAyikla(form.tedarikciLotNo, "lot"),
         adet: Number(form.adet),
         siparisTarihi: form.siparisTarihi,

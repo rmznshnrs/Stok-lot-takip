@@ -4,7 +4,6 @@ namespace BusinessLayer.Concrete;
 
 public class TanimServisi(AppDbContext db, IStokServisi stok) : ITanimServisi
 {
-    // --- Parça ------------------------------------------------------------------
 
     public Task<ParcaOzetDto> ParcaOlusturAsync(ParcaIstek istek, CancellationToken ct = default) =>
         ParcaKaydetAsync(null, istek, ct);
@@ -33,8 +32,6 @@ public class TanimServisi(AppDbContext db, IStokServisi stok) : ITanimServisi
             return Donusum.Ozet(parca);
         }, ct);
     }
-
-    // --- Ürün -------------------------------------------------------------------
 
     public async Task<List<UrunListeDto>> UrunleriListeleAsync(string? arama = null, CancellationToken ct = default)
     {
@@ -80,7 +77,6 @@ public class TanimServisi(AppDbContext db, IStokServisi stok) : ITanimServisi
             var urun = id is null
                 ? db.Urunler.Add(new Urun { Kod = kod, Ad = ad, SeriOneki = "" }).Entity
                 : await db.Urunler.SingleOrDefaultAsync(u => u.Id == id, ct) ?? throw new BulunamadiHatasi("Ürün bulunamadı.");
-            // Önek verilmezse: yeni üründe ürün kodu + "-" (U1 → U1-0001), var olan üründe olduğu gibi kalır
             var onek = verilenOnek.Length > 0 ? verilenOnek : id is null ? kod + "-" : urun.SeriOneki;
             if (await db.Urunler.AnyAsync(u => u.Kod == kod && u.Id != urun.Id, ct))
                 throw new IsKuraliHatasi("Bu kodla bir ürün zaten var.");
@@ -132,8 +128,6 @@ public class TanimServisi(AppDbContext db, IStokServisi stok) : ITanimServisi
         }, ct);
         return (await UrunGetirAsync(urunId, ct))!;
     }
-
-    // --- Listeler (seçim kutuları için) --------------------------------------------
 
     public Task<List<IletisimDto>> TedarikcilerAsync(CancellationToken ct = default) =>
         db.Tedarikciler.AsNoTracking().OrderBy(t => t.Ad)

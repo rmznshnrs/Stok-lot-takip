@@ -1,6 +1,5 @@
 import Link from "next/link";
 
-/** Sayfanın üstündeki sekmeler (ör. Parçalar / Tedarikçiler). */
 export default function SayfaSekmeleri({ etiket, sekmeler }: {
   etiket: string;
   sekmeler: { adres: string; ad: string; aktif: boolean }[];

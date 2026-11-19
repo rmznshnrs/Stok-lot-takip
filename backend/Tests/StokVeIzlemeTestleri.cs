@@ -11,7 +11,7 @@ public class StokTestleri(TestVeritabani vt) : IsKuraliTesti(vt)
         Db.Parcalar.Add(new Parca { Kod = "YENI", Ad = "Yeni parça" });
         await Db.SaveChangesAsync();
         var p = (await Stok.ParcaStoklariAsync()).ToDictionary(x => x.Kod);
-        Assert.Equal(63, p["DIY"].ToplamStok);         // 10 + 3 + 50 (geri çağrılan)
+        Assert.Equal(63, p["DIY"].ToplamStok);
         Assert.Equal(13, p["DIY"].KullanilabilirStok);
         Assert.Equal(3, p["DIY"].LotSayisi);
         Assert.True(p["DIY"].MinAltinda);
@@ -25,7 +25,7 @@ public class StokTestleri(TestVeritabani vt) : IsKuraliTesti(vt)
     [Fact]
     public async Task Bitmis_lot_sayilmaz()
     {
-        await Uretim.UretAsync(Urun.Id, 3, Kullanici.Id);  // L-D-ESKI biter
+        await Uretim.UretAsync(Urun.Id, 3, Kullanici.Id);
         Assert.Equal(2, (await Stok.ParcaStoklariAsync()).Single(p => p.Kod == "DIY").LotSayisi);
     }
 
@@ -34,7 +34,7 @@ public class StokTestleri(TestVeritabani vt) : IsKuraliTesti(vt)
     {
         var once = Zaman.Simdi();
         var s = await Stok.MalGirisiAsync(new MalGirisiIstek(Diyot.Id, "tedarikçi a", " L-YENI ", 40, new(2026, 9, 1), "SP-9"), Kullanici.Id);
-        Assert.False(s.YeniTedarikci);  // büyük/küçük harf duyarsız eşleşti
+        Assert.False(s.YeniTedarikci);
         Assert.Equal(("L-YENI", 40, 40, "Tedarikçi A", "SP-9"), (s.Lot.LotNo, s.Lot.GirisAdet, s.Lot.KalanAdet, s.Lot.TedarikciAd, s.Lot.SiparisNo));
         var lot = await Db.StokLotlari.AsNoTracking().SingleAsync(l => l.LotNo == "L-YENI");
         Assert.Equal(Kullanici.Id, lot.OlusturanKullaniciId);
@@ -75,7 +75,7 @@ public class StokTestleri(TestVeritabani vt) : IsKuraliTesti(vt)
     {
         var g = (await Gruplar())["DIY"];
         Assert.Equal(["L-D-GERI", "L-D-ESKI", "L-D-YENI"], g.Lotlar.Select(l => l.LotNo));
-        Assert.Equal("L-D-ESKI", g.Siradaki!.LotNo);  // geri çağrılan sıradaki olmaz
+        Assert.Equal("L-D-ESKI", g.Siradaki!.LotNo);
         Assert.Equal([false, true, false], g.Lotlar.Select(l => l.Sirada));
         Assert.Equal((63, 13), (g.Parca.ToplamStok, g.Parca.KullanilabilirStok));
     }
@@ -83,7 +83,7 @@ public class StokTestleri(TestVeritabani vt) : IsKuraliTesti(vt)
     [Fact]
     public async Task Stok_durumu_biten_lotlar_gizlenir()
     {
-        await Uretim.UretAsync(Urun.Id, 3, Kullanici.Id);  // L-D-ESKI biter
+        await Uretim.UretAsync(Urun.Id, 3, Kullanici.Id);
         var g = (await Gruplar())["DIY"];
         Assert.Equal(["L-D-GERI", "L-D-YENI"], g.Lotlar.Select(l => l.LotNo));
         Assert.Equal("L-D-YENI", g.Siradaki!.LotNo);
@@ -95,7 +95,7 @@ public class StokTestleri(TestVeritabani vt) : IsKuraliTesti(vt)
     {
         Assert.Equal(["DIY"], (await Gruplar("diyot")).Keys);
         Assert.Equal(3, (await Gruplar("diyot"))["DIY"].Lotlar.Count);
-        var g = await Gruplar("eski");  // yalnız lot eşleşirse yalnız o lot
+        var g = await Gruplar("eski");
         Assert.Equal(["DIY"], g.Keys);
         Assert.Equal(["L-D-ESKI"], g["DIY"].Lotlar.Select(l => l.LotNo));
         Assert.Empty(await Gruplar("yok-boyle-bir-sey"));
@@ -131,7 +131,6 @@ public class StokDuzeltmeTestleri(TestVeritabani vt) : IsKuraliTesti(vt)
         var kayit = await Db.StokDuzeltmeleri.AsNoTracking().SingleAsync();
         Assert.Equal((-2, StokDuzeltmeTuru.Fire, Admin.Id), (kayit.Miktar, kayit.Tur, kayit.OlusturanKullaniciId));
 
-        // Sayım fazlası giriş adedini aşabilir
         s = await Duzeltme.DuzeltAsync(new StokDuzeltmeIstek(DiyotYeni.Id, 5, "SayimFarki", "sayımda fazla çıktı"), Admin.Id);
         Assert.Equal(13, s.YeniKalanAdet);
     }
@@ -166,8 +165,8 @@ public class StokDuzeltmeTestleri(TestVeritabani vt) : IsKuraliTesti(vt)
     [Fact]
     public async Task Duzeltilen_stok_uretimde_kullanilir()
     {
-        await Duzeltme.DuzeltAsync(new StokDuzeltmeIstek(DiyotYeni.Id, 1, "SayimFarki", "fazla"), Admin.Id);  // 13 → 14
-        await Uretim.UretAsync(Urun.Id, 14, Kullanici.Id);  // önceden 1 eksikti
+        await Duzeltme.DuzeltAsync(new StokDuzeltmeIstek(DiyotYeni.Id, 1, "SayimFarki", "fazla"), Admin.Id);
+        await Uretim.UretAsync(Urun.Id, 14, Kullanici.Id);
         Assert.Equal((0, 0), (await Kalan(DiyotEski), await Kalan(DiyotYeni)));
     }
 
@@ -193,7 +192,7 @@ public class IzlemeYardimciTestleri(TestVeritabani vt) : IsKuraliTesti(vt)
     public async Task Numara_kismi_eslesme()
     {
         await Uretim.UretAsync(Urun.Id, 2, Kullanici.Id);
-        Assert.Equal("L-D-ESKI", (await Izleme.NumaraAraAsync("ESKI")).Deger);  // tek aday → doğrudan
+        Assert.Equal("L-D-ESKI", (await Izleme.NumaraAraAsync("ESKI")).Deger);
         var s = await Izleme.NumaraAraAsync("SN-IP");
         Assert.Null(s.Tur);
         Assert.Equal([("seri", "SN-IP-0001"), ("seri", "SN-IP-0002")], s.Adaylar.Select(a => (a.Tur, a.Deger)));
@@ -226,7 +225,6 @@ public class IzlemeYardimciTestleri(TestVeritabani vt) : IsKuraliTesti(vt)
     [Fact]
     public async Task Son_hareketler_giris_zamanina_gore()
     {
-        // En eski siparişli lot en son girilmiş olsun
         await Db.StokLotlari.Where(l => l.Id == DiyotGeri.Id).ExecuteUpdateAsync(s => s.SetProperty(l => l.GirisZamani, Zaman.Simdi().AddHours(1)));
         await Db.StokLotlari.Where(l => l.Id == LedLot.Id).ExecuteUpdateAsync(s => s.SetProperty(l => l.GirisZamani, Zaman.Simdi().AddDays(-30)));
         var girisler = (await Izleme.SonHareketlerAsync(20)).Where(x => x.Tur == "giris").Select(x => x.Numara).ToList();
@@ -240,20 +238,17 @@ public class IzlemeYardimciTestleri(TestVeritabani vt) : IsKuraliTesti(vt)
     [Fact]
     public async Task Sorunlu_lot_uretimde_kullanim_secimi_ve_kaldirma()
     {
-        // Kullanılmasın: üretime kapalı, sıradaki değil
         var lot = (await Izleme.LotSorunAsync("l-d-eski", new LotSorunIstek(true, false, " Tedarikçi uyarısı "), Admin.Id)).Lot;
         Assert.True(lot.Sorunlu && lot.UretimeKapali);
         Assert.Equal("Tedarikçi uyarısı", lot.SorunAciklama);
         Assert.Equal("L-D-YENI", (await Stok.StokDurumuAsync(parcaKod: "DIY")).Single().Siradaki!.LotNo);
 
-        // Kullanılsın: sorunlu ama FIFO'da kalır; önizleme uyarır
         lot = (await Izleme.LotSorunAsync("L-D-ESKI", new LotSorunIstek(true, true, "Tedarikçi uyarısı"), Admin.Id)).Lot;
         Assert.True(lot.Sorunlu);
         Assert.False(lot.UretimeKapali);
         Assert.Equal("L-D-ESKI", (await Stok.StokDurumuAsync(parcaKod: "DIY")).Single().Siradaki!.LotNo);
         Assert.Equal(["L-D-ESKI"], (await Uretim.OnizleAsync(Urun.Id, 1)).SorunluKullanilanLotlar);
 
-        // Kaldır
         lot = (await Izleme.LotSorunAsync("L-D-ESKI", new LotSorunIstek(false, true, null), Admin.Id)).Lot;
         Assert.False(lot.Sorunlu || lot.UretimeKapali);
         Assert.Equal("", lot.SorunAciklama);

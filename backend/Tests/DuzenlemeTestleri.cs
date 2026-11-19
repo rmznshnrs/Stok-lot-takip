@@ -22,7 +22,6 @@ public class KullaniciSilmeTestleri(TestVeritabani vt) : IsKuraliTesti(vt)
     [Fact]
     public async Task Islemi_olan_kullanici_pasif_olur_giris_ve_islem_yapamaz()
     {
-        // Ortak verideki "depo" kullanıcısı lotları oluşturdu
         await Db.Kullanicilar.Where(x => x.Id == Kullanici.Id)
             .ExecuteUpdateAsync(s => s.SetProperty(x => x.SifreHash, BCrypt.Net.BCrypt.HashPassword("sifre1234")));
         Assert.NotNull(await K.DogrulaAsync("depo", "sifre1234"));
@@ -46,9 +45,8 @@ public class KullaniciSilmeTestleri(TestVeritabani vt) : IsKuraliTesti(vt)
 
         var ikinci = await Yeni("ayse", "Admin");
         Assert.True((await K.SilAsync(ikinci.Id, Admin.Id)).Silindi);
-        // Tek Admin kalınca başka bir Admin onu silemez, rolünü de düşüremez
         var ucuncu = await Yeni("veli", "Admin");
-        await K.SilAsync(Admin.Id, ucuncu.Id);  // admin'in işlemi yok: silinir
+        await K.SilAsync(Admin.Id, ucuncu.Id);
         hata = await Assert.ThrowsAsync<IsKuraliHatasi>(() =>
             K.GuncelleAsync(ucuncu.Id, new KullaniciGuncelleIstek("veli", "Deneme", "Kullanici"), ucuncu.Id));
         Assert.Contains("Son Admin", hata.Message);

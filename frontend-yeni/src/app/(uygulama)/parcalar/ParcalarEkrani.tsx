@@ -11,7 +11,6 @@ import { useGecikmeli, useVeri } from "@/lib/kancalar";
 
 const BOS_FORM = { kod: "", ad: "", minStok: "0" };
 
-/** Parçalar: tanım, stok özeti; satıra basınca stok girişleri, hatalı kayıt ve stoktan düşme (yönetici). */
 export default function ParcalarEkrani() {
   const ilkParca = useSearchParams().get("parca") ?? "";
   const [acik, setAcik] = useState<string | null>(ilkParca || null);
@@ -179,7 +178,6 @@ export default function ParcalarEkrani() {
   );
 }
 
-/** Parçanın stok girişleri ve işlemleri (bitenler dahil). */
 function ParcaGirisleri({ kod, degisti }: { kod: string; degisti: (mesaj: string) => void }) {
   const { veri, hata, yenile } = useVeri(() => stok.durum({ parca: kod, bitenler: true }), [kod]);
   const lotlar = veri?.[0]?.lotlar;
@@ -193,7 +191,6 @@ function ParcaGirisleri({ kod, degisti }: { kod: string; degisti: (mesaj: string
   );
 }
 
-/** Satıra basınca açılan düzenleme: kod, ad, minimum stok. */
 function ParcaDuzenle({ p, kaydedildi }: { p: ParcaStok; kaydedildi: (mesaj: string) => void }) {
   const [form, setForm] = useState({ kod: p.kod, ad: p.ad, minStok: String(p.minStok) });
   const [hata, setHata] = useState("");

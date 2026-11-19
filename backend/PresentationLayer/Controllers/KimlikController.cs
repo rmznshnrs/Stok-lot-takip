@@ -3,12 +3,10 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace PresentationLayer.Controllers;
 
-/// <summary>Giriş ve oturumdaki kullanıcı.</summary>
 [ApiController]
 [Route("api/kimlik")]
 public class KimlikController(IKullaniciServisi kullanicilar, IHesapServisi hesap, TokenUretici tokenUretici) : ControllerBase
 {
-    /// <summary>Kullanıcı adı ve şifreyle giriş; token döner. Diğer isteklerde "Authorization: Bearer {token}".</summary>
     [HttpPost("giris")]
     [AllowAnonymous]
     [ProducesResponseType<GirisSonucuDto>(StatusCodes.Status200OK)]
@@ -26,12 +24,10 @@ public class KimlikController(IKullaniciServisi kullanicilar, IHesapServisi hesa
         return tokenUretici.Uret(k);
     }
 
-    /// <summary>Giriş yapmış kullanıcının bilgileri.</summary>
     [HttpGet("ben")]
     public async Task<ActionResult<KullaniciDto>> Ben(CancellationToken ct) =>
         await kullanicilar.GetirAsync(User.KullaniciId(), ct) is { } k ? k : Unauthorized();
 
-    /// <summary>Kendi şifresini değiştirir.</summary>
     [HttpPost("sifre")]
     public async Task<IActionResult> SifreDegistir(SifreDegistirIstek istek, CancellationToken ct)
     {
@@ -40,7 +36,6 @@ public class KimlikController(IKullaniciServisi kullanicilar, IHesapServisi hesa
     }
 }
 
-/// <summary>Kullanıcı yönetimi (yalnız Admin).</summary>
 [ApiController]
 [Route("api/kullanicilar")]
 [Authorize(Policy = Politikalar.Admin)]
@@ -60,11 +55,9 @@ public class KullanicilarController(IKullaniciServisi kullanicilar) : Controller
     public Task<KullaniciDto> Guncelle(int id, KullaniciGuncelleIstek istek, CancellationToken ct) =>
         kullanicilar.GuncelleAsync(id, istek, User.KullaniciId(), ct);
 
-    /// <summary>Hiç işlemi yoksa siler; geçmişte işlemi varsa pasif yapar (giriş yapamaz, adı kayıtlarda kalır).</summary>
     [HttpDelete("{id:int}")]
     public Task<KullaniciSilSonucuDto> Sil(int id, CancellationToken ct) => kullanicilar.SilAsync(id, User.KullaniciId(), ct);
 
-    /// <summary>Pasif kullanıcıyı yeniden etkinleştirir.</summary>
     [HttpPost("{id:int}/etkinlestir")]
     public Task<KullaniciDto> Etkinlestir(int id, CancellationToken ct) => kullanicilar.EtkinlestirAsync(id, User.KullaniciId(), ct);
 }

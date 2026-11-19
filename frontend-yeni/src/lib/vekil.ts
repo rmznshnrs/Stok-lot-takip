@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 
-/** API kapalıysa ya da adres yanlışsa dönen yanıt (ProblemDetails biçiminde). */
 export function sunucuyaUlasilamadi() {
   return NextResponse.json(
     { title: "Sunucuya ulaşılamadı", status: 502, detail: "API çalışmıyor ya da adresi yanlış." },

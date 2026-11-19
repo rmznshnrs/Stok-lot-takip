@@ -30,7 +30,7 @@ public class HesapTestleri(TestVeritabani vt) : IsKuraliTesti(vt)
         Assert.Equal(("Ayşe", "ayse", "ayse@ornek.com"), (k.Ad, k.KullaniciAdi, k.Eposta));
         Assert.False(await Hesap.OnayliMiAsync(k.Id));
         Assert.Equal(KullaniciRolu.Kullanici, (await Db.Kullanicilar.SingleAsync(x => x.Id == k.Id)).Rol);
-        Assert.True(await Hesap.OnayliMiAsync(Admin.Id));  // yönetici panelinden açılanlar onaylı
+        Assert.True(await Hesap.OnayliMiAsync(Admin.Id));
 
         await Assert.ThrowsAsync<YetkiHatasi>(() => Hesap.OnayBekleyenlerAsync(Kullanici.Id));
         Assert.Equal([k.Id], (await Hesap.OnayBekleyenlerAsync(Admin.Id)).Select(x => x.Id));
@@ -39,7 +39,7 @@ public class HesapTestleri(TestVeritabani vt) : IsKuraliTesti(vt)
         Assert.True(await Hesap.OnayliMiAsync(k.Id));
         Assert.Empty(await Hesap.OnayBekleyenlerAsync(Admin.Id));
         await Assert.ThrowsAsync<BulunamadiHatasi>(() => Hesap.OnaylaAsync(k.Id, Admin.Id));
-        await Assert.ThrowsAsync<BulunamadiHatasi>(() => Hesap.ReddetAsync(k.Id, Admin.Id));  // onaylı silinmez
+        await Assert.ThrowsAsync<BulunamadiHatasi>(() => Hesap.ReddetAsync(k.Id, Admin.Id));
     }
 
     [Fact]
@@ -48,7 +48,7 @@ public class HesapTestleri(TestVeritabani vt) : IsKuraliTesti(vt)
         var k = await Hesap.KayitAsync(Kayit());
         await Hesap.ReddetAsync(k.Id, Admin.Id);
         Assert.False(await Db.Kullanicilar.AnyAsync(x => x.Id == k.Id));
-        await Hesap.KayitAsync(Kayit());  // aynı ad yeniden alınabilir
+        await Hesap.KayitAsync(Kayit());
     }
 
     [Theory]
@@ -72,7 +72,7 @@ public class HesapTestleri(TestVeritabani vt) : IsKuraliTesti(vt)
     {
         var k = await Hesap.KayitAsync(Kayit());
         await Hesap.SifreUnuttumAsync("ayse", "http://web.test/");
-        Assert.Empty(_posta.Gidenler);  // onaysız hesaba gönderilmez
+        Assert.Empty(_posta.Gidenler);
 
         await Hesap.OnaylaAsync(k.Id, Admin.Id);
         await Hesap.SifreUnuttumAsync("AYSE@ornek.com", "http://web.test/");
@@ -80,7 +80,7 @@ public class HesapTestleri(TestVeritabani vt) : IsKuraliTesti(vt)
         Assert.Equal("ayse@ornek.com", alici);
         Assert.Contains("http://web.test/sifre-sifirla?kod=", metin);
         var kod = Kod();
-        Assert.DoesNotContain(kod, await Db.SifreSifirlamalari.Select(s => s.KodOzeti).ToListAsync());  // kod açık saklanmaz
+        Assert.DoesNotContain(kod, await Db.SifreSifirlamalari.Select(s => s.KodOzeti).ToListAsync());
 
         await Assert.ThrowsAsync<IsKuraliHatasi>(() => Hesap.SifreSifirlaAsync(new(kod, "kisa")));
         await Assert.ThrowsAsync<IsKuraliHatasi>(() => Hesap.SifreSifirlaAsync(new("yanlis-kod", "yeni-sifre-12")));
@@ -95,7 +95,7 @@ public class HesapTestleri(TestVeritabani vt) : IsKuraliTesti(vt)
     public async Task Bilinmeyen_hesap_ve_epostasiz_hesap_icin_hata_vermez_posta_gitmez()
     {
         await Hesap.SifreUnuttumAsync("yok", "http://web.test");
-        await Hesap.SifreUnuttumAsync(Kullanici.KullaniciAdi, "http://web.test");  // e-postası yok
+        await Hesap.SifreUnuttumAsync(Kullanici.KullaniciAdi, "http://web.test");
         Assert.Empty(_posta.Gidenler);
         await Assert.ThrowsAsync<IsKuraliHatasi>(() => Hesap.SifreUnuttumAsync(" ", "http://web.test"));
     }

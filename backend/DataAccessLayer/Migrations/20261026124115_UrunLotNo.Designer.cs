@@ -14,7 +14,6 @@ namespace DataAccessLayer.Migrations
     [Migration("20261026124115_UrunLotNo")]
     partial class UrunLotNo
     {
-        /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618

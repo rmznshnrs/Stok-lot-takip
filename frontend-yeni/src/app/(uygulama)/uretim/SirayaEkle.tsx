@@ -13,7 +13,6 @@ function sinirla(n: number) {
   return Math.min(EN_COK, Math.max(1, Math.floor(n) || 1));
 }
 
-/** Üretim sırasına iş ekleme: ürün, adet, parça kontrolü (ayrılmış parçalar düşülmüş), planlanan gün. */
 export default function SirayaEkle() {
   const router = useRouter();
   const params = useSearchParams();
@@ -35,7 +34,6 @@ export default function SirayaEkle() {
   const [kayitHatasi, setKayitHatasi] = useState("");
   const [bekliyor, setBekliyor] = useState(false);
 
-  // Seçili ürün yoksa ilkini seç
   useEffect(() => {
     if (!urunId && !aranan && liste?.length) router.replace(`/uretim?yeni=1&urun=${liste[0].id}`);
   }, [urunId, aranan, liste, router]);
@@ -217,7 +215,6 @@ export default function SirayaEkle() {
   );
 }
 
-/** Kayıt anında stok yetmediyse (başkası aynı anda kullandıysa) eksikleri de yazar. */
 function eksikMetni(h: ApiHatasi) {
   if (!h.eksikler.length) return h.message;
   return `${h.message} ${h.eksikler.map((e) => `${e.parca.kod}: ${e.eksik} eksik`).join(", ")}.`;

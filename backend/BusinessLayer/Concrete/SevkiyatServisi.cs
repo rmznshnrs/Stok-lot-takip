@@ -56,7 +56,6 @@ public class SevkiyatServisi(AppDbContext db) : ISevkiyatServisi
             if (uygunDegil.Count > 0)
                 throw new IsKuraliHatasi($"{siparis.No} siparişine ayrılmamış ya da zaten gönderilmiş: {string.Join(", ", uygunDegil)}");
 
-            // Satış kuralları (hurda, geri çağırma, hatalı lot onayı) satış servisinde
             var sonuc = await new SatisServisi(db).SatAsync(
                 new SatisIstek(siparis.Musteri!.Ad, seriler, GeriCagrilanOnayi: istek.GeriCagrilanOnayi), kullaniciId, ct);
             var sevkiyat = await db.Satislar.SingleAsync(s => s.Id == sonuc.SatisId, ct);
@@ -89,9 +88,6 @@ public class SevkiyatServisi(AppDbContext db) : ISevkiyatServisi
             return await GetirAsync(id, ct);
         }, ct);
 
-    // --- iç ------------------------------------------------------------------
-
-    /// <summary>Takip no girildiyse firma da zorunlu; hazırlanan sevkiyat "Kargoda" olur.</summary>
     private static void KargoYaz(Satis s, string? firma, string? takipNo, bool zorunlu)
     {
         firma = (firma ?? "").Trim();

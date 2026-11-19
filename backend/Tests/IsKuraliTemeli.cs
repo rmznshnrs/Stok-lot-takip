@@ -2,11 +2,6 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Tests;
 
-/// <summary>
-/// Ortak başlangıç verisi: İndikatör Paneli = 4 LED + 1 diyot.
-/// LED tek lot (100); diyot üç lot: YENI (2026-03-01, 10), ESKI (2026-01-01, 3),
-/// GERI (2025-06-01, 50, geri çağrılmış). Sıra kasıtlı karışık: FIFO id'ye değil sipariş tarihine bakmalı.
-/// </summary>
 public abstract class IsKuraliTesti(TestVeritabani vt) : VeritabaniTesti(vt)
 {
     protected Kullanici Kullanici = null!;
@@ -48,13 +43,11 @@ public abstract class IsKuraliTesti(TestVeritabani vt) : VeritabaniTesti(vt)
         DiyotYeni = await LotEkle("L-D-YENI", Diyot, new(2026, 3, 1), 10);
         DiyotEski = await LotEkle("L-D-ESKI", Diyot, new(2026, 1, 1), 3);
         DiyotGeri = await LotEkle("L-D-GERI", Diyot, new(2025, 6, 1), 50, geri: true);
-        // API'deki gibi temiz bağlamla başla: servisler bellekteki eski değerleri görmesin
         Db.ChangeTracker.Clear();
     }
 
     protected async Task<StokLotu> LotEkle(string lotNo, Parca parca, DateOnly tarih, int adet, bool geri = false)
     {
-        // Kimliklerle bağla: bağlam temizlendikten sonra da tedarikçi/kullanıcı yeniden eklenmesin
         var lot = new StokLotu
         {
             LotNo = lotNo, ParcaId = parca.Id, TedarikciId = Ted.Id, SiparisTarihi = tarih, GirisAdet = adet,
@@ -66,11 +59,9 @@ public abstract class IsKuraliTesti(TestVeritabani vt) : VeritabaniTesti(vt)
         return lot;
     }
 
-    /// <summary>Lotun veritabanındaki güncel kalanı (bağlamdaki eski değere değil).</summary>
     protected Task<int> Kalan(StokLotu lot) =>
         Db.StokLotlari.AsNoTracking().Where(l => l.Id == lot.Id).Select(l => l.KalanAdet).SingleAsync();
 
-    /// <summary>Lotu sorunlu ve üretime kapalı yapar (eski adıyla "geri çağır").</summary>
     protected async Task GeriCagir(StokLotu lot)
     {
         await Db.StokLotlari.Where(l => l.Id == lot.Id)

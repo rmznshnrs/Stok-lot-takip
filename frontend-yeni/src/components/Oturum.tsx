@@ -6,8 +6,6 @@ import { UstMenuCercevesi } from "./UstMenu";
 
 const OturumBaglami = createContext<Kullanici | null>(null);
 
-// Giriş yapan kullanıcı tarayıcıda hatırlanır: sonraki açılışta sayfa beklemeden çizilir,
-// sunucudan gelen güncel bilgi arkadan yerine konur. Yetkiyi her istekte API denetler.
 const HAFIZA = "kullanici";
 
 export function hatirla(k: Kullanici | null) {
@@ -15,7 +13,6 @@ export function hatirla(k: Kullanici | null) {
     if (k) localStorage.setItem(HAFIZA, JSON.stringify(k));
     else localStorage.removeItem(HAFIZA);
   } catch {
-    // Gizli pencere vb.: hatırlanmaz, her açılışta sunucudan alınır
   }
 }
 
@@ -28,7 +25,6 @@ function hatirlanan(): Kullanici | null {
   }
 }
 
-/** Giriş yapmış kullanıcı. Yalnız OturumSaglayici içinde kullanılır. */
 export function useKullanici(): Kullanici {
   const k = useContext(OturumBaglami);
   if (!k) throw new Error("useKullanici, OturumSaglayici dışında kullanıldı.");
@@ -49,7 +45,6 @@ export async function cikisYap() {
   }
 }
 
-/** Kullanıcıyı (hatırlanan varsa hemen) verir; sunucudan alınana kadar menü ve bekleme simgesi görünür. */
 export function OturumSaglayici({ children }: { children: ReactNode }) {
   const [kullanici, setKullanici] = useState<Kullanici | null>(null);
   const [hata, setHata] = useState("");
@@ -57,7 +52,6 @@ export function OturumSaglayici({ children }: { children: ReactNode }) {
   useEffect(() => {
     let gecerli = true;
     const onceki = hatirlanan();
-    // Hatırlanan kullanıcıyla hemen çiz (localStorage yalnız tarayıcıda okunabildiği için burada)
     if (onceki) queueMicrotask(() => gecerli && setKullanici((k) => k ?? onceki));
     oturum
       .ben()
@@ -67,7 +61,6 @@ export function OturumSaglayici({ children }: { children: ReactNode }) {
       })
       .catch((e) => {
         if (e instanceof ApiHatasi && e.durum === 401) hatirla(null);
-        // 401'de api.ts zaten giriş sayfasına yönlendirir
         else if (gecerli && !onceki) setHata(e.message);
       });
     return () => {

@@ -10,16 +10,11 @@ import { useSayfalama } from "@/components/Sayfalama";
 import { useGecikmeli, useVeri } from "@/lib/kancalar";
 import { lotAdresi, seriAdresi } from "@/lib/adres";
 
-/**
- * Geri çağrılan ürünler (seri no): müşteride / geri alındı / depoda / hurda / satışa açıldı. Ana sayfada
- * "Açık geri çağırma" kutusuna basınca açılır; tek ürünün geri çağırma işlemleri seri sayfasında.
- */
 export default function GeriCagirmalar({ kapat }: { kapat?: () => void }) {
   const admin = useAdminMi();
   const [arama, setArama] = useState("");
   const aranan = useGecikmeli(arama.trim());
   const { veri: hamListe, hata, yenile } = useVeri(() => geriCagirma.liste(false, aranan), [aranan]);
-  // Tek liste: açık olanlar üstte, sonuçlananlar altta (her grup kendi içinde yeniden eskiye)
   const liste = hamListe && [...hamListe.filter(acikMi), ...hamListe.filter((g) => !acikMi(g))];
   const { gorunen, cubuk } = useSayfalama(liste, aranan);
   const acik = hamListe?.filter(acikMi).length ?? 0;

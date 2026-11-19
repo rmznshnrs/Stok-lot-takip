@@ -11,7 +11,7 @@ public class UretimOnizlemeTestleri(TestVeritabani vt) : IsKuraliTesti(vt)
         Assert.True(o.Yeterli);
         var diyot = o.Parcalar.Single(p => p.Parca.Kod == "DIY");
         Assert.Equal(5, diyot.Gereken);
-        Assert.Equal(13, diyot.Kullanilabilir);  // geri çağrılan 50 sayılmaz
+        Assert.Equal(13, diyot.Kullanilabilir);
         Assert.Equal([("L-D-ESKI", 3), ("L-D-YENI", 2)], diyot.Lotlar.Select(l => (l.LotNo, l.Adet)));
         var led = o.Parcalar.Single(p => p.Parca.Kod == "LED");
         Assert.Equal([("L-LED", 20)], led.Lotlar.Select(l => (l.LotNo, l.Adet)));
@@ -20,7 +20,7 @@ public class UretimOnizlemeTestleri(TestVeritabani vt) : IsKuraliTesti(vt)
     [Fact]
     public async Task Eksikler()
     {
-        var o = await Uretim.OnizleAsync(Urun.Id, 30);  // 120 LED, 30 diyot gerekir
+        var o = await Uretim.OnizleAsync(Urun.Id, 30);
         Assert.False(o.Yeterli);
         Assert.Equal(new Dictionary<string, int> { ["DIY"] = 17, ["LED"] = 20 },
                      o.Eksikler.ToDictionary(p => p.Parca.Kod, p => p.Eksik));
@@ -92,7 +92,6 @@ public class UretimYapTestleri(TestVeritabani vt) : IsKuraliTesti(vt)
         Assert.Equal(0, await Kalan(DiyotEski));
         Assert.Equal(8, await Kalan(DiyotYeni));
         Assert.Equal(80, await Kalan(LedLot));
-        // İlk 3 ürün eski lottan, sonraki 2 yeni lottan diyot alır
         var beklenen = new[] { "L-D-ESKI", "L-D-ESKI", "L-D-ESKI", "L-D-YENI", "L-D-YENI" };
         for (var i = 1; i <= 5; i++)
             Assert.Equal(beklenen[i - 1], await DiyotLotu($"SN-IP-{i:D4}"));
@@ -101,7 +100,6 @@ public class UretimYapTestleri(TestVeritabani vt) : IsKuraliTesti(vt)
     [Fact]
     public async Task Bir_urun_icin_lot_bolunur()
     {
-        // LED: 6'lık eski lot + yeni lot; 2. ürünün 4 LED'i iki lottan gelmeli
         await Db.StokLotlari.Where(l => l.Id == LedLot.Id).ExecuteUpdateAsync(s => s.SetProperty(l => l.KalanAdet, 0));
         var eski = await LotEkle("L-LED-ESKI", Led, new(2025, 1, 1), 6);
         var yeni = await LotEkle("L-LED-YENI", Led, new(2025, 2, 1), 50);
@@ -137,7 +135,6 @@ public class UretimYapTestleri(TestVeritabani vt) : IsKuraliTesti(vt)
     [Fact]
     public async Task Hata_olursa_hicbir_sey_kaydedilmez()
     {
-        // Tüketim satırları yazılırken veritabanı hatası (bağlantı kopması vb.)
         Vt.Kanca.Oncesi = k => k.CommandText.Contains("INSERT INTO [UretimTuketim]")
             ? throw new InvalidOperationException("beklenmeyen hata")
             : Task.CompletedTask;
@@ -148,7 +145,6 @@ public class UretimYapTestleri(TestVeritabani vt) : IsKuraliTesti(vt)
         Assert.False(await Db.UretimTuketimleri.AnyAsync());
         Assert.Equal(3, await Kalan(DiyotEski));
         Assert.Equal(100, await Kalan(LedLot));
-        // Bağlam temizlendi: sonraki bir işlem yarım kalan kayıtları yazmaz
         Assert.Equal(["SN-IP-0001"], (await Uretim.UretAsync(Urun.Id, 1, Kullanici.Id)).SeriNolar);
         Assert.Equal(1, await Db.Uretimler.CountAsync());
     }
@@ -179,8 +175,8 @@ public class UretimGecmisiTestleri(TestVeritabani vt) : IsKuraliTesti(vt)
     [Fact]
     public async Task Yeniden_eskiye_satis_durumu_ve_geri_cagrilan_lot()
     {
-        await Uretim.UretAsync(Urun.Id, 3, Kullanici.Id, new DateTimeOffset(2026, 4, 1, 9, 0, 0, TimeSpan.FromHours(3)));  // ESKI lottan
-        await Uretim.UretAsync(Urun.Id, 1, Kullanici.Id, new DateTimeOffset(2026, 4, 2, 9, 0, 0, TimeSpan.FromHours(3)));  // YENI lottan
+        await Uretim.UretAsync(Urun.Id, 3, Kullanici.Id, new DateTimeOffset(2026, 4, 1, 9, 0, 0, TimeSpan.FromHours(3)));
+        await Uretim.UretAsync(Urun.Id, 1, Kullanici.Id, new DateTimeOffset(2026, 4, 2, 9, 0, 0, TimeSpan.FromHours(3)));
         await Satis.SatAsync(new SatisIstek("Atlas", ["SN-IP-0002"], new(2026, 5, 1)), Kullanici.Id);
         await GeriCagir(DiyotEski);
 
@@ -213,7 +209,7 @@ public class UretimHurdaTestleri(TestVeritabani vt) : IsKuraliTesti(vt)
     [Fact]
     public async Task Ayrilan_urun_satilamaz_ve_depoda_sayilmaz()
     {
-        await Uretim.UretAsync(Urun.Id, 3, Kullanici.Id);  // 0001-0003, diyot ESKI lottan
+        await Uretim.UretAsync(Urun.Id, 3, Kullanici.Id);
         var s = await Uretim.HurdayaAyirAsync(new UretimHurdaIstek(["sn-ip-0002"], "Kayip", "  Depoda bulunamadı "), Admin.Id);
         Assert.Equal(["SN-IP-0002"], s.SeriNolar);
         Assert.Equal(("Kayip", "Depoda bulunamadı"), (s.Tur, s.Aciklama));
@@ -225,7 +221,7 @@ public class UretimHurdaTestleri(TestVeritabani vt) : IsKuraliTesti(vt)
         var hata = await Assert.ThrowsAsync<SatisHatasi>(() => Satis.SatilabilirAsync("SN-IP-0002"));
         Assert.Contains("SN-IP-0002", hata.Message);
         await Assert.ThrowsAsync<SatisHatasi>(() => Satis.SatAsync(new SatisIstek("Atlas", ["SN-IP-0001", "SN-IP-0002"]), Kullanici.Id));
-        Assert.Empty(await Satis.SatisGecmisiAsync());  // hiçbiri satılmadı
+        Assert.Empty(await Satis.SatisGecmisiAsync());
 
         var lotIz = (await Izleme.LotIzleAsync("L-D-ESKI"))!;
         Assert.Equal(["SN-IP-0001", "SN-IP-0003"], lotIz.StoktakiUretimler.Select(u => u.SeriNo));
@@ -248,7 +244,7 @@ public class UretimHurdaTestleri(TestVeritabani vt) : IsKuraliTesti(vt)
         Assert.Contains("SN-YOK", hata.Message);
         hata = await Assert.ThrowsAsync<IsKuraliHatasi>(() => Uretim.HurdayaAyirAsync(new(["SN-IP-0001", "SN-IP-0003"], "Hurda", "x"), Admin.Id));
         Assert.Contains("Satılmış", hata.Message);
-        Assert.Equal(0, await Db.UretimHurdalari.CountAsync());  // hiçbiri ayrılmadı
+        Assert.Equal(0, await Db.UretimHurdalari.CountAsync());
 
         await Uretim.HurdayaAyirAsync(new(["SN-IP-0001"], "hurda", "Düştü, kırıldı"), Admin.Id);
         hata = await Assert.ThrowsAsync<IsKuraliHatasi>(() => Uretim.HurdayaAyirAsync(new(["SN-IP-0001", "SN-IP-0002"], "Hurda", "x"), Admin.Id));

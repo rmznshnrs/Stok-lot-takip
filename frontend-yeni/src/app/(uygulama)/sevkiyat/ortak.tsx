@@ -7,7 +7,6 @@ export function sevkiyatRozeti(s: Sevkiyat) {
   return <span className={`rozet rozet--kucuk ${renk}`}>{SEVKIYAT_DURUM_ADI[s.durum]}</span>;
 }
 
-/** "Ürün 2 × 3, Ürün 1 × 1" */
 export function urunOzeti(s: Sevkiyat) {
   const sayac = new Map<string, number>();
   for (const k of s.kalemler) sayac.set(k.urunAd, (sayac.get(k.urunAd) ?? 0) + 1);

@@ -1,6 +1,5 @@
 namespace EntityLayer.Concrete;
 
-/// <summary>Bir üretimde hangi lottan kaç adet parça kullanıldı (izlenebilirliğin kalbi).</summary>
 public class UretimTuketim
 {
     public int UretimId { get; set; }

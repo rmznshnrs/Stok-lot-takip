@@ -6,7 +6,6 @@ public enum UretimHurdaTuru
     Kayip,
 }
 
-/// <summary>Depodaki bir seri no'nun hurdaya / kayba ayrılması (Admin, açıklamalı). Ayrılan ürün satılamaz.</summary>
 public class UretimHurda : IDenetimli
 {
     public int Id { get; set; }

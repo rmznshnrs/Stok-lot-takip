@@ -9,10 +9,10 @@ public class LotIzlemeTestleri(TestVeritabani vt) : IsKuraliTesti(vt)
     {
         await Db.Musteriler.Where(m => m.Id == Musteri.Id).ExecuteUpdateAsync(s => s.SetProperty(m => m.Eposta, "atlas@ornek.example"));
         Db.ChangeTracker.Clear();
-        await Uretim.UretAsync(Urun.Id, 5, Kullanici.Id);  // 0001-0003 ESKI, 0004-0005 YENI
+        await Uretim.UretAsync(Urun.Id, 5, Kullanici.Id);
         await Satis.SatAsync(new SatisIstek("Atlas", ["SN-IP-0001", "SN-IP-0002"], new(2026, 5, 12)), Kullanici.Id);
 
-        var iz = (await Izleme.LotIzleAsync("l-d-eski"))!;  // büyük/küçük harf duyarsız
+        var iz = (await Izleme.LotIzleAsync("l-d-eski"))!;
         Assert.Equal("L-D-ESKI", iz.Lot.LotNo);
         Assert.Equal(3, iz.KullanilanAdet);
         Assert.Equal(["SN-IP-0001", "SN-IP-0002", "SN-IP-0003"], iz.Uretimler.Select(u => u.SeriNo));
@@ -73,7 +73,7 @@ public class SatisTestleri(TestVeritabani vt) : IsKuraliTesti(vt)
     public override async Task InitializeAsync()
     {
         await base.InitializeAsync();
-        await Uretim.UretAsync(Urun.Id, 5, Kullanici.Id);  // 0001-0003 L-D-ESKI, 0004-0005 L-D-YENI
+        await Uretim.UretAsync(Urun.Id, 5, Kullanici.Id);
     }
 
     private Task<int> SatisSayisi() => Db.Satislar.CountAsync();
@@ -82,9 +82,9 @@ public class SatisTestleri(TestVeritabani vt) : IsKuraliTesti(vt)
     public async Task Satis_kaydedilir()
     {
         var s = await Satis.SatAsync(new SatisIstek(" atlas ", ["SN-IP-0004", " sn-ip-0001 "], new(2026, 5, 1)), Kullanici.Id);
-        Assert.Equal((Musteri.Id, "Atlas", false), (s.MusteriId, s.MusteriAd, s.YeniMusteri));  // var olan müşteri
+        Assert.Equal((Musteri.Id, "Atlas", false), (s.MusteriId, s.MusteriAd, s.YeniMusteri));
         Assert.Equal(new DateOnly(2026, 5, 1), s.Tarih);
-        Assert.Equal(["SN-IP-0004", "SN-IP-0001"], s.SeriNolar);  // verilen sırayla, kayıttaki yazımla
+        Assert.Equal(["SN-IP-0004", "SN-IP-0001"], s.SeriNolar);
         Assert.Empty(s.Uyarilar);
         var kayit = await Db.Satislar.AsNoTracking().Include(x => x.Kalemler).SingleAsync();
         Assert.Equal((2, Kullanici.Id), (kayit.Kalemler.Count, kayit.OlusturanKullaniciId));
@@ -112,7 +112,6 @@ public class SatisTestleri(TestVeritabani vt) : IsKuraliTesti(vt)
         Assert.Equal(2, s.SeriNolar.Count);
         Assert.Equal("SN-IP-0001", Assert.Single(s.Uyarilar).SeriNo);
 
-        // Kaydetmeden kontrol de aynı uyarıyı verir
         Assert.Equal([("SN-IP-0002", "L-D-ESKI")],
                      (await Satis.SatisUyarilariAsync(["sn-ip-0002", "SN-IP-0005"])).Select(u => (u.SeriNo, string.Join(",", u.Lotlar))));
     }
@@ -126,15 +125,14 @@ public class SatisTestleri(TestVeritabani vt) : IsKuraliTesti(vt)
         Assert.Contains("SN-IP-0001 daha önce satılmış: Atlas, 12.05.2026", hata.Message);
         Assert.Equal(1, await SatisSayisi());
         Assert.False(await Db.SatisKalemleri.AnyAsync(k => k.Uretim!.SeriNo == "SN-IP-0002"));
-        Assert.False(await Db.Musteriler.AnyAsync(m => m.Ad == "Beta"));  // hata olunca müşteri de oluşmaz
+        Assert.False(await Db.Musteriler.AnyAsync(m => m.Ad == "Beta"));
     }
 
     [Fact]
     public async Task Ayni_baglamda_bile_satilmis_kontrolu_acik_yapilir()
     {
-        // EF tuzağı: eski kalem bellekteyken bire bir ilişkide eskisi sessizce silinirdi
         await Satis.SatAsync(new SatisIstek("Atlas", ["SN-IP-0003"]), Kullanici.Id);
-        var eskiKalem = await Db.SatisKalemleri.Include(k => k.Uretim).SingleAsync();  // izlenen kayıt
+        var eskiKalem = await Db.SatisKalemleri.Include(k => k.Uretim).SingleAsync();
         await Assert.ThrowsAsync<SatisHatasi>(() => Satis.SatAsync(new SatisIstek("Beta", ["SN-IP-0003"]), Kullanici.Id));
         Assert.Equal(1, await Db.SatisKalemleri.AsNoTracking().CountAsync());
         Assert.Equal(eskiKalem.SatisId, await Db.SatisKalemleri.AsNoTracking().Select(k => k.SatisId).SingleAsync());

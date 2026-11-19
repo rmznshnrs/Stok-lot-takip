@@ -2,7 +2,6 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Tests;
 
-/// <summary>Üretim sırası (parça ayırma, kısmi üretim) ve siparişler (seri ayırma, durum).</summary>
 public class UretimSirasiTestleri(TestVeritabani vt) : IsKuraliTesti(vt)
 {
     private IUretimSirasiServisi Sira = null!;
@@ -16,7 +15,6 @@ public class UretimSirasiTestleri(TestVeritabani vt) : IsKuraliTesti(vt)
     [Fact]
     public async Task Siraya_girince_parcalar_ayrilir_uretilince_dusulur()
     {
-        // Kullanılabilir diyot 13 (YENI 10 + ESKI 3); 10 adet sıraya girince 3 kalır
         var e = await Sira.EkleAsync(new UretimEmriIstek(Urun.Id, 10), Kullanici.Id);
         Assert.Equal(("Bekliyor", 1), (e.Durum, e.Sira));
         Assert.Equal(10, e.Parcalar.Single(p => p.Parca.Kod == "DIY").Ayrilan);
@@ -45,7 +43,6 @@ public class UretimSirasiTestleri(TestVeritabani vt) : IsKuraliTesti(vt)
 
         var kapandi = await Sira.IptalAsync(e.Id, Kullanici.Id);
         Assert.Equal(("Tamamlandi", 2), (kapandi.Durum, kapandi.Adet));
-        // 13 − 2 üretilen = 11 diyot serbest
         await Sira.EkleAsync(new UretimEmriIstek(Urun.Id, 11), Kullanici.Id);
         await Assert.ThrowsAsync<YetersizStokHatasi>(() => Sira.EkleAsync(new UretimEmriIstek(Urun.Id, 1), Kullanici.Id));
     }
@@ -57,7 +54,7 @@ public class UretimSirasiTestleri(TestVeritabani vt) : IsKuraliTesti(vt)
         var b = await Sira.EkleAsync(new UretimEmriIstek(Urun.Id, 1), Kullanici.Id);
         var liste = await Sira.TasiAsync(b.Id, -1);
         Assert.Equal([b.Id, a.Id], liste.Select(x => x.Id));
-        Assert.Equal([b.Id, a.Id], (await Sira.TasiAsync(b.Id, -1)).Select(x => x.Id));  // en üstte kalır
+        Assert.Equal([b.Id, a.Id], (await Sira.TasiAsync(b.Id, -1)).Select(x => x.Id));
         var plan = await Sira.PlanlaAsync(a.Id, new(2026, 12, 1));
         Assert.Equal(new DateOnly(2026, 12, 1), plan.PlanlananTarih);
     }
@@ -73,7 +70,7 @@ public class SiparisTestleri(TestVeritabani vt) : IsKuraliTesti(vt)
         await base.InitializeAsync();
         Sira = new UretimSirasiServisi(Db, new StokLotuRepository(Db), new UretimRepository(Db));
         Siparis = new SiparisServisi(Db);
-        await Uretim.UretAsync(Urun.Id, 3, Kullanici.Id);  // SN-IP-0001..0003 depoda
+        await Uretim.UretAsync(Urun.Id, 3, Kullanici.Id);
     }
 
     [Fact]
@@ -98,7 +95,6 @@ public class SiparisTestleri(TestVeritabani vt) : IsKuraliTesti(vt)
         Assert.Equal(["SN-IP-0001", "SN-IP-0002", "SN-IP-0004", "SN-IP-0005", "SN-IP-0006"], s.Kalemler[0].Ayrilanlar);
         Assert.Equal(["SN-IP-0003"], (await Siparis.HazirSerilerAsync(Urun.Id)).Select(h => h.SeriNo));
 
-        // Ayrılan ürün başka müşteriye satılamaz; siparişin müşterisine satılınca gönderilmiş sayılır
         await Assert.ThrowsAsync<SatisHatasi>(() => Satis.SatAsync(new SatisIstek("Beta", ["SN-IP-0004"]), Kullanici.Id));
         await Satis.SatAsync(new SatisIstek("Atlas", ["SN-IP-0004"]), Kullanici.Id);
         s = await Siparis.GetirAsync(s.Id);
@@ -121,7 +117,7 @@ public class SiparisTestleri(TestVeritabani vt) : IsKuraliTesti(vt)
         Assert.Empty(a.Kalemler[0].Ayrilanlar);
         b = await Siparis.SeriAyirAsync(kb, new SeriAyirIstek(["SN-IP-0001", "SN-IP-0002"]));
         Assert.Equal("hazir", b.Durum);
-        await Assert.ThrowsAsync<IsKuraliHatasi>(() => Siparis.SeriAyirAsync(kb, new SeriAyirIstek(["SN-IP-0003"])));  // adet dolu
+        await Assert.ThrowsAsync<IsKuraliHatasi>(() => Siparis.SeriAyirAsync(kb, new SeriAyirIstek(["SN-IP-0003"])));
     }
 
     [Fact]
@@ -180,7 +176,6 @@ public class SevkiyatTestleri(TestVeritabani vt) : IsKuraliTesti(vt)
         Assert.Equal("TeslimEdildi", s1.Durum);
         await Assert.ThrowsAsync<IsKuraliHatasi>(() => Sevkiyat.TeslimAsync(s1.Id));
 
-        // Takip no ile oluşturulan doğrudan kargoda; kalanlar da gidince sipariş tamamlanır
         var s2 = await Sevkiyat.OlusturAsync(new SevkiyatIstek(Sp.Id, ["sn-ip-0002", "SN-IP-0003"], "Aras Kargo", "999"), Kullanici.Id);
         Assert.Equal(("SV-0002", "Kargoda"), (s2.No, s2.Durum));
         Assert.Equal(["SN-IP-0002", "SN-IP-0003"], s2.Kalemler.Select(k => k.SeriNo));
@@ -218,8 +213,8 @@ public class OzetTestleri(TestVeritabani vt) : IsKuraliTesti(vt)
     [Fact]
     public async Task Uc_ve_daha_az_uretilebilen_urun_uyarisi()
     {
-        Assert.Empty((await Ozet.AnaSayfaAsync()).Uyarilar);  // diyot 13, LED 25 adetlik
-        await Sira.EkleAsync(new UretimEmriIstek(Urun.Id, 11), Kullanici.Id);  // 2 diyot serbest kalır
+        Assert.Empty((await Ozet.AnaSayfaAsync()).Uyarilar);
+        await Sira.EkleAsync(new UretimEmriIstek(Urun.Id, 11), Kullanici.Id);
         var o = await Ozet.AnaSayfaAsync();
         var u = Assert.Single(o.Uyarilar);
         Assert.Equal(("IP", 2), (u.UrunKod, u.Uretilebilir));
@@ -239,7 +234,7 @@ public class OzetTestleri(TestVeritabani vt) : IsKuraliTesti(vt)
         var t = await Ozet.TakvimAsync(new(2026, 12, 1), new(2026, 12, 31));
         Assert.Equal([new DateOnly(2026, 12, 1), new(2026, 12, 2), new(2026, 12, 3)], t.Select(g => g.Tarih));
         Assert.Equal((2, 0, 0), Tek(t[0]));
-        Assert.Equal((0, 3, 0), Tek(t[1]));  // İstanbul saatiyle 2 Aralık (UTC'de 1 Aralık)
+        Assert.Equal((0, 3, 0), Tek(t[1]));
         Assert.Equal((0, 0, 4), Tek(t[2]));
         await Assert.ThrowsAsync<IsKuraliHatasi>(() => Ozet.TakvimAsync(new(2026, 1, 1), new(2026, 6, 1)));
 
@@ -261,7 +256,7 @@ public class OzetTestleri(TestVeritabani vt) : IsKuraliTesti(vt)
         Assert.True((await Ozet.PlanTamamAsync(p.Id, true)).Tamamlandi);
         await Ozet.PlanSilAsync(not.Id);
         Assert.Equal([p.Id], (await Ozet.TakvimAsync(new(2026, 12, 1), new(2026, 12, 31)))[0].Planlar.Select(x => x.Id));
-        Assert.Equal(100 + 10 + 3 + 50, await Db.StokLotlari.SumAsync(l => l.KalanAdet));  // stoğa dokunmaz
+        Assert.Equal(100 + 10 + 3 + 50, await Db.StokLotlari.SumAsync(l => l.KalanAdet));
     }
 
     [Fact]

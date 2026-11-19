@@ -26,7 +26,6 @@ const HIZLI = [
 
 const HAREKET_ADI = { giris: "Mal girişi", uretim: "Üretim", satis: "Sevkiyat" } as const;
 
-
 export default function AnaSayfaEkrani() {
   const router = useRouter();
   const [q, setQ] = useState("");
@@ -116,7 +115,6 @@ export default function AnaSayfaEkrani() {
               {o.alt && <small className="yardim">{o.alt}</small>}
             </>
           );
-          // Geri çağırmaların ayrı sayfası yok: liste burada açılır
           return o.yol === "#geri-cagirmalar" ? (
             <button key={o.ad} type="button" className={`${sinif} ozet-kutu--dugme`} aria-expanded={geriAcik}
               onClick={() => setGeriAcik(!geriAcik)}>
@@ -128,7 +126,6 @@ export default function AnaSayfaEkrani() {
         })}
       </section>
       {geriAcik && <GeriCagirmalar kapat={() => setGeriAcik(false)} />}
-
 
       {o && <UretimUyarilari ozet={o} />}
       <div className="iki-sutun">

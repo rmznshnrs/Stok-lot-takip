@@ -12,8 +12,6 @@ public class StokLotuRepository(AppDbContext db) : IStokLotuRepository
         if (db.Database.CurrentTransaction is null)
             throw new InvalidOperationException("Lot kilidi yalnızca bir transaction içinde alınabilir.");
 
-        // SQL metninde yalnız kilit ipucu var; koşullar LINQ ile eklenir ve EF onları
-        // parametreli olarak alt sorguya yazar (SQL enjeksiyonuna kapalı).
         var idler = parcaIdleri.Distinct().ToList();
         return await db.StokLotlari
             .FromSql($"SELECT * FROM StokLotu WITH (UPDLOCK, ROWLOCK)")

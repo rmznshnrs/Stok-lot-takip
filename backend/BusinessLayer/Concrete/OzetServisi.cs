@@ -4,7 +4,6 @@ namespace BusinessLayer.Concrete;
 
 public class OzetServisi(AppDbContext db, IStokServisi stok) : IOzetServisi
 {
-    /// <summary>Parça stoğuyla bu kadar ya da daha az ürün üretilebiliyorsa uyarı verilir.</summary>
     public const int UyariEsigi = 3;
     public const int EnFazlaGun = 62;
 
@@ -54,7 +53,6 @@ public class OzetServisi(AppDbContext db, IStokServisi stok) : IOzetServisi
         var planlanan = await db.UretimEmirleri.AsNoTracking()
             .Where(e => e.Durum == UretimEmriDurumu.Bekliyor && e.PlanlananTarih >= baslangic && e.PlanlananTarih <= bitis)
             .Select(e => new { Tarih = e.PlanlananTarih, e.UrunId, Adet = e.Adet - e.Uretilen }).ToListAsync(ct);
-        // Üretim anı İstanbul saatine göre güne yerleşir; sınırlarda bir gün pay bırakılır
         var ilk = new DateTimeOffset(baslangic.AddDays(-1).ToDateTime(TimeOnly.MinValue), TimeSpan.Zero);
         var son = new DateTimeOffset(bitis.AddDays(2).ToDateTime(TimeOnly.MinValue), TimeSpan.Zero);
         var uretilen = (await db.Uretimler.AsNoTracking().Where(u => u.Tarih >= ilk && u.Tarih < son)
@@ -133,7 +131,6 @@ public class OzetServisi(AppDbContext db, IStokServisi stok) : IOzetServisi
         p.Id, p.Tarih, p.Parca is null ? null : Donusum.Ozet(p.Parca), p.Adet, p.TedarikciId, p.Tedarikci?.Ad,
         p.Aciklama, p.Tamamlandi, $"{p.OlusturanKullanici!.Ad} {p.OlusturanKullanici.Soyad}");
 
-    /// <summary>Ürün ağacına göre serbest stokla üretilebilecek adet (en az olan önce); kısıtlayanlar: eşik ve altındaki parçalar.</summary>
     private async Task<List<UretilebilirUyariDto>> KapasitelerAsync(List<ParcaStokDto> parcalar, CancellationToken ct)
     {
         var serbest = parcalar.ToDictionary(p => p.Id);

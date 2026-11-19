@@ -9,10 +9,6 @@ import { icerir, tarihSaat } from "@/lib/bicim";
 import { useVeri } from "@/lib/kancalar";
 import { seriAdresi } from "@/lib/adres";
 
-/**
- * Ürünün depodaki seri numaraları; yönetici seçtiklerini hurdaya / kayba ayırıp
- * stoktan düşer (açıklama zorunlu).
- */
 export default function UrunDepo({ urunId, degisti }: { urunId: number; degisti?: () => void }) {
   const admin = useAdminMi();
   const { veri: liste, hata, yenile } = useVeri(() => uretim.gecmis(undefined, urunId), [urunId]);

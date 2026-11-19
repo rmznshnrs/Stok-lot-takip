@@ -13,7 +13,6 @@ interface Etiket {
   numara: string;
   baslik: string;
   alt: string;
-  /** Karekodun içindeki bilgiler (GS1) */
   gs1: Gs1Alan[];
 }
 
@@ -28,7 +27,6 @@ function liste(deger: string | null) {
   return (deger ?? "").split(",").map((s) => s.trim()).filter(Boolean);
 }
 
-/** Adres: /etiket?seri=SN-IP-0001,SN-IP-0002 veya /etiket?lot=L-D-2601; &tur=yok|cizgili|karekod */
 export default function EtiketEkrani() {
   const params = useSearchParams();
   const router = useRouter();
@@ -36,8 +34,6 @@ export default function EtiketEkrani() {
   const lotlar = liste(params.get("lot"));
   const [kopya, setKopya] = useState(1);
   const [boyut, setBoyut] = useState<Boyut>("kucuk");
-  // Adreste tür verildiyse o (üretimde seçilen), yoksa son seçilen.
-  // Bu ekran yalnız tarayıcıda çizilir (oturum gelince), localStorage burada okunabilir
   const adrestekiTur = params.get("tur");
   const [tur, setTur] = useState<EtiketTuru>(() => (etiketTuruMu(adrestekiTur) ? adrestekiTur : kayitliEtiketTuru()));
 
@@ -88,7 +84,6 @@ export default function EtiketEkrani() {
         <div className="bas-satir">
           <h2>Etiket yazdır</h2>
           <span className="dugme-grup">
-            {/* Doğrudan açıldıysa (geçmiş yoksa) ana sayfaya döner */}
             <button type="button" className="btn btn--ikincil" onClick={() => (window.history.length > 1 ? router.back() : router.push("/"))}>
               Vazgeç
             </button>

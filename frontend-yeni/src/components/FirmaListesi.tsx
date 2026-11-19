@@ -10,10 +10,6 @@ import { useVeri } from "@/lib/kancalar";
 
 type Tur = "musteri" | "tedarikci";
 
-/**
- * Müşteri veya tedarikçi listesi ve düzenleme formu. kok: bu listenin sayfa adresi
- * (ör. "/musteriler"); seçim id= ve yeni=1 parametreleriyle eklenir. ek: seçili kaydın altında gösterilecek bölüm.
- */
 export default function FirmaListesi({ tur, kok, ek }: { tur: Tur; kok: string; ek?: (f: Iletisim) => ReactNode }) {
   const router = useRouter();
   const params = useSearchParams();
@@ -25,7 +21,6 @@ export default function FirmaListesi({ tur, kok, ek }: { tur: Tur; kok: string; 
   const [arama, setArama] = useState("");
   const gorunen = liste?.filter((f) => icerir(`${f.ad} ${f.iletisim}`, arama.trim())) ?? [];
   const secili = liste?.find((f) => f.id === seciliId) ?? null;
-  // kok soru işareti içermiyorsa ilk ek parametre ? ile başlar
   const adres = (ek = "") => `${kok}${kok.includes("?") ? ek : ek.replace(/^&/, "?")}`;
 
   return (

@@ -118,7 +118,6 @@ public class HesapServisi(AppDbContext db, IPostaGonderici posta) : IHesapServis
             if (s is null || s.KullanilmaZamani is not null || s.SonGecerlilik < simdi)
                 throw new IsKuraliHatasi("Bağlantı geçersiz veya süresi dolmuş.");
             s.Kullanici!.SifreHash = BCrypt.Net.BCrypt.HashPassword(istek.YeniSifre);
-            // Bu kullanıcının açıkta kalan bütün kodları da kapanır
             foreach (var acik in await db.SifreSifirlamalari
                          .Where(x => x.KullaniciId == s.KullaniciId && x.KullanilmaZamani == null).ToListAsync(ct))
                 acik.KullanilmaZamani = simdi;
@@ -126,8 +125,6 @@ public class HesapServisi(AppDbContext db, IPostaGonderici posta) : IHesapServis
             return 0;
         }, ct);
     }
-
-    // --- iç ------------------------------------------------------------------
 
     private async Task<Kullanici> BekleyenGetirAsync(int id, CancellationToken ct) =>
         await db.Kullanicilar.SingleOrDefaultAsync(k => k.Id == id && !k.Onayli, ct)

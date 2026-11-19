@@ -6,10 +6,6 @@ import SirayaEkle from "./SirayaEkle";
 import UretimGecmisi from "./UretimGecmisi";
 import UretimSirasi from "./UretimSirasi";
 
-/**
- * Üretim: sıra (varsayılan; ?yeni=1 sıraya ekleme formu) ve üretim geçmişi (?sekme=gecmis).
- * Ürünler doğrudan üretilmez, önce sıraya girer. Geri çağırmalar Müşteriler'de.
- */
 export default function UretimSayfasi() {
   const params = useSearchParams();
   const gecmis = params.get("sekme") === "gecmis";

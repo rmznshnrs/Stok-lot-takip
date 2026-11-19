@@ -5,7 +5,6 @@ using MimeKit;
 
 namespace PresentationLayer;
 
-/// <summary>"Posta" ayarları. Sunucu boşsa e-posta gönderilmez, Klasor'e .eml dosyası olarak yazılır.</summary>
 public class PostaAyarlari
 {
     public string Sunucu { get; set; } = "";
@@ -14,14 +13,9 @@ public class PostaAyarlari
     public string Sifre { get; set; } = "";
     public string Gonderen { get; set; } = "lot-takip@localhost";
     public string Klasor { get; set; } = "posta";
-    /// <summary>Şifre sıfırlama bağlantısındaki web arayüzü adresi.</summary>
     public string WebAdresi { get; set; } = "http://localhost:3000";
 }
 
-/// <summary>
-/// SMTP ile gönderir (MailKit). Sunucu ayarlı değilse postayı dosyaya yazar ki geliştirmede bağlantı görülebilsin.
-/// Gönderilemezse hata kaydedilir ama isteği yapan kişiye ayrıntı verilmez.
-/// </summary>
 public class PostaGonderici(IOptions<PostaAyarlari> secenek, IHostEnvironment ortam, ILogger<PostaGonderici> log) : IPostaGonderici
 {
     public async Task GonderAsync(string alici, string konu, string metin, CancellationToken ct = default)

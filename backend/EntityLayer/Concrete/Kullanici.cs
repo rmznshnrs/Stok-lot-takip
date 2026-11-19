@@ -12,13 +12,9 @@ public class Kullanici
     public required string Ad { get; set; }
     public required string Soyad { get; set; }
     public required string KullaniciAdi { get; set; }
-    /// <summary>BCrypt özeti; şifrenin kendisi saklanmaz.</summary>
     public required string SifreHash { get; set; }
     public KullaniciRolu Rol { get; set; } = KullaniciRolu.Kullanici;
-    /// <summary>Şifre sıfırlama bağlantısının gideceği adres (isteğe bağlı, tekil).</summary>
     public string? Eposta { get; set; }
-    /// <summary>Kendi kaydolan kullanıcı yönetici onaylayana kadar false; giriş yapamaz.</summary>
     public bool Onayli { get; set; } = true;
-    /// <summary>Silinen ama geçmişte işlemi olan kullanıcı pasif olur: giriş yapamaz, adı kayıtlarda kalır.</summary>
     public bool Aktif { get; set; } = true;
 }

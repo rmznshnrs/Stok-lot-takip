@@ -7,21 +7,18 @@ import { useVeri } from "@/lib/kancalar";
 
 const GUN_ADLARI = ["Paz", "Pzt", "Sal", "Çar", "Per", "Cum", "Cmt"];
 
-/** "YYYY-MM-DD" + n gün */
 function gunEkle(t: string, n: number) {
   const [y, a, g] = t.split("-").map(Number);
   const d = new Date(y, a - 1, g + n);
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
-/** Bugünden bu güne kaç gün (geçmişse eksi). */
 function gunFarki(t: string, bugunMetni: string) {
   const [y1, a1, g1] = bugunMetni.split("-").map(Number);
   const [y2, a2, g2] = t.split("-").map(Number);
   return Math.round((Date.UTC(y2, a2 - 1, g2) - Date.UTC(y1, a1 - 1, g1)) / 86_400_000);
 }
 
-/** "Bugün", "Yarın", "3 gün kaldı", "2 gün gecikti" ve rengi. */
 export function KalanGun({ tarihMetni }: { tarihMetni: string }) {
   const fark = gunFarki(tarihMetni, bugun());
   const [yazi, tur] = fark < 0 ? [`${-fark} gün gecikti`, "gecikti"]
@@ -31,7 +28,6 @@ export function KalanGun({ tarihMetni }: { tarihMetni: string }) {
   return <span className={`kalan-gun kalan-gun--${tur}`}>{yazi}</span>;
 }
 
-/** Önümüzdeki 7 gün: günlük planlanan üretim, teslimi istenen sipariş ve hatırlatıcı sayısı. */
 export function OnumuzdekiGunler() {
   const bas = bugun();
   const bit = gunEkle(bas, 6);
@@ -67,7 +63,6 @@ export function OnumuzdekiGunler() {
   );
 }
 
-/** Üretim sırasının başı: planlanan güne kaç gün kaldığıyla. */
 export function SiradakiIsler() {
   const { veri: liste, hata } = useVeri(() => sira.liste(), []);
   const ilkler = liste?.slice(0, 8);
@@ -109,7 +104,6 @@ export function SiradakiIsler() {
   );
 }
 
-/** Teslimi 7 gün içinde (ya da geçmişte) istenen, henüz tamamı gönderilmemiş siparişler. */
 export function YaklasanTeslimler({ ozet: o }: { ozet: AnaSayfaOzeti }) {
   return (
     <section className="panel">
@@ -141,12 +135,7 @@ export function YaklasanTeslimler({ ozet: o }: { ozet: AnaSayfaOzeti }) {
   );
 }
 
-/**
- * Üretim uyarıları: parça stoğuyla en fazla 3 adet üretilebilen ürünler renkli kartlarda (yetmeyen parçalar çubukla),
- * yanında bütün ürünler için "kaç adet üretilebilir" grafiği.
- */
 export function UretimUyarilari({ ozet: o }: { ozet: AnaSayfaOzeti }) {
-  // Eski API sürümü bu alanı göndermez
   const kapasiteler = o.kapasiteler ?? [];
   const enCok = Math.max(10, ...kapasiteler.map((k) => k.uretilebilir));
   return (

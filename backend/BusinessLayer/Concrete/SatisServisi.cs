@@ -31,7 +31,6 @@ public class SatisServisi(AppDbContext db) : ISatisServisi
             .Distinct().ToListAsync(ct);
         var lotlar = satirlar.GroupBy(s => s.SeriNo, StringComparer.OrdinalIgnoreCase)
             .ToDictionary(g => g.Key, g => g.Select(s => s.LotNo).Order().ToList(), StringComparer.OrdinalIgnoreCase);
-        // Verilen sırayla; veritabanındaki yazımla
         return [.. satirlar.Select(s => s.SeriNo).Distinct(StringComparer.OrdinalIgnoreCase)
             .OrderBy(s => liste.FindIndex(x => string.Equals(x, s, StringComparison.OrdinalIgnoreCase)))
             .Select(s => new SatisUyarisiDto(s, lotlar[s]))];
@@ -70,7 +69,6 @@ public class SatisServisi(AppDbContext db) : ISatisServisi
             if (geriCagrilan.Count > 0)
                 throw new SatisHatasi(GeriCagirmaMesaji(geriCagrilan));
 
-            // Açık kontrol: bire bir ilişkide EF eski kalemi sessizce silebilir
             var satilmis = await SatildigiSatisAsync([.. uretimler.Select(u => u.Id)], ct);
             if (satilmis.Count > 0)
                 throw new SatisHatasi(SatilmisMesaji(satilmis));
@@ -80,7 +78,6 @@ public class SatisServisi(AppDbContext db) : ISatisServisi
                 throw new GeriCagrilanLotOnayiGerekliHatasi(uyarilar);
 
             var musteri = await db.Musteriler.SingleOrDefaultAsync(m => m.Ad == musteriAdi, ct);
-            // Başka bir müşterinin siparişine ayrılmış ürün satılamaz
             int? musteriId = musteri?.Id;
             var baskasina = await db.Uretimler
                 .Where(u => uretimIdleri.Contains(u.Id) && u.SiparisKalemiId != null
@@ -91,9 +88,7 @@ public class SatisServisi(AppDbContext db) : ISatisServisi
             var yeniMusteri = musteri is null;
             musteri ??= new Musteri { Ad = musteriAdi };
 
-            // Kalemler verilen sırayla
             var sirali = seriler.Select(s => uretimler.First(u => string.Equals(u.SeriNo, s, StringComparison.OrdinalIgnoreCase))).ToList();
-            // Saat verilmişse (ya da hiç tarih verilmemişse) satış saatiyle kaydedilir; yalnız tarih verilirse saat boş kalır
             var an = istek.Zaman ?? (istek.Tarih is null ? Zaman.Simdi() : null);
             var satis = new Satis
             {
@@ -137,7 +132,6 @@ public class SatisServisi(AppDbContext db) : ISatisServisi
                 [.. g.Where(k => !k.Iade).OrderBy(k => k.SeriNo).Select(k => new SatisKalemiDto(k.SeriNo))], s.Zaman)))];
     }
 
-    /// <summary>Sıradaki sevkiyat numarası (SV-0001).</summary>
     internal static async Task<string> YeniNoAsync(AppDbContext db, CancellationToken ct)
     {
         var mevcut = await db.Satislar.Where(s => s.No.StartsWith("SV-")).Select(s => s.No).ToListAsync(ct);
@@ -179,8 +173,6 @@ public class SatisServisi(AppDbContext db) : ISatisServisi
             return new SatisIadeSonucuDto(satisId, [.. kalemler.Select(k => k.Uretim!.SeriNo).Order()]);
         }, ct);
     }
-
-    // --- iç ------------------------------------------------------------------
 
     private static string GeriCagirmaMesaji(IEnumerable<string> seriNolar) =>
         $"Geri çağrılmış ürün satılamaz: {string.Join(", ", seriNolar.Order())}";

@@ -1,9 +1,7 @@
 "use client";
 
-/** Seçim adayı. musteride verilirse liste müşteridekiler / depodakiler diye ikiye ayrılır. */
 export interface SeriAdayi { seriNo: string; alt: string; musteride?: boolean }
 
-/** Seçilenlerin özeti: müşteridekiler geri çağrılır, depodakiler satıştan çekilir. */
 export function secimOzeti(adaylar: SeriAdayi[] | null, secili: string[]) {
   const musteride = adaylar?.filter((a) => a.musteride && secili.includes(a.seriNo)).length ?? 0;
   const depoda = secili.length - musteride;
@@ -13,7 +11,6 @@ export function secimOzeti(adaylar: SeriAdayi[] | null, secili: string[]) {
   ].filter(Boolean).join(", ");
 }
 
-/** Seri numarası seçme listesi (geri çağırmada müşteridekiler ve depodakiler ayrı); hiçbiri önceden seçili gelmez. */
 export default function SeriSecimi({ adaylar, secili, setSecili, bos }: {
   adaylar: SeriAdayi[] | null;
   secili: string[];

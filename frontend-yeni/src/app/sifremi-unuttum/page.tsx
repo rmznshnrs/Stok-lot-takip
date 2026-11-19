@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useState, type FormEvent } from "react";
 import { ApiHatasi, hesap } from "@/lib/api";
 
-/** Kullanıcı adı ya da e-posta girilir; hesap varsa e-postasına sıfırlama bağlantısı gider. */
 export default function SifremiUnuttumSayfasi() {
   const [deger, setDeger] = useState("");
   const [hata, setHata] = useState("");

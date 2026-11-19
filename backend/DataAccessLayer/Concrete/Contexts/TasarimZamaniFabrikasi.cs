@@ -3,10 +3,6 @@ using Microsoft.EntityFrameworkCore.Design;
 
 namespace DataAccessLayer.Concrete.Contexts;
 
-/// <summary>
-/// "dotnet ef migrations add" için: API'yi çalıştırmadan context oluşturur.
-/// Bağlantı LOTTAKIP_DB ortam değişkeninden, yoksa yerel SQLEXPRESS.
-/// </summary>
 public class TasarimZamaniFabrikasi : IDesignTimeDbContextFactory<AppDbContext>
 {
     public const string VarsayilanBaglanti =

@@ -4,7 +4,6 @@ namespace BusinessLayer;
 
 public static class BusinessKurulum
 {
-    /// <summary>İş servislerini kaydeder (istek başına bir örnek, AppDbContext ile aynı ömür).</summary>
     public static IServiceCollection AddBusiness(this IServiceCollection services)
     {
         services.AddScoped<IStokServisi, StokServisi>();

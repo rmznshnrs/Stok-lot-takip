@@ -14,11 +14,6 @@ export const DURUM_ADI: Record<GeriCagirma["durum"], string> = {
 
 export const acikMi = (g: GeriCagirma) => g.durum === "musteride" || g.durum === "geri_alindi" || g.durum === "depoda";
 
-/**
- * Yalnız yönetici: geri çağrılan ürün için sıradaki adım.
- * Müşterideki (ya da müşteriden geri alınmış) ürün: müşteriye bilgi verildi, sonra müşteriye geri ver ya da hurdaya ayır.
- * Depodaki ürün: satışa aç ya da hurdaya ayır.
- */
 export default function GeriCagirmaEylemleri({ g, degisti }: { g: GeriCagirma; degisti: () => void }) {
   const [hata, setHata] = useState("");
   const [bekliyor, setBekliyor] = useState(false);

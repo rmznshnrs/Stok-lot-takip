@@ -1,8 +1,5 @@
 namespace EntityLayer.Abstract;
 
-/// <summary>
-/// İşlemi yapan kullanıcıyı ve zamanı tutan kayıtlar (StokLotu, Uretim, Satis, StokDuzeltme).
-/// </summary>
 public interface IDenetimli
 {
     int OlusturanKullaniciId { get; set; }

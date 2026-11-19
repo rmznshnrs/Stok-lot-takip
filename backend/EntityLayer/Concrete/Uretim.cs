@@ -1,6 +1,5 @@
 namespace EntityLayer.Concrete;
 
-/// <summary>Üretilen tek bir ürün; her kaydın tek seri numarası vardır. Lot yalnız parçalarda tutulur.</summary>
 public class Uretim : IDenetimli
 {
     public int Id { get; set; }
@@ -9,10 +8,8 @@ public class Uretim : IDenetimli
     public required string SeriNo { get; set; }
     public DateTimeOffset Tarih { get; set; }
 
-    /// <summary>Bu ürün hangi sıradaki işten üretildi (sıra öncesi üretimlerde boş).</summary>
     public int? UretimEmriId { get; set; }
     public UretimEmri? UretimEmri { get; set; }
-    /// <summary>Ayrıldığı sipariş kalemi; boşsa serbest stokta.</summary>
     public int? SiparisKalemiId { get; set; }
     public SiparisKalemi? SiparisKalemi { get; set; }
 

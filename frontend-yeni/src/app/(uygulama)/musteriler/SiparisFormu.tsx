@@ -13,7 +13,6 @@ import { siparisAdresi } from "./MusteriSiparisleri";
 const YENI = "yeni";
 
 interface AgacSatiri { anahtar: number; parcaId: string; adet: string }
-/** urunId "yeni" ise ürün sistemde yok: kod, ad ve ürün ağacı burada girilir, kayıtta ürün oluşturulur. */
 interface Kalem {
   anahtar: number; urunId: string; adet: string; seriler: string[];
   yeniKod: string; yeniAd: string; agac: AgacSatiri[];
@@ -23,11 +22,6 @@ let sayac = 0;
 const yeniAgacSatiri = (): AgacSatiri => ({ anahtar: ++sayac, parcaId: "", adet: "1" });
 const yeniKalem = (): Kalem => ({ anahtar: ++sayac, urunId: "", adet: "1", seriler: [], yeniKod: "", yeniAd: "", agac: [yeniAgacSatiri()] });
 
-/**
- * Yeni sipariş: ürün ve adet; depoda hazır ürün varsa seri no seçilip siparişe ayrılır.
- * Sistemde olmayan ürün parçalarıyla burada tanımlanır (Ürünler listesine de eklenir).
- * İstenirse eksikler kayıttan sonra üretim sırasına eklenir.
- */
 export default function SiparisFormu({ musteriId }: { musteriId: number }) {
   const router = useRouter();
   const { veri: musteriListesi } = useVeri(() => firmalar.musteriler(), []);
@@ -42,7 +36,6 @@ export default function SiparisFormu({ musteriId }: { musteriId: number }) {
   const degistir = (anahtar: number, d: Partial<Kalem>) =>
     setKalemler((ks) => ks.map((k) => (k.anahtar === anahtar ? { ...k, ...d } : k)));
 
-  /** Yeni ürünleri oluşturup ağaçlarını kaydeder; her kalemin ürün kimliğini döner. Hata olursa yarıda kalır. */
   async function urunleriHazirla(dolu: Kalem[]) {
     const idler = new Map<number, number>();
     for (const k of dolu) {
@@ -57,7 +50,6 @@ export default function SiparisFormu({ musteriId }: { musteriId: number }) {
       const u = await urunler.olustur({ kod: k.yeniKod.trim(), ad: k.yeniAd.trim() });
       await urunler.agacKaydet(u.id, agac);
       idler.set(k.anahtar, u.id);
-      // Hata olursa ürün yeniden oluşturulmasın: kalem artık var olan ürünü gösterir
       degistir(k.anahtar, { urunId: String(u.id) });
     }
     return idler;
@@ -78,7 +70,6 @@ export default function SiparisFormu({ musteriId }: { musteriId: number }) {
         istenenTarih: istenen || undefined,
         aciklama: aciklama.trim(),
       });
-      // Eksikler sıraya: parça yetmeyen kalem siparişte "eksik" olarak kalır, sonradan eklenebilir
       const uyarilar: string[] = [];
       if (siraya) {
         for (const k of s.kalemler.filter((x) => x.eksik > 0)) {
@@ -212,7 +203,6 @@ function KalemSatiri({ kalem, sira, digerUrunler, degistir, kaldir }: {
   );
 }
 
-/** Sistemde olmayan ürün: kod, ad ve ürün ağacı (1 adet için gereken parçalar). Kayıtta Ürünler listesine eklenir. */
 function YeniUrun({ kalem, degistir }: { kalem: Kalem; degistir: (d: Partial<Kalem>) => void }) {
   const { veri: parcaListesi, yenile: parcalariYenile } = useVeri(() => parcalar.listele(), []);
   const [yeniParca, setYeniParca] = useState(false);
@@ -268,7 +258,6 @@ function YeniUrun({ kalem, degistir }: { kalem: Kalem; degistir: (d: Partial<Kal
           eklendi={(id) => {
             setYeniParca(false);
             parcalariYenile();
-            // Boş satır varsa yeni parça oraya, yoksa yeni satıra yazılır
             const bos = kalem.agac.find((a) => !a.parcaId);
             degistir({
               agac: bos
@@ -282,7 +271,6 @@ function YeniUrun({ kalem, degistir }: { kalem: Kalem; degistir: (d: Partial<Kal
   );
 }
 
-/** Listede olmayan parça burada tanımlanır; Parçalar sayfasına da eklenir ve ürün ağacına yazılır. */
 function YeniParca({ kapat, eklendi }: { kapat: () => void; eklendi: (parcaId: number) => void }) {
   const [kod, setKod] = useState("");
   const [ad, setAd] = useState("");
@@ -303,7 +291,6 @@ function YeniParca({ kapat, eklendi }: { kapat: () => void; eklendi: (parcaId: n
     }
   }
 
-  // İç içe form olmasın diye div; Enter ile de kaydedilir
   return (
     <div className="kutu kutu--ince form-dikey"
       onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); kaydet(); } }}>

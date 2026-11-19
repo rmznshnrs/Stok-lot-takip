@@ -20,10 +20,8 @@ const TURLER: { deger: IslemTuru; ad: string }[] = [
 ];
 const turAdi = (t: IslemTuru) => TURLER.find((x) => x.deger === t)?.ad ?? t;
 const UYARI_TURLERI: IslemTuru[] = ["iade", "duzeltme", "hurda", "sorun", "geri"];
-// Bir seferde alınan kayıt; ekranda 25 / 50 / 100'lük sayfalara bölünür
 const SAYFA = 500;
 
-/** Yalnız Admin: kim, ne zaman, ne yaptı. Türe ve kişiye göre süzülür; "Daha eski" ile geriye gidilir. */
 export default function IslemGecmisi() {
   const [tur, setTur] = useState<IslemTuru | "">("");
   const [kisi, setKisi] = useState("");
@@ -32,7 +30,6 @@ export default function IslemGecmisi() {
     () => islemler.liste({ tur: tur || undefined, kullaniciId: Number(kisi) || undefined, adet: SAYFA }),
     [tur, kisi],
   );
-  // "Daha eski" ile eklenen sayfalar; süzgeç değişince sıfırlanır
   const [ekler, setEkler] = useState<Islem[]>([]);
   const [sonDolu, setSonDolu] = useState<boolean | null>(null);
   const [ekHata, setEkHata] = useState("");

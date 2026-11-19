@@ -61,7 +61,6 @@ public class UretimSirasiServisi(AppDbContext db, IStokLotuRepository lotlar, IU
 
             var urun = await uretim.UrunGetirAsync(istek.UrunId, adet, ct);
             var parcaIdleri = urun.Agac.Select(a => a.ParcaId).ToList();
-            // Lotlar kilitlenir: aynı anda yapılan sıraya ekleme / üretim aynı parçaları iki kez ayıramaz
             var kilitli = await lotlar.KullanilabilirLotlariKilitleAsync(parcaIdleri, ct);
             var ayrilan = await Ayrilan.ParcalarAsync(db, parcaIdleri, null, ct);
             var eksikler = urun.Agac.OrderBy(a => a.Parca!.Kod)
@@ -149,7 +148,6 @@ public class UretimSirasiServisi(AppDbContext db, IStokLotuRepository lotlar, IU
             return await GetirAsync(id, ct);
         }, ct);
 
-    /// <summary>Bekleyen işi kapatır: hiç üretilmediyse iptal, bir kısmı üretildiyse o adetle tamamlanır.</summary>
     internal static void Kapat(UretimEmri emir)
     {
         if (emir.Uretilen > 0)

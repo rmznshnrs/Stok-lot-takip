@@ -5,11 +5,6 @@ import SeriSecimi, { secimOzeti } from "@/components/SeriSecimi";
 import { ApiHatasi, izleme, type Lot } from "@/lib/api";
 import { useVeri } from "@/lib/kancalar";
 
-/**
- * Yalnız yönetici: stok girişini hatalı işaretler. Hata açıklaması ve kalan parçaların üretimde kullanılıp
- * kullanılmayacağı (seçim zorunlu) girilir. Ürünler kendiliğinden geri çağrılmaz; bu girişin parçalarını
- * taşıyan ürünlerden geri çağrılacaklar seçilir. Hatalı girişte "Hatayı kaldır" da sunulur.
- */
 export default function HataliLotFormu({ lot, kapat, kaydedildi }: {
   lot: Lot;
   kapat: () => void;

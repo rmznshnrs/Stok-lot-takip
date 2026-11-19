@@ -5,10 +5,8 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace DataAccessLayer.Migrations
 {
-    /// <inheritdoc />
     public partial class Sevkiyat : Migration
     {
-        /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.AddColumn<string>(
@@ -69,7 +67,6 @@ namespace DataAccessLayer.Migrations
                 type: "datetimeoffset",
                 nullable: true);
 
-            // Eski satışlar sevkiyat olur: sıra numarası ve "teslim edildi" durumu
             migrationBuilder.Sql("""
                 UPDATE Satis SET No = CONCAT('SV-', RIGHT(CONCAT('0000', Id), 4)),
                                  Durum = 'TeslimEdildi', TeslimZamani = COALESCE(Zaman, OlusturmaZamani)
@@ -100,7 +97,6 @@ namespace DataAccessLayer.Migrations
                 onDelete: ReferentialAction.Restrict);
         }
 
-        /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropForeignKey(

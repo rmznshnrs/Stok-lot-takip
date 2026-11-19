@@ -87,7 +87,6 @@ public class IzlemeServisi(AppDbContext db) : IIzlemeServisi
             return new("seri", seri, []);
         if (await db.Parcalar.Where(p => p.Kod == m).Select(p => p.Kod).FirstOrDefaultAsync(ct) is { } kod)
             return new("parca", kod, []);
-        // Tedarikçinin lot numarası: tek girişe aitse o giriş, birden fazlaysa hepsi aday
         var tedarikciLotu = await db.StokLotlari.Where(l => l.TedarikciLotNo == m).OrderBy(l => l.LotNo)
             .Select(l => l.LotNo).Take(10).ToListAsync(ct);
         if (tedarikciLotu.Count == 1)
@@ -105,7 +104,6 @@ public class IzlemeServisi(AppDbContext db) : IIzlemeServisi
 
     public async Task<List<HareketDto>> SonHareketlerAsync(int adet = 8, CancellationToken ct = default)
     {
-        // (tarih, tür önceliği, sıra) ile yeniden eskiye; aynı gün satış > üretim > giriş
         var hareketler = new List<(HareketDto Hareket, int Oncelik, long Sira)>();
 
         var lotlar = await db.StokLotlari.AsNoTracking().Include(l => l.Parca).Include(l => l.Tedarikci)
@@ -115,7 +113,6 @@ public class IzlemeServisi(AppDbContext db) : IIzlemeServisi
             $"{l.Parca!.Ad} · {l.GirisAdet} adet · {l.Tedarikci!.Ad}", l.LotNo, l.LotNo, "lot"),
             0, l.GirisZamani.UtcTicks)));
 
-        // Tek seferde yapılan üretimler aynı Tarih'i taşır → (ürün, tarih) grubu tek satır
         var uretimler = await db.Uretimler.AsNoTracking()
             .OrderByDescending(u => u.Tarih).ThenByDescending(u => u.Id).Take(adet * 20)
             .Select(u => new { u.Id, u.UrunId, UrunAd = u.Urun!.Ad, u.Tarih, u.SeriNo }).ToListAsync(ct);
@@ -168,9 +165,8 @@ public class IzlemeServisi(AppDbContext db) : IIzlemeServisi
                 if (!lot.Sorunlu)
                     (lot.SorunZamani, lot.SorunIsaretleyen) = (Zaman.Simdi(), admin);
                 (lot.Sorunlu, lot.SorunAciklama, lot.GeriCagrildi) = (true, aciklama, !istek.UretimdeKullan);
-                await db.SaveChangesAsync(ct);  // RowVersion: aynı anda üretim olursa yeniden denenir
+                await db.SaveChangesAsync(ct);
 
-                // Ürünler kendiliğinden geri çağrılmaz; yalnız seçilenler (bu lottan parça taşıyanlardan)
                 var secilen = SeriListesi.Temizle(istek.GeriCagrilacaklar);
                 if (secilen.Count > 0)
                 {

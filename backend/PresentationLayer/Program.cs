@@ -39,7 +39,6 @@ builder.Services.AddSwaggerGen(o =>
 
 var app = builder.Build();
 
-// Komut: dotnet run -- ornek-veri [--sifirla]  → veritabanını günceller, örnek veriyi yükler, çıkar
 if (args.Contains("ornek-veri"))
 {
     using var kapsam = app.Services.CreateScope();
@@ -69,7 +68,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI(o =>
     {
         o.DocumentTitle = "Lot Takip API";
-        o.EnablePersistAuthorization();  // sayfa yenilense de token hatırlansın
+        o.EnablePersistAuthorization();
     });
 }
 else
@@ -83,5 +82,4 @@ app.MapControllers();
 
 app.Run();
 
-// Testlerin WebApplicationFactory ile API'yi ayağa kaldırabilmesi için
 public partial class Program;

@@ -4,7 +4,6 @@ using Microsoft.Extensions.Options;
 
 namespace PresentationLayer.Controllers;
 
-/// <summary>Kayıt ol (yönetici onaylı), şifremi unuttum (e-postayla) ve kendi e-postası.</summary>
 [ApiController]
 [Route("api/hesap")]
 public class HesapController(IHesapServisi hesap, IOptions<PostaAyarlari> posta) : ControllerBase
@@ -14,7 +13,6 @@ public class HesapController(IHesapServisi hesap, IOptions<PostaAyarlari> posta)
     public async Task<ActionResult<OnayBekleyenDto>> Kayit(KayitIstek istek, CancellationToken ct) =>
         await hesap.KayitAsync(istek, ct);
 
-    /// <summary>Her durumda 204 döner; hesap varsa e-postasına sıfırlama bağlantısı gider.</summary>
     [HttpPost("sifre-unuttum")]
     [AllowAnonymous]
     public async Task<IActionResult> SifreUnuttum(SifreUnuttumIstek istek, CancellationToken ct)

@@ -62,7 +62,7 @@ public class UretimServisi(AppDbContext db, IStokLotuRepository lotlar, IUretimR
             var zaman = Zaman.Simdi();
             foreach (var u in kayitlar)
             {
-                u.SiparisKalemiId = null;  // siparişe ayrılmışsa ayrım kalkar
+                u.SiparisKalemiId = null;
                 db.UretimHurdalari.Add(new UretimHurda
                 {
                     Uretim = u, Tur = tur, Aciklama = aciklama, OlusturanKullanici = admin, OlusturmaZamani = zaman,
@@ -95,14 +95,9 @@ public class UretimServisi(AppDbContext db, IStokLotuRepository lotlar, IUretimR
             return await UretIcAsync(urun, adet, kullanici, tarih, null, ct);
         }, ct);
 
-    /// <summary>
-    /// Transaction içinde çağrılır. Sıradaki işlere ayrılmış parçalar kullanılamaz; emir verilirse onun
-    /// ayırdığı parçalar kullanılır ve üretilenler o işe bağlanır.
-    /// </summary>
     internal async Task<UretimSonucuDto> UretIcAsync(Urun urun, int adet, Kullanici kullanici, DateTimeOffset? tarih,
                                                      UretimEmri? emir, CancellationToken ct)
     {
-        // Lotlar kilitlenerek okunur: aynı anda başka bir üretim bu transaction bitene kadar bekler
         var parcaIdleri = urun.Agac.Select(a => a.ParcaId).ToList();
         var kilitli = await lotlar.KullanilabilirLotlariKilitleAsync(parcaIdleri, ct);
         var ayrilan = await Ayrilan.ParcalarAsync(db, parcaIdleri, emir?.Id, ct);
@@ -116,7 +111,6 @@ public class UretimServisi(AppDbContext db, IStokLotuRepository lotlar, IUretimR
 
         var an = tarih ?? Zaman.Simdi();
         var seriNolar = await SonrakiSeriNolarAsync(urun, adet, ct);
-        // Her parça için FIFO kuyruğu; ürünler sırayla bu kuyruktan tüketir
         var kuyruklar = plan.Parcalar.ToDictionary(p => p.Satir.ParcaId, p => new Queue<StokLotu>(p.Lotlar));
 
         foreach (var seriNo in seriNolar)
@@ -155,8 +149,6 @@ public class UretimServisi(AppDbContext db, IStokLotuRepository lotlar, IUretimR
         return await SonrakiSeriNolarAsync(urun, adet, ct);
     }
 
-    // --- iç ------------------------------------------------------------------
-
     internal async Task<Urun> UrunGetirAsync(int urunId, int adet, CancellationToken ct)
     {
         if (adet < 1)
@@ -171,10 +163,6 @@ public class UretimServisi(AppDbContext db, IStokLotuRepository lotlar, IUretimR
         return urun;
     }
 
-    /// <summary>
-    /// FIFO dağılımı: verilen lotlar (geri çağrılmamış, kalanı olan, FIFO sıralı) üzerinden.
-    /// ayrilan: sıradaki işlere ayrılmış parça adetleri; kullanılabilir stoktan düşülür.
-    /// </summary>
     private async Task<Plan> PlanlaAsync(Urun urun, int adet, List<StokLotu> kullanilabilir, Dictionary<int, int> ayrilan,
                                          CancellationToken ct, bool atlananlariHesapla = true)
     {
@@ -215,7 +203,6 @@ public class UretimServisi(AppDbContext db, IStokLotuRepository lotlar, IUretimR
 
     private async Task<List<string>> SonrakiSeriNolarAsync(Urun urun, int adet, CancellationToken ct)
     {
-        // Önekten sonrası yalnız rakam olan seri no'ların en büyüğü + 1 (silinen/atlanan numara tekrar verilmez)
         var mevcut = await uretimler.OnekliSeriNolarAsync(urun.SeriOneki, ct);
         var enBuyuk = Sira.EnBuyuk(mevcut, urun.SeriOneki);
         return [.. Enumerable.Range(enBuyuk + 1, adet).Select(n => $"{urun.SeriOneki}{n:D4}")];

@@ -2,11 +2,6 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Tests;
 
-/// <summary>
-/// Aynı anda yapılan işlemler. Gerçek hayattaki gibi iki ayrı
-/// bağlantı ve iki ayrı bağlam kullanılır; bu yüzden veriler commit edilir ve her test
-/// başında/sonunda tüm veri silinir (transaction ile geri alma burada kullanılamaz).
-/// </summary>
 [Collection(VeritabaniKoleksiyonu.Ad)]
 public class EszamanliIsKuraliTestleri(TestVeritabani vt) : IAsyncLifetime
 {
@@ -31,7 +26,7 @@ public class EszamanliIsKuraliTestleri(TestVeritabani vt) : IAsyncLifetime
             OlusturanKullanici = kullanici, GirisZamani = Zaman.Simdi(), OlusturmaZamani = Zaman.Simdi(),
         };
         db.StokLotlari.Add(Lot("L-LED", led, 400));
-        var diyotLot = Lot("L-DIY", diyot, 1);  // diyot tek ürüne yeter (testler gerekirse artırır)
+        var diyotLot = Lot("L-DIY", diyot, 1);
         db.StokLotlari.Add(diyotLot);
         db.Musteriler.Add(new Musteri { Ad = "Atlas" });
         await db.SaveChangesAsync();
@@ -69,9 +64,9 @@ public class EszamanliIsKuraliTestleri(TestVeritabani vt) : IAsyncLifetime
             Dene(() => UretimServisi(db1).UretAsync(_urunId, 1, _kullaniciId)),
             Dene(() => UretimServisi(db2).UretAsync(_urunId, 1, _kullaniciId)));
 
-        Assert.Equal(1, sonuclar.Count(s => s is null));                     // biri başarılı
-        Assert.IsType<YetersizStokHatasi>(Assert.Single(sonuclar, s => s is not null));  // diğeri yetersiz stok
-        Assert.Equal(0, await DiyotKalani());                                 // eksiye düşmedi
+        Assert.Equal(1, sonuclar.Count(s => s is null));
+        Assert.IsType<YetersizStokHatasi>(Assert.Single(sonuclar, s => s is not null));
+        Assert.Equal(0, await DiyotKalani());
         await using var db = vt.YeniContext();
         Assert.Equal(["SN-IP-0001"], await db.Uretimler.Select(u => u.SeriNo).ToListAsync());
     }
@@ -98,12 +93,11 @@ public class EszamanliIsKuraliTestleri(TestVeritabani vt) : IAsyncLifetime
     public async Task Seri_no_cakismasinda_yeniden_denenir()
     {
         await DiyotKalaniniAyarla(10);
-        // Kayıt anında başka biri SN-IP-0001'i almış olsun (araya giren işlem, ayrı bağlantı)
         vt.Kanca.Oncesi = async komut =>
         {
             if (!komut.CommandText.Contains("INSERT INTO [Uretim]"))
                 return;
-            vt.Kanca.Oncesi = null;  // yalnız ilk denemede
+            vt.Kanca.Oncesi = null;
             await using var araya = vt.YeniContext();
             araya.Uretimler.Add(new Uretim { UrunId = _urunId, SeriNo = "SN-IP-0001", OlusturanKullaniciId = _kullaniciId });
             await araya.SaveChangesAsync();
@@ -112,8 +106,8 @@ public class EszamanliIsKuraliTestleri(TestVeritabani vt) : IAsyncLifetime
         await using var db1 = vt.YeniContext();
         var s = await UretimServisi(db1).UretAsync(_urunId, 1, _kullaniciId);
 
-        Assert.Equal(["SN-IP-0002"], s.SeriNolar);  // ilk deneme benzersiz indekse takıldı, ikincisi sonrakini aldı
-        Assert.Equal(9, await DiyotKalani());       // stok yalnız bir kez düşüldü
+        Assert.Equal(["SN-IP-0002"], s.SeriNolar);
+        Assert.Equal(9, await DiyotKalani());
         await using var db = vt.YeniContext();
         Assert.Equal(1, await db.UretimTuketimleri.Select(t => t.UretimId).Distinct().CountAsync());
     }
@@ -122,7 +116,6 @@ public class EszamanliIsKuraliTestleri(TestVeritabani vt) : IAsyncLifetime
     public async Task Ayni_lota_ayni_anda_duzeltmede_ikisi_de_yansir()
     {
         await DiyotKalaniniAyarla(10);
-        // Birinci düzeltme lotu okuduktan sonra, kaydetmeden önce ikinci düzeltme araya girip kaydetsin
         vt.Kanca.Oncesi = async komut =>
         {
             if (!komut.CommandText.Contains("UPDATE [StokLotu]"))
@@ -135,7 +128,7 @@ public class EszamanliIsKuraliTestleri(TestVeritabani vt) : IAsyncLifetime
         await using var db1 = vt.YeniContext();
         var s = await new StokDuzeltmeServisi(db1).DuzeltAsync(new StokDuzeltmeIstek(_diyotLotId, 5, "SayimFarki", "sayım"), _adminId);
 
-        Assert.Equal(12, s.YeniKalanAdet);  // 10 - 3 + 5: eski değerin üstüne yazılmadı (RowVersion + yeniden deneme)
+        Assert.Equal(12, s.YeniKalanAdet);
         Assert.Equal(12, await DiyotKalani());
         await using var db = vt.YeniContext();
         Assert.Equal(2, await db.StokDuzeltmeleri.CountAsync());
@@ -161,7 +154,6 @@ public class EszamanliIsKuraliTestleri(TestVeritabani vt) : IAsyncLifetime
         Assert.Equal(1, await kontrol.Satislar.CountAsync());
     }
 
-    /// <summary>İşi çalıştırır; başarılıysa null, hata olursa hatayı döndürür.</summary>
     private static async Task<Exception?> Dene<T>(Func<Task<T>> is_)
     {
         try

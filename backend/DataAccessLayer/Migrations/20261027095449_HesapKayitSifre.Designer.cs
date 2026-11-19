@@ -14,7 +14,6 @@ namespace DataAccessLayer.Migrations
     [Migration("20261027095449_HesapKayitSifre")]
     partial class HesapKayitSifre
     {
-        /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618

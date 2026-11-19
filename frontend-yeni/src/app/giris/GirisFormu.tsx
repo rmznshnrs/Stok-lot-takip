@@ -7,7 +7,6 @@ import { hatirla } from "@/components/Oturum";
 import SifreKutusu from "@/components/SifreKutusu";
 import { ApiHatasi, oturum } from "@/lib/api";
 
-/** Yalnız uygulama içi yollara dönülür (dış adrese yönlendirme olmasın). */
 function guvenliAdres(sonraki: string | null) {
   return sonraki && sonraki.startsWith("/") && !sonraki.startsWith("//") ? sonraki : "/";
 }
@@ -26,7 +25,6 @@ export default function GirisFormu() {
     try {
       const { kullanici } = await oturum.giris(kullaniciAdi.trim(), sifre);
       hatirla(kullanici);
-      // Tam sayfa geçiş: proxy yeni çerezi görsün
       window.location.href = sonraki;
     } catch (err) {
       setHata(err instanceof ApiHatasi ? err.message : "Giriş yapılamadı.");

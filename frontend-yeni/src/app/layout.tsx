@@ -9,7 +9,6 @@ const nunito = Nunito({
   weight: ["400", "600", "700", "800"],
 });
 
-// Yalnız firma adı (logo) için
 const montserrat = Montserrat({
   variable: "--font-logo",
   subsets: ["latin", "latin-ext"],
@@ -22,7 +21,6 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    // data-tema, sayfa çizilmeden betikle atanır; sunucu çıktısıyla farkı beklenen bir durum
     <html lang="tr" className={`${nunito.variable} ${montserrat.variable}`} suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: TEMA_BETIGI }} />

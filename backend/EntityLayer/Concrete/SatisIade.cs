@@ -1,9 +1,5 @@
 namespace EntityLayer.Concrete;
 
-/// <summary>
-/// Satılmış bir seri no'nun iadesi. İade alınınca satış kalemi kaldırılır (ürün depoya döner ve yeniden
-/// satılabilir), satış kaydı ve hangi müşteriye satıldığı bu kayıtta korunur.
-/// </summary>
 public class SatisIade : IDenetimli
 {
     public int Id { get; set; }

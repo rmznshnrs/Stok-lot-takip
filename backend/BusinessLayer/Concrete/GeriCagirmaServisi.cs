@@ -127,7 +127,6 @@ public class GeriCagirmaServisi(AppDbContext db) : IGeriCagirmaServisi
             var admin = await Kullanicilar.AdminGetirAsync(db, kullaniciId, "Hurdaya ayırma", ct);
             var g = await AcikGetirAsync(id, ct);
             var zaman = Zaman.Simdi();
-            // Müşterideki ürün önce iade alınır (kime satıldığı iade kaydında kalır), sonra hurdaya ayrılır
             var kalem = await db.SatisKalemleri.SingleOrDefaultAsync(k => k.UretimId == g.UretimId, ct);
             if (kalem is not null)
             {
@@ -177,7 +176,6 @@ public class GeriCagirmaServisi(AppDbContext db) : IGeriCagirmaServisi
 
     private IQueryable<UrunGeriCagirma> Sorgu() => db.UrunGeriCagirmalari.AsNoTracking();
 
-    /// <summary>Durum: musteride, geri_alindi, depoda, hurda, satisa_acildi, musteriye_verildi.</summary>
     private static readonly System.Linq.Expressions.Expression<Func<UrunGeriCagirma, GeriCagirmaDto>> Donustur = g =>
         new GeriCagirmaDto(
             g.Id, g.Uretim!.SeriNo, g.Uretim.Urun!.Ad, g.StokLotu == null ? null : g.StokLotu.LotNo, g.Aciklama, g.OlusturmaZamani,

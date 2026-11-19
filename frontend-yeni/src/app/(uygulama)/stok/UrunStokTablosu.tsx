@@ -5,10 +5,6 @@ import { uretim, urunler } from "@/lib/api";
 import { useVeri } from "@/lib/kancalar";
 import UrunDepo from "./UrunDepo";
 
-/**
- * Üretilmiş ürünlerin stoğu: ürün başına depoda (satılabilir), geri çağrılmış, satılan, hurda / kayıp ve toplam.
- * Ürüne tıklayınca depodaki seri numaraları (stoktan düşme) açılır.
- */
 export default function UrunStokTablosu({ aranan }: { aranan: string }) {
   const { veri: liste, hata } = useVeri(() => urunler.listele(), []);
   const { veri: gecmis, hata: gecmisHatasi, yenile } = useVeri(() => uretim.gecmis(), []);

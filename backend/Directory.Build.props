@@ -1,11 +1,9 @@
 <Project>
-  <!-- Tüm backend projeleri için ortak ayarlar -->
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <LangVersion>latest</LangVersion>
-    <!-- Null uyarıları hata sayılır: eksik kontrol derlemede yakalansın -->
     <WarningsAsErrors>nullable</WarningsAsErrors>
   </PropertyGroup>
 </Project>

@@ -3,11 +3,6 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace PresentationLayer;
 
-/// <summary>
-/// İş kuralı hatalarını HTTP yanıtına çevirir (ProblemDetails). Mesaj Türkçe olarak "detail"de;
-/// yetersiz stokta "eksikler", geri çağrılan lot onayında "uyarilar" ek alan olarak döner.
-/// Beklenmeyen hatalar burada işlenmez (500, ayrıntı gösterilmez).
-/// </summary>
 public class HataIsleyici(IProblemDetailsService problemDetails) : IExceptionHandler
 {
     public async ValueTask<bool> TryHandleAsync(HttpContext http, Exception hata, CancellationToken ct)

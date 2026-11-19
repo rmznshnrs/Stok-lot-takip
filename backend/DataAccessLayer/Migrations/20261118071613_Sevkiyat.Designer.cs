@@ -15,7 +15,6 @@ namespace DataAccessLayer.Migrations
     [Migration("20261118071613_Sevkiyat")]
     partial class Sevkiyat
     {
-        /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618

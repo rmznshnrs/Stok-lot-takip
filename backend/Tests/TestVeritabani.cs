@@ -3,16 +3,10 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Storage;
 
-// Testler tek bir gerçek veritabanını paylaşır; aynı anda koşarlarsa birbirini kilitler.
 [assembly: CollectionBehavior(DisableTestParallelization = true)]
 
 namespace Tests;
 
-/// <summary>
-/// Gerçek SQL Server'da ayrı test veritabanı; InMemory kullanılmaz.
-/// Test çalıştırması başında silinip migration'larla yeniden oluşturulur.
-/// Bağlantı LOTTAKIP_TEST_DB ortam değişkeninden, yoksa yerel SQLEXPRESS / LotTakip_Test.
-/// </summary>
 public sealed class TestVeritabani : IAsyncLifetime
 {
     public static string Baglanti { get; } =
@@ -21,7 +15,6 @@ public sealed class TestVeritabani : IAsyncLifetime
 
     public const string AdminSifre = "test-admin-sifresi";
 
-    /// <summary>Komutlar veritabanına gitmeden hemen önce çalışan test kancası (hata, çakışma üretmek için).</summary>
     public KomutKancasi Kanca { get; } = new();
 
     public AppDbContext YeniContext() =>
@@ -36,7 +29,6 @@ public sealed class TestVeritabani : IAsyncLifetime
 
     public Task DisposeAsync() => Task.CompletedTask;
 
-    /// <summary>Kalıcı (commit edilmiş) tüm veriyi siler. Transaction dışında çalışan testler için.</summary>
     public async Task TumVeriyiSilAsync()
     {
         await using var db = YeniContext();
@@ -51,10 +43,6 @@ public sealed class TestVeritabani : IAsyncLifetime
     }
 }
 
-/// <summary>
-/// Her komuttan önce <see cref="Oncesi"/> çağrılır (null değilse). Test, belirli bir komutta hata
-/// fırlatabilir ya da başka bir bağlantıdan araya girip çakışma oluşturabilir.
-/// </summary>
 public sealed class KomutKancasi : DbCommandInterceptor
 {
     public Func<DbCommand, Task>? Oncesi { get; set; }
@@ -82,10 +70,6 @@ public sealed class VeritabaniKoleksiyonu : ICollectionFixture<TestVeritabani>
     public const string Ad = "Veritabanı";
 }
 
-/// <summary>
-/// Her test kendi transaction'ında koşar ve sonunda geri alınır: testler birbirini etkilemez,
-/// veritabanı her testte boş başlar.
-/// </summary>
 [Collection(VeritabaniKoleksiyonu.Ad)]
 public abstract class VeritabaniTesti(TestVeritabani vt) : IAsyncLifetime
 {
@@ -107,7 +91,6 @@ public abstract class VeritabaniTesti(TestVeritabani vt) : IAsyncLifetime
         await Db.DisposeAsync();
     }
 
-    /// <summary>Örnek veriyi bu testin transaction'ı içinde yükler.</summary>
     protected Task<OrnekVeri.Sonuc> OrnekVeriYukle() =>
         OrnekVeri.Olustur(Db).YukleAsync(TestVeritabani.AdminSifre, sifirla: false);
 }

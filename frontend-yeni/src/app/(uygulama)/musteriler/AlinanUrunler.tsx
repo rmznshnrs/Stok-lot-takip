@@ -10,7 +10,6 @@ import { useVeri } from "@/lib/kancalar";
 
 interface Satir { satisId: number; seriNo: string; urunAd: string; zaman: string; iade: boolean }
 
-/** Müşterinin aldığı ürünler (seri no başına): gönderim tarihi ve durum. Seri no'ya tıklayınca ürünün sayfası açılır. */
 export default function AlinanUrunler({ musteriId }: { musteriId: number }) {
   const { veri: satislar, hata } = useVeri(() => satis.gecmis(undefined, musteriId), [musteriId]);
   const { veri: acikGeri } = useVeri(() => geriCagirma.liste(true), []);

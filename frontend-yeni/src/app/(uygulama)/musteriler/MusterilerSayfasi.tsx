@@ -9,10 +9,6 @@ import MusteriSiparisleri from "./MusteriSiparisleri";
 import SiparisDetay from "./SiparisDetay";
 import SiparisFormu from "./SiparisFormu";
 
-/**
- * Müşteriler: bilgiler, siparişler ve aldığı ürünler. Geri çağırma işlemleri ürünün (seri no) sayfasında.
- * Seri no sayfası (?seri=...), sipariş (?siparis=id) ve yeni sipariş (?siparis=yeni&musteri=id) da burada açılır.
- */
 export default function MusterilerSayfasi() {
   const params = useSearchParams();
   const seri = params.get("seri")?.trim();

@@ -5,10 +5,8 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace DataAccessLayer.Migrations
 {
-    /// <inheritdoc />
     public partial class HesapKayitSifre : Migration
     {
-        /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.AddColumn<string>(
@@ -23,7 +21,7 @@ namespace DataAccessLayer.Migrations
                 table: "Kullanici",
                 type: "bit",
                 nullable: false,
-                defaultValue: true);  // mevcut kullanıcılar onaylı sayılır
+                defaultValue: true);
 
             migrationBuilder.CreateTable(
                 name: "SifreSifirlama",
@@ -67,7 +65,6 @@ namespace DataAccessLayer.Migrations
                 column: "KullaniciId");
         }
 
-        /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(

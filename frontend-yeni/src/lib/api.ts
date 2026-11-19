@@ -1,25 +1,16 @@
-// Tüm API çağrıları. İstekler aynı adresteki /api/... yoluna gider; Next.js sunucusu
-// oturum çerezindeki token'ı ekleyip .NET API'ye iletir.
-
-// --- Veri tipleri (API'nin JSON'u) ----------------------------------------------
-
 export type Rol = "Admin" | "Kullanici";
-/** Ekranda gösterilen rol adı (Kullanici rolü "Çalışan" olarak görünür). */
 export const rolAdi = (r: Rol) => (r === "Admin" ? "Yönetici" : "Çalışan");
 
 export interface Kullanici { id: number; ad: string; soyad: string; kullaniciAdi: string; rol: Rol; aktif?: boolean }
 
-/** Parçalar adetle sayılır. */
 export interface ParcaOzet { id: number; kod: string; ad: string }
 
 export interface Lot {
   id: number; lotNo: string; parcaId: number; parcaKod: string; parcaAd: string; tedarikciAd: string;
   siparisTarihi: string; siparisNo: string; girisAdet: number; kalanAdet: number;
-  /** Üretime kapalı (hatalı lotta kalan parçalar kullanılmasın seçildi). */
   geriCagrildi: boolean;
   sorunlu: boolean; sorunAciklama: string;
   girisZamani: string; sirada: boolean;
-  /** Tedarikçinin pakete yazdığı lot no (lotNo: sistemin verdiği stok giriş no). */
   tedarikciLotNo: string;
 }
 
@@ -28,9 +19,7 @@ export interface SatisBilgisi { satisId: number; tarih: string; musteriId: numbe
 export interface ParcaStok {
   id: number; kod: string; ad: string; minStok: number;
   toplamStok: number; kullanilabilirStok: number; lotSayisi: number; kullanildigiUrunler: string[];
-  /** Hatalı kaydedilen parça adedi (stoktan düşülen + yalnız sayılan). */
   hataliAdet: number;
-  /** Sıradaki üretimlere ayrılan adet; serbest: kullanılabilirden ayrılmamış olanı. */
   ayrilan: number; serbest: number;
   minAltinda: boolean;
 }
@@ -39,14 +28,12 @@ export interface StokGrubu { parca: ParcaStok; lotlar: Lot[]; siradaki: Lot | nu
 
 export interface MalGirisiIstek {
   parcaId: number; tedarikciAdi: string; adet: number; siparisTarihi: string; siparisNo?: string;
-  /** Boş bırakılırsa stok giriş no sistemce verilir (SG-0001). */
   lotNo?: string; tedarikciLotNo?: string;
 }
 export interface MalGirisiSonucu { lot: Lot; yeniTedarikci: boolean }
 
 export type DuzeltmeTuru = "SayimFarki" | "Fire" | "Diger";
 export interface StokDuzeltmeIstek { stokLotuId: number; miktar: number; tur: DuzeltmeTuru; aciklama: string }
-/** stoktanDus=false: yalnız hatalı sayısı kaydedilir, stok değişmez. */
 export interface StokHataliIstek { stokLotuId: number; adet: number; stoktanDus: boolean; aciklama: string }
 export interface StokDuzeltmeSonucu { id: number; lotNo: string; miktar: number; tur: string; aciklama: string; yeniKalanAdet: number }
 
@@ -65,7 +52,6 @@ export interface UretimSonucu { urunId: number; urunAd: string; seriNolar: strin
 export interface LotIzUretim {
   uretimId: number; seriNo: string; tarih: string; urunKod: string; urunAd: string; adet: number; satis: SatisBilgisi | null;
   hurdaTuru: HurdaTuru | null;
-  /** "acik": açık geri çağırması var. */
   geriCagirmaDurumu: string | null;
 }
 export interface LotIzMusteri { id: number; ad: string; iletisim: string; satislar: { seriNo: string; tarih: string }[]; seriNolar: string[] }
@@ -79,7 +65,6 @@ export interface SeriIz {
   geriCagirma: GeriCagirma | null;
 }
 
-/** lot: stok giriş no. */
 export type NumaraTuru = "lot" | "seri" | "parca";
 export interface Aday { tur: NumaraTuru; deger: string }
 export interface NumaraArama { tur: NumaraTuru | null; deger: string | null; adaylar: Aday[] }
@@ -97,7 +82,6 @@ export type HurdaTuru = "Hurda" | "Kayip";
 export interface HurdaBilgisi { tur: HurdaTuru; aciklama: string; zaman: string; kullaniciAd: string }
 export interface UretimHurdaIstek { seriNolar: string[]; tur: HurdaTuru; aciklama: string }
 export interface UretimHurdaSonucu { seriNolar: string[]; tur: HurdaTuru; aciklama: string }
-/** "Kayip" → "Kayıp" */
 export const hurdaAdi = (t: HurdaTuru) => (t === "Kayip" ? "Kayıp" : "Hurda");
 export interface Satilabilir { uretimId: number; seriNo: string; urunAd: string; geriCagrilanLotlar: string[] }
 export interface SatisUyarisi { seriNo: string; lotlar: string[] }
@@ -106,11 +90,9 @@ export interface SatisSonucu {
   satisId: number; musteriId: number; musteriAd: string; yeniMusteri: boolean; tarih: string;
   seriNolar: string[]; uyarilar: SatisUyarisi[];
 }
-/** seriNolar: hâlâ satılmış olanlar; iadeEdilenler: bu satıştan iade alınanlar. */
 export interface SatisGecmisi {
   satisId: number; tarih: string; musteriAd: string; urunAd: string; seriNolar: string[]; iadeEdilenler: string[];
   kalemler: { seriNo: string }[] | null;
-  /** Satışın saati; saat tutulmaya başlanmadan önceki satışlarda null. */
   zaman: string | null;
 }
 export interface IadeBilgisi { musteriAd: string; satisTarihi: string; iadeZamani: string; aciklama: string; kullaniciAd: string }
@@ -123,7 +105,6 @@ export interface GeriCagirma {
 }
 export interface Islem { zaman: string; tur: IslemTuru; kullaniciAd: string; aciklama: string; numara: string | null; numaraTuru: "lot" | "seri" | null }
 
-/** Üretim sırasındaki iş. durum: Bekliyor, Tamamlandi, Iptal. parcalar[].ayrilan: kalan üretim için ayrılan. */
 export interface UretimEmri {
   id: number; sira: number; urunId: number; urunKod: string; urunAd: string; adet: number; uretilen: number;
   durum: "Bekliyor" | "Tamamlandi" | "Iptal"; planlananTarih: string; aciklama: string;
@@ -131,7 +112,6 @@ export interface UretimEmri {
   olusturmaZamani: string; kullaniciAd: string; bitisZamani: string | null;
   parcalar: { parca: ParcaOzet; birimAdet: number; ayrilan: number }[]; seriNolar: string[];
 }
-/** siparisKalemiId verilip adet verilmezse kalemin eksiği kadar. */
 export interface UretimEmriIstek { urunId: number; adet?: number; siparisKalemiId?: number; planlananTarih?: string; aciklama?: string }
 
 export type SiparisDurumu = "bekliyor" | "uretimde" | "hazir" | "kismen_gonderildi" | "tamamlandi" | "iptal";
@@ -139,7 +119,6 @@ export const SIPARIS_DURUM_ADI: Record<SiparisDurumu, string> = {
   bekliyor: "Bekliyor", uretimde: "Üretimde", hazir: "Gönderime Hazır", kismen_gonderildi: "Kısmen Gönderildi",
   tamamlandi: "Tamamlandı", iptal: "İptal Edildi",
 };
-/** ayrilanlar: bu kaleme ayrılan seriler (gönderilenler dahil); uretimde: sıradaki adet; eksik: ne ayrılan ne sırada. */
 export interface SiparisKalemi {
   id: number; urunId: number; urunKod: string; urunAd: string; adet: number;
   ayrilanlar: string[]; gonderilenler: string[]; uretimde: number; eksik: number;
@@ -158,7 +137,6 @@ export type SevkiyatDurumu = "Hazirlaniyor" | "Kargoda" | "TeslimEdildi";
 export const SEVKIYAT_DURUM_ADI: Record<SevkiyatDurumu, string> = {
   Hazirlaniyor: "Kargoya Verilecek", Kargoda: "Kargoda", TeslimEdildi: "Teslim Edildi",
 };
-/** Sevkiyat (sevk edilen ürün satılmış sayılır). iadeler: bu sevkiyattan iade alınan seri numaraları. */
 export interface Sevkiyat {
   id: number; no: string; musteriId: number; musteriAd: string; siparisId: number | null; siparisNo: string | null;
   tarih: string; zaman: string | null; durum: SevkiyatDurumu; kargoFirmasi: string; takipNo: string; aciklama: string;
@@ -169,7 +147,6 @@ export interface SevkiyatIstek {
   siparisId: number; seriNolar: string[]; kargoFirmasi?: string; takipNo?: string; aciklama?: string; geriCagrilanOnayi?: boolean;
 }
 
-/** Serbest parça stoğuyla en fazla uretilebilir adet üretilebilen ürün; kisitlayanlar: buna yol açan parçalar. */
 export interface UretilebilirUyari {
   urunId: number; urunKod: string; urunAd: string; uretilebilir: number;
   kisitlayanlar: { parca: ParcaOzet; birimAdet: number; serbest: number }[];
@@ -179,15 +156,12 @@ export interface AnaSayfaOzeti {
   hazirlananSevkiyat: number; kargodaSevkiyat: number; depodaUrun: number; minAltindaParca: number; acikGeriCagirma: number;
   uyarilar: UretilebilirUyari[];
   yaklasanTeslimler: { siparisId: number; no: string; musteriAd: string; istenenTarih: string; kalan: number }[];
-  /** Ürün ağacı olan her ürün için parça stoğuyla üretilebilecek adet. */
   kapasiteler: { urunId: number; urunAd: string; uretilebilir: number }[];
 }
-/** planlanan: sıradaki işlerin o güne planlanan adedi; uretilen: o gün üretilen; istenen: o gün teslimi istenen sipariş adedi. */
 export interface TakvimGunu {
   tarih: string; urunler: { urunId: number; urunAd: string; planlanan: number; uretilen: number; istenen: number }[];
   planlar: TakvimPlani[];
 }
-/** Parça alımı hatırlatıcısı (parca dolu) ya da not. */
 export interface TakvimPlani {
   id: number; tarih: string; parca: ParcaOzet | null; adet: number | null; tedarikciId: number | null; tedarikciAd: string | null;
   aciklama: string; tamamlandi: boolean; kullaniciAd: string;
@@ -195,7 +169,6 @@ export interface TakvimPlani {
 export interface TakvimPlaniIstek { tarih: string; parcaId?: number; adet?: number; tedarikciId?: number; aciklama?: string }
 
 export interface ParcaIstek { kod: string; ad: string; minStok?: number }
-/** Seri no öneki gönderilmez: yeni üründe ürün kodundan oluşur (U1 → U1-0001), sonra değişmez. */
 export interface UrunIstek { kod: string; ad: string }
 export interface UrunAgaciSatiriIstek { parcaId: number; adet: number }
 export interface UrunListe { id: number; kod: string; ad: string; seriOneki: string; parcaCesidi: number; uretimSayisi: number }
@@ -203,18 +176,14 @@ export interface UrunAgaciSatiri {
   parcaId: number; parcaKod: string; parcaAd: string; adet: number; kullanilabilirStok: number; minAltinda: boolean;
 }
 export interface UrunDetay { id: number; kod: string; ad: string; seriOneki: string; seriOnekiDegistirilebilir: boolean; agac: UrunAgaciSatiri[] }
-/** iletisim: telefon · e-posta · adres tek satırda (görüntüleme için). */
 export interface Iletisim { id: number; ad: string; iletisim: string; telefon: string; eposta: string; adres: string }
 export interface IletisimIstek { ad: string; telefon: string; eposta: string; adres: string }
 
 export interface KullaniciOlusturIstek { ad: string; soyad: string; kullaniciAdi: string; sifre: string; rol: Rol }
 export interface KullaniciGuncelleIstek { ad: string; soyad: string; rol: Rol; yeniSifre?: string }
 
-// --- Hata --------------------------------------------------------------------------
-
 export interface EksikParca { parca: ParcaOzet; gereken: number; kullanilabilir: number; eksik: number }
 
-/** API'nin ProblemDetails yanıtı. Mesaj kullanıcıya gösterilecek Türkçe metindir. */
 export class ApiHatasi extends Error {
   constructor(
     readonly durum: number,
@@ -227,8 +196,6 @@ export class ApiHatasi extends Error {
     this.name = "ApiHatasi";
   }
 }
-
-// --- İstek ---------------------------------------------------------------------------
 
 type Sorgu = Record<string, string | number | boolean | null | undefined>;
 
@@ -289,8 +256,6 @@ const gonder = <T>(yol: string, govde?: unknown) => istek<T>("POST", adres(yol),
 const guncelle = <T>(yol: string, govde: unknown) => istek<T>("PUT", adres(yol), govde);
 const sil = <T>(yol: string) => istek<T>("DELETE", adres(yol));
 
-// --- Oturum ----------------------------------------------------------------------
-
 export const oturum = {
   giris: (kullaniciAdi: string, sifre: string) =>
     istek<{ kullanici: Kullanici }>("POST", "/api/oturum", { kullaniciAdi, sifre }),
@@ -298,8 +263,6 @@ export const oturum = {
   ben: () => al<Kullanici>("kimlik/ben"),
   sifreDegistir: (eskiSifre: string, yeniSifre: string) => gonder<void>("kimlik/sifre", { eskiSifre, yeniSifre }),
 };
-
-// --- Tanımlar ----------------------------------------------------------------------
 
 export const parcalar = {
   listele: (arama?: string) => al<ParcaStok[]>("parcalar", { arama }),
@@ -332,8 +295,6 @@ export const islemler = {
   liste: (s: { tur?: IslemTuru; kullaniciId?: number; once?: string; adet?: number } = {}) => al<Islem[]>("islemler", s),
 };
 
-// --- Stok, üretim, satış, izleme ------------------------------------------------------
-
 export const stok = {
   durum: (s: { arama?: string; parca?: string; bitenler?: boolean } = {}) => al<StokGrubu[]>("stok", s),
   giris: (g: MalGirisiIstek) => gonder<MalGirisiSonucu>("stok/giris", g),
@@ -350,7 +311,6 @@ export const uretim = {
 export const sira = {
   liste: (bitenler = false) => al<UretimEmri[]>("uretim/sira", { bitenler }),
   ekle: (e: UretimEmriIstek) => gonder<UretimEmri>("uretim/sira", e),
-  /** adet verilmezse kalanın hepsi üretilir. */
   uret: (id: number, adet?: number) => gonder<UretimSonucu>(`uretim/sira/${id}/uret`, { adet }),
   iptal: (id: number) => gonder<UretimEmri>(`uretim/sira/${id}/iptal`),
   tasi: (id: number, yon: -1 | 1) => gonder<UretimEmri[]>(`uretim/sira/${id}/tasi`, { yon }),
@@ -377,9 +337,7 @@ export const sevkiyat = {
 
 export const ozet = {
   anaSayfa: () => al<AnaSayfaOzeti>("ozet"),
-  /** baslangic, bitis: "YYYY-MM-DD" (en çok 62 gün). */
   takvim: (baslangic: string, bitis: string) => al<TakvimGunu[]>("ozet/takvim", { baslangic, bitis }),
-  /** Parça alımı hatırlatıcısı ya da not; stoğa dokunmaz. */
   planEkle: (p: TakvimPlaniIstek) => gonder<TakvimPlani>("ozet/takvim/plan", p),
   planTamam: (id: number, tamamlandi: boolean) => gonder<TakvimPlani>(`ozet/takvim/plan/${id}/tamam?tamamlandi=${tamamlandi}`),
   planSil: (id: number) => sil<void>(`ozet/takvim/plan/${id}`),
@@ -399,7 +357,6 @@ export const izleme = {
   seri: (seriNo: string) => al<SeriIz>(`izleme/seri/${parca(seriNo)}`),
   ara: (q: string) => al<NumaraArama>("izleme/ara", { q }),
   hareketler: (adet = 8) => al<Hareket[]>("izleme/hareketler", { adet }),
-  /** Yalnız yönetici: stok girişini hatalı işaretler / hatayı kaldırır. Yalnız seçilen ürünler geri çağrılır. */
   sorun: (lotNo: string, s: { sorunlu: boolean; uretimdeKullan: boolean; aciklama: string; geriCagrilacaklar?: string[] }) =>
     gonder<{ lot: Lot; geriCagrilanSeriNolar: string[] }>(`izleme/lot/${parca(lotNo)}/sorun`, s),
 };
@@ -411,22 +368,16 @@ export const geriCagirma = {
   satisaAc: (id: number) => gonder<GeriCagirma>(`geri-cagirma/${id}/satisa-ac`),
   musteriyeVer: (id: number) => gonder<GeriCagirma>(`geri-cagirma/${id}/musteriye-ver`),
   bilgiVerildi: (id: number) => gonder<GeriCagirma>(`geri-cagirma/${id}/bilgi-verildi`),
-  /** Müşterideyse önce iade alınır, sonra hurdaya ayrılır. */
   hurda: (id: number, aciklama: string) => gonder<GeriCagirma>(`geri-cagirma/${id}/hurda`, { aciklama }),
 };
-
-// --- Kullanıcılar (Admin) -----------------------------------------------------------
 
 export const kullanicilar = {
   listele: () => al<Kullanici[]>("kullanicilar"),
   olustur: (k: KullaniciOlusturIstek) => gonder<Kullanici>("kullanicilar", k),
   guncelle: (id: number, k: KullaniciGuncelleIstek) => guncelle<Kullanici>(`kullanicilar/${id}`, k),
-  /** İşlemi yoksa siler (silindi: true), varsa pasif yapar. */
   sil: (id: number) => sil<{ silindi: boolean }>(`kullanicilar/${id}`),
   etkinlestir: (id: number) => gonder<Kullanici>(`kullanicilar/${id}/etkinlestir`),
 };
-
-// --- Hesap: kayıt ol, şifremi unuttum, e-posta, kayıt onayı ---------------------------
 
 export interface OnayBekleyen { id: number; ad: string; soyad: string; kullaniciAdi: string; eposta: string | null }
 

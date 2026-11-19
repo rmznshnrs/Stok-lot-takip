@@ -12,12 +12,10 @@ import GunPaneli from "./GunPaneli";
 const GUNLER = ["Pzt", "Sal", "Çar", "Per", "Cum", "Cmt", "Paz"];
 const AYLAR = ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"];
 
-/** "YYYY-MM-DD" (yerel tarih, saat dilimi kaymadan). */
 export function gunMetni(t: Date) {
   return `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, "0")}-${String(t.getDate()).padStart(2, "0")}`;
 }
 
-/** Ayın görünen günleri: ayın ilk gününün haftasının pazartesisinden son gününün haftasının pazarına. */
 function gunler(yil: number, ay: number) {
   const ilk = new Date(yil, ay, 1);
   const bas = new Date(yil, ay, 1 - ((ilk.getDay() + 6) % 7));
@@ -28,11 +26,6 @@ function gunler(yil: number, ay: number) {
   return liste;
 }
 
-/**
- * Takvim: gün gün, ürün ürün planlanan üretim (sıradaki işler), üretilen ve teslimi istenen sipariş adedi;
- * parça alımı hatırlatıcıları ve notlar. Bir güne basınca o günün ayrıntısı ve plan girme alanı açılır.
- * Teslim tarihi verilmemiş siparişler sipariş gününde görünür. ?ay=YYYY-MM&gun=YYYY-MM-DD
- */
 export default function TakvimSayfasi() {
   const params = useSearchParams();
   const bugunMetni = bugun();

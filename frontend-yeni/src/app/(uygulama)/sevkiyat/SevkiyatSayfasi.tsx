@@ -13,7 +13,6 @@ import SevkiyatDetay from "./SevkiyatDetay";
 import SevkiyatFormu from "./SevkiyatFormu";
 import { sevkiyatAdresi, sevkiyatRozeti, urunOzeti } from "./ortak";
 
-/** Sevkiyat: liste (durum süzgeci, arama), ayrıntı (?id=) ve yeni sevkiyat (?yeni=1&siparis=). */
 export default function SevkiyatSayfasi() {
   const params = useSearchParams();
   const id = Number(params.get("id")) || null;

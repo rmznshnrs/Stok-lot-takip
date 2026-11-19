@@ -7,10 +7,6 @@ import { ApiHatasi, ozet, parcalar, sira, tedarikciler, urunler, type TakvimGunu
 import { tarih } from "@/lib/bicim";
 import { useVeri } from "@/lib/kancalar";
 
-/**
- * Takvimde seçilen gün: o günün üretim / teslim sayıları, o güne planlı işler ve hatırlatıcılar.
- * Ürün üretimi planı üretim sırasına iş olarak girer (parçaları ayrılır); parça alımı yalnız hatırlatıcıdır.
- */
 export default function GunPaneli({ gun, veri, isler, kapat, degisti }: {
   gun: string;
   veri: TakvimGunu | undefined;
@@ -119,7 +115,6 @@ export default function GunPaneli({ gun, veri, isler, kapat, degisti }: {
 
 type Calistir = (is_: () => Promise<unknown>, basari: string) => Promise<boolean>;
 
-/** Seçilen güne üretim: üretim sırasına iş eklenir, parçaları ayrılır. */
 function UretimPlani({ gun, calistir }: { gun: string; calistir: Calistir }) {
   const { veri: urunListesi } = useVeri(() => urunler.listele(), []);
   const [urunId, setUrunId] = useState("");
@@ -162,7 +157,6 @@ function UretimPlani({ gun, calistir }: { gun: string; calistir: Calistir }) {
   );
 }
 
-/** Parça alımı hatırlatıcısı ya da not; stoğa dokunmaz. */
 function AlimPlani({ gun, calistir }: { gun: string; calistir: Calistir }) {
   const { veri: parcaListesi } = useVeri(() => parcalar.listele(), []);
   const { veri: tedarikciListesi } = useVeri(() => tedarikciler(), []);

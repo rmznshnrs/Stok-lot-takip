@@ -13,10 +13,6 @@ import { useVeri } from "@/lib/kancalar";
 import { durumRozeti } from "./MusteriSiparisleri";
 import { sevkiyatAdresi, sevkiyatRozeti, urunOzeti } from "../sevkiyat/ortak";
 
-/**
- * Sipariş ayrıntısı: her ürün için istenen, ayrılan (depodan / üretimden), üretimde, eksik ve gönderilen.
- * Depodan ürün ayrılabilir, ayrım kaldırılabilir, eksik üretim sırasına eklenebilir; sipariş iptal edilebilir.
- */
 export default function SiparisDetay({ id }: { id: number }) {
   const params = useSearchParams();
   const ilkUyari = params.get("uyari");
@@ -147,7 +143,6 @@ function KalemKutusu({ siparis, kalem: k, calistir }: {
   );
 }
 
-/** Siparişin sevkiyatları ve gönderime hazır ürün varsa yeni sevkiyat bağlantısı. */
 function Sevkiyatlar({ siparis: s }: { siparis: Siparis }) {
   const { veri } = useVeri(() => sevkiyat.liste(undefined, undefined, s.musteriId), [s.musteriId, s.kalemler]);
   const liste = veri?.filter((x) => x.siparisId === s.id) ?? [];
@@ -174,7 +169,6 @@ function Sevkiyatlar({ siparis: s }: { siparis: Siparis }) {
   );
 }
 
-/** Eksiğin tamamını ya da bir kısmını seçilen güne sıraya ekler; sipariş böylece farklı günlerde üretilebilir. */
 function SirayaEkle({ kalem: k, ilkGun, ekle }: {
   kalem: SiparisKalemi;
   ilkGun: string;

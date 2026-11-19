@@ -4,10 +4,6 @@ namespace DataAccessLayer.Concrete.Contexts;
 
 public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options)
 {
-    /// <summary>
-    /// Büyük/küçük harf duyarsız, aksan duyarlı. Sunucu Türkçe (Turkish_CI_AS) kurulsa da
-    /// "sn-ip-0001" = "SN-IP-0001" olsun diye (Türkçe kuralda I ≠ i). Türkçe karakterler korunur.
-    /// </summary>
     public const string Siralama = "Latin1_General_100_CI_AS";
 
     public DbSet<Parca> Parcalar => Set<Parca>();
@@ -32,12 +28,10 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<UretimEmriParcasi> UretimEmriParcalari => Set<UretimEmriParcasi>();
     public DbSet<TakvimPlani> TakvimPlanlari => Set<TakvimPlani>();
 
-    /// <summary>Müşteri / tedarikçide görüntülenen tek satırlık iletişim: boş olmayan alanlar " · " ile.</summary>
     private const string IletisimSql = "CONCAT_WS(N' · ', NULLIF([Telefon], N''), NULLIF([Eposta], N''), NULLIF([Adres], N''))";
 
     protected override void ConfigureConventions(ModelConfigurationBuilder c)
     {
-        // Enum'lar sayı değil ad olarak saklanır (veritabanında okunabilir)
         c.Properties<KullaniciRolu>().HaveConversion<string>().HaveMaxLength(20);
         c.Properties<StokDuzeltmeTuru>().HaveConversion<string>().HaveMaxLength(20);
         c.Properties<UretimHurdaTuru>().HaveConversion<string>().HaveMaxLength(20);
@@ -73,7 +67,6 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             e.ToTable("StokLotu", t =>
             {
                 t.HasCheckConstraint("CK_StokLotu_GirisAdet", "[GirisAdet] > 0");
-                // Sayım fazlası (+ düzeltme) giriş adedini aşabilir; yalnız negatif olamaz
                 t.HasCheckConstraint("CK_StokLotu_KalanAdet", "[KalanAdet] >= 0");
             });
             e.Property(x => x.SorunAciklama).HasMaxLength(500);
@@ -84,7 +77,6 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             e.Property(x => x.SiparisNo).HasMaxLength(100);
             e.Property(x => x.RowVersion).IsRowVersion();
             e.HasIndex(x => x.LotNo).IsUnique();
-            // FIFO sorgusu: bir parçanın kullanılabilir lotları, en eski sipariş önce
             e.HasIndex(x => new { x.ParcaId, x.GeriCagrildi, x.SiparisTarihi, x.Id });
             e.HasOne(x => x.Parca).WithMany(p => p.Lotlar).HasForeignKey(x => x.ParcaId);
             e.HasOne(x => x.Tedarikci).WithMany(t => t.Lotlar).HasForeignKey(x => x.TedarikciId);
@@ -105,7 +97,6 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         {
             e.ToTable("UrunAgaci", t => t.HasCheckConstraint("CK_UrunAgaci_Adet", "[Adet] > 0"));
             e.HasKey(x => new { x.UrunId, x.ParcaId });
-            // Ürün silinirse ağaç satırları da gider (üretimi olan ürün zaten silinemez)
             e.HasOne(x => x.Urun).WithMany(u => u.Agac).HasForeignKey(x => x.UrunId)
                 .OnDelete(DeleteBehavior.Cascade);
             e.HasOne(x => x.Parca).WithMany(p => p.AgacSatirlari).HasForeignKey(x => x.ParcaId);
@@ -175,7 +166,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         {
             e.ToTable("UretimTuketim", t => t.HasCheckConstraint("CK_UretimTuketim_Adet", "[Adet] > 0"));
             e.HasKey(x => new { x.UretimId, x.StokLotuId });
-            e.HasIndex(x => x.StokLotuId);  // lot → kullanıldığı üretimler (lot izleme)
+            e.HasIndex(x => x.StokLotuId);
             e.HasOne(x => x.Uretim).WithMany(u => u.Tuketimler).HasForeignKey(x => x.UretimId);
             e.HasOne(x => x.StokLotu).WithMany(l => l.Tuketimler).HasForeignKey(x => x.StokLotuId);
         });
@@ -209,7 +200,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         {
             e.ToTable("SatisKalemi");
             e.HasKey(x => new { x.SatisId, x.UretimId });
-            e.HasIndex(x => x.UretimId).IsUnique();  // bir seri no yalnızca bir kez satılır
+            e.HasIndex(x => x.UretimId).IsUnique();
             e.HasOne(x => x.Satis).WithMany(s => s.Kalemler).HasForeignKey(x => x.SatisId);
             e.HasOne(x => x.Uretim).WithOne(u => u.SatisKalemi).HasForeignKey<SatisKalemi>(x => x.UretimId);
         });
@@ -238,7 +229,6 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         {
             e.ToTable("StokDuzeltme", t =>
             {
-                // Hatalı kaydı stoktan düşmeden yalnız sayı tutabilir (Miktar 0)
                 t.HasCheckConstraint("CK_StokDuzeltme_Miktar", "[Miktar] <> 0 OR [HataliAdet] > 0");
                 t.HasCheckConstraint("CK_StokDuzeltme_HataliAdet", "[HataliAdet] >= 0");
                 t.HasCheckConstraint("CK_StokDuzeltme_Aciklama", "LEN([Aciklama]) > 0");
@@ -252,7 +242,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         {
             e.ToTable("UretimHurda", t => t.HasCheckConstraint("CK_UretimHurda_Aciklama", "LEN([Aciklama]) > 0"));
             e.Property(x => x.Aciklama).HasMaxLength(500);
-            e.HasIndex(x => x.UretimId).IsUnique();  // bir seri no yalnızca bir kez ayrılır
+            e.HasIndex(x => x.UretimId).IsUnique();
             e.HasOne(x => x.Uretim).WithOne(u => u.Hurda).HasForeignKey<UretimHurda>(x => x.UretimId);
             e.HasOne(x => x.OlusturanKullanici).WithMany().HasForeignKey(x => x.OlusturanKullaniciId);
         });
@@ -270,7 +260,6 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         {
             e.ToTable("UrunGeriCagirma", t => t.HasCheckConstraint("CK_UrunGeriCagirma_Aciklama", "LEN([Aciklama]) > 0"));
             e.Property(x => x.Aciklama).HasMaxLength(500);
-            // Bir seri no'nun aynı anda tek açık geri çağırması olur
             e.HasIndex(x => x.UretimId).IsUnique().HasFilter("[KapanmaZamani] IS NULL");
             e.HasOne(x => x.Uretim).WithMany(u => u.GeriCagirmalar).HasForeignKey(x => x.UretimId);
             e.HasOne(x => x.StokLotu).WithMany().HasForeignKey(x => x.StokLotuId);
@@ -278,7 +267,6 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             e.HasOne(x => x.KapatanKullanici).WithMany().HasForeignKey(x => x.KapatanKullaniciId);
         });
 
-        // Bağlı kayıt silinmez. Tek istisna yukarıdaki UrunAgaci → Urun.
         foreach (var fk in m.Model.GetEntityTypes().SelectMany(t => t.GetForeignKeys()))
         {
             if (!(fk.DeclaringEntityType.ClrType == typeof(UrunAgaci) && fk.PrincipalEntityType.ClrType == typeof(Urun)))

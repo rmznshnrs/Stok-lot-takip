@@ -23,7 +23,6 @@ async function calistir(is: () => Promise<string>, kaydedildi: (m: string) => vo
   }
 }
 
-/** Yalnız yönetici: stok girişinin kalan adedini elle artırır (+) ya da stoktan düşer (−). */
 export function AdetDuzeltFormu({ lot, kapat, kaydedildi }: Ozellik) {
   const [miktar, setMiktar] = useState("");
   const [tur, setTur] = useState<DuzeltmeTuru>("SayimFarki");

@@ -2,19 +2,14 @@ import { NextRequest, NextResponse } from "next/server";
 import { API_ADRESI, OTURUM_CEREZI } from "@/lib/oturum";
 import { oturumYok, sunucuyaUlasilamadi } from "@/lib/vekil";
 
-// Tarayıcıdan gelen /api/... isteklerini .NET API'ye iletir; token'ı çerezden alıp ekler.
-// Böylece token JavaScript'e açılmaz ve CORS gerekmez.
-
 type Baglam = { params: Promise<{ yol: string[] }> };
 
-// Oturumsuz çağrılabilen uçlar: kayıt ol, şifremi unuttum
 const ACIK_YOLLAR = ["hesap/kayit", "hesap/sifre-unuttum", "hesap/sifre-sifirla"];
 
 async function ilet(istek: NextRequest, { params }: Baglam) {
   const { yol } = await params;
   const yolMetni = yol.map(encodeURIComponent).join("/");
 
-  // Giriş yalnız /api/oturum üzerinden: token tarayıcıya dönmesin
   if (yolMetni.toLowerCase() === "kimlik/giris") {
     return NextResponse.json({ title: "Bulunamadı", status: 404 }, { status: 404 });
   }
@@ -44,13 +39,11 @@ async function ilet(istek: NextRequest, { params }: Baglam) {
   const cevapBasliklari = new Headers();
   const turu = yanit.headers.get("Content-Type");
   if (turu) cevapBasliklari.set("Content-Type", turu);
-  // İndirilen dosyalar (Excel raporu) adıyla kaydedilsin
   const ek = yanit.headers.get("Content-Disposition");
   if (ek) cevapBasliklari.set("Content-Disposition", ek);
   const govde = yanit.status === 204 ? null : await yanit.arrayBuffer();
   const cevap = new NextResponse(govde, { status: yanit.status, headers: cevapBasliklari });
 
-  // Süresi dolmuş ya da geçersiz token: çerezi sil, istemci giriş sayfasına yönlenir
   if (yanit.status === 401) cevap.cookies.delete(OTURUM_CEREZI);
   return cevap;
 }

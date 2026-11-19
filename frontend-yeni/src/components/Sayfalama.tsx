@@ -14,10 +14,6 @@ function kayitliBoyut(): number {
   }
 }
 
-/**
- * Uzun listeyi sayfalara böler. anahtar değişince (arama, süzgeç) ilk sayfaya dönülür.
- * Sayfa başına adet (25 / 50 / 100) tarayıcıda hatırlanır. cubuk: listenin altına konacak gezinme çubuğu.
- */
 export function useSayfalama<T>(liste: T[] | null | undefined, anahtar = "") {
   const [boyut, setBoyut] = useState(() => (typeof window === "undefined" ? 25 : kayitliBoyut()));
   const [durum, setDurum] = useState({ anahtar, sayfa: 1 });
@@ -32,7 +28,6 @@ export function useSayfalama<T>(liste: T[] | null | undefined, anahtar = "") {
     try {
       window.localStorage.setItem(ANAHTAR, String(b));
     } catch {
-      // tarayıcı kaydetmeye izin vermiyorsa yalnız bu sayfada geçerli
     }
   }
 
@@ -47,7 +42,6 @@ function Sayfalama({ toplam, sayfa, sayfaSayisi, boyut, git, boyutSec }: {
   toplam: number; sayfa: number; sayfaSayisi: number; boyut: number;
   git: (sayfa: number) => void; boyutSec: (boyut: number) => void;
 }) {
-  // Çevredeki en çok 5 sayfa numarası
   const ilk = Math.max(1, Math.min(sayfa - 2, sayfaSayisi - 4));
   const numaralar = Array.from({ length: Math.min(5, sayfaSayisi) }, (_, i) => ilk + i);
   return (

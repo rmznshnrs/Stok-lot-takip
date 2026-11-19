@@ -22,7 +22,6 @@ export default function StokEkrani() {
   const params = useSearchParams();
   const parcaKod = params.get("parca") ?? "";
   const istenen = params.get("gorunum");
-  // Eski "lot" (giriş bazında) adresleri parça bazında açılır
   const gorunum: Gorunum = istenen === "urun" ? "urun" : "parca";
 
   const [arama, setArama] = useState(params.get("q") ?? "");
@@ -122,7 +121,6 @@ function BosSatir({ gruplar, aranan, sutun }: { gruplar: StokGrubu[] | null; ara
   );
 }
 
-/** Parçalar; satıra basınca o parçanın stok girişleri (FIFO sırasıyla) ve işlemleri altta açılır. */
 function ParcaTablosu({ gruplar, aranan, ilkAcik }: {
   gruplar: StokGrubu[] | null;
   aranan: string;
@@ -187,5 +185,4 @@ function ParcaTablosu({ gruplar, aranan, ilkAcik }: {
     </>
   );
 }
-
 

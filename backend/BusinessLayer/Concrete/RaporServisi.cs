@@ -3,7 +3,6 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BusinessLayer.Concrete;
 
-/// <summary>Son 1 / 3 / 6 / 12 ayın Excel raporu: uygulamadaki sayfaların düzeninde, her bölüm ayrı sayfa.</summary>
 public class RaporServisi(AppDbContext db, IOzetServisi ozet, ISiparisServisi siparis, IUretimServisi uretim,
                           ISevkiyatServisi sevkiyat, IUretimSirasiServisi sira, IStokServisi stok,
                           IGeriCagirmaServisi geriCagirma) : IRaporServisi
@@ -130,7 +129,6 @@ public class RaporServisi(AppDbContext db, IOzetServisi ozet, ISiparisServisi si
 
     private static DateTime Yerel(DateTimeOffset an) => TimeZoneInfo.ConvertTime(an, Zaman.Istanbul).DateTime;
 
-    /// <summary>Başlık satırı ve satırlar; tarihler gün.ay.yıl biçiminde. Sonraki boş satırın numarasını döner.</summary>
     private static int Tablo(IXLWorksheet s, int ilkSatir, string[] basliklar, IReadOnlyList<object?[]> satirlar)
     {
         for (var i = 0; i < basliklar.Length; i++)

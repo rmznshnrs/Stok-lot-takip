@@ -2,11 +2,6 @@ using System.Xml.Linq;
 
 namespace Tests;
 
-/// <summary>
-/// Katman kurallarını proje referanslarından denetler.
-/// .csproj okunur: derleyici kullanılmayan referansları DLL'den çıkardığı için
-/// derlenmiş assembly'lere bakmak kural ihlalini gizleyebilir.
-/// </summary>
 public class MimariTestleri
 {
     private static readonly Dictionary<string, string[]> IzinVerilen = new()

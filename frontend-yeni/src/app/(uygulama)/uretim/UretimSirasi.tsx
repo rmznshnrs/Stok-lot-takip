@@ -13,10 +13,6 @@ import { siparisAdresi } from "../musteriler/MusteriSiparisleri";
 
 const DURUM_ADI: Record<UretimEmri["durum"], string> = { Bekliyor: "Sırada", Tamamlandi: "Tamamlandı", Iptal: "İptal Edildi" };
 
-/**
- * Üretim sırası: bekleyen işler sırayla. Sıraya girince parçalar ayrılır; "Üret" ile istenen adet üretilir,
- * parçalar stoktan düşülür ve ürünler stoğa girer. Bitenler ayrı görünümde.
- */
 export default function UretimSirasi() {
   const params = useSearchParams();
   const eklendi = Number(params.get("eklendi")) || null;
@@ -192,7 +188,6 @@ function UretFormu({ emir, kapat, uretildi }: { emir: UretimEmri; kapat: () => v
   );
 }
 
-/** Üretilen seri numaraları ve isteğe bağlı etiket yazdırma (son seçilen barkod türü hatırlanır). */
 function UretimSonucKutusu({ sonuc, kapat }: { sonuc: UretimSonucu; kapat: () => void }) {
   const [etiketTuru, setEtiketTuru] = useState<EtiketTuru>(kayitliEtiketTuru);
   return (

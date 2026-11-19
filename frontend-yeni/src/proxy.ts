@@ -1,11 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { OTURUM_CEREZI } from "@/lib/oturum";
 
-// Oturumsuz açılan sayfalar
 const ACIK_SAYFALAR = ["/giris", "/kayit", "/sifremi-unuttum", "/sifre-sifirla"];
 
-// Sayfa yönlendirmesi: oturum çerezi yoksa giriş sayfasına, varsa açık sayfalardan ana sayfaya.
-// Token'ın geçerliliğini API denetler; süresi dolmuşsa ilk istekte 401 alınır ve çerez silinir.
 export function proxy(istek: NextRequest) {
   const oturumVar = istek.cookies.has(OTURUM_CEREZI);
   const { pathname, search } = istek.nextUrl;

@@ -14,7 +14,6 @@ namespace DataAccessLayer.Migrations
     [Migration("20261007135056_IlkSema")]
     partial class IlkSema
     {
-        /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618

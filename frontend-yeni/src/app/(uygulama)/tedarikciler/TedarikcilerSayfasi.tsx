@@ -9,7 +9,6 @@ import { lotAdresi } from "@/lib/adres";
 import { tarih } from "@/lib/bicim";
 import { useVeri } from "@/lib/kancalar";
 
-/** Tedarikçiler; seçilen tedarikçinin bilgileri ve ondan alınan partiler (stok girişleri), elde kalan adediyle. */
 export default function TedarikcilerSayfasi() {
   return (
     <>

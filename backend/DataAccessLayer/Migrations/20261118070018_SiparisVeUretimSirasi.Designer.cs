@@ -15,7 +15,6 @@ namespace DataAccessLayer.Migrations
     [Migration("20261118070018_SiparisVeUretimSirasi")]
     partial class SiparisVeUretimSirasi
     {
-        /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
