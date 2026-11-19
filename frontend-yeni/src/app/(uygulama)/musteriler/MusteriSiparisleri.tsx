@@ -7,7 +7,7 @@ import { tarih } from "@/lib/bicim";
 import { useVeri } from "@/lib/kancalar";
 import SiparisUrunleri from "./SiparisUrunleri";
 
-export const siparisAdresi = (id: number) => `/musteriler?siparis=${id}`;
+export const siparisAdresi = (id: number) => `/siparisler?id=${id}`;
 
 export function durumRozeti(s: Siparis) {
   const renk = s.durum === "tamamlandi" || s.durum === "hazir" ? "rozet--basari" : s.durum === "iptal" ? "" : "rozet--uyari";
@@ -21,7 +21,7 @@ export default function MusteriSiparisleri({ musteriId }: { musteriId: number })
     <div className="form-dikey">
       <div className="bas-satir">
         <h3>Siparişler {liste && <span className="rozet rozet--kucuk rozet--mavi">{liste.length}</span>}</h3>
-        <Link href={`/musteriler?siparis=yeni&musteri=${musteriId}`} className="btn btn--kucuk">+ Yeni Sipariş</Link>
+        <Link href={`/siparisler?yeni=1&musteri=${musteriId}`} className="btn btn--kucuk">+ Yeni Sipariş</Link>
       </div>
       {hata && <div className="mesaj mesaj--error">{hata}</div>}
       <div className="tablo-kap">

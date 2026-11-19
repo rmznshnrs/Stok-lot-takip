@@ -43,7 +43,7 @@ export function GecikenIsler({ veri }: { veri: GrafikVerisi | null }) {
                 <tr key={`${g.tur}-${g.id}`} className="satir-tikla">
                   <td>{g.tur === "siparis" ? "Teslim" : "Üretim"}</td>
                   <td className="mono">
-                    <Link href={g.tur === "siparis" ? `/musteriler?siparis=${g.id}` : `/uretim?eklendi=${g.id}`} className="satir-bag">{g.no}</Link>
+                    <Link href={g.tur === "siparis" ? `/siparisler?id=${g.id}` : `/uretim?eklendi=${g.id}`} className="satir-bag">{g.no}</Link>
                   </td>
                   <td>{g.ad}</td>
                   <td className="sag"><b>{g.kalan}</b></td>
@@ -96,7 +96,7 @@ export function SiparisDurumuGrafigi({ veri }: { veri: GrafikVerisi | null }) {
     <section className="panel">
       <div className="panel-bas">
         <h3>Sipariş Durumu</h3>
-        <Link href="/musteriler" className="btn btn--ikincil btn--kucuk">Siparişler</Link>
+        <Link href="/siparisler" className="btn btn--ikincil btn--kucuk">Siparişler</Link>
       </div>
       <div className="panel-ic halka-duzeni">
         <svg viewBox="0 0 42 42" className="halka" role="img"

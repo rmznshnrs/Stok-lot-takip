@@ -122,7 +122,7 @@ export function YaklasanTeslimler({ ozet: o }: { ozet: AnaSayfaOzeti }) {
             {o.yaklasanTeslimler.map((t) => (
               <tr key={t.siparisId} className="satir-tikla">
                 <td>{tarih(t.istenenTarih)} <KalanGun tarihMetni={t.istenenTarih} /></td>
-                <td className="mono"><Link href={`/musteriler?siparis=${t.siparisId}`} className="satir-bag">{t.no}</Link></td>
+                <td className="mono"><Link href={`/siparisler?id=${t.siparisId}`} className="satir-bag">{t.no}</Link></td>
                 <td>{t.musteriAd}</td>
                 <td className="sag"><b>{t.kalan}</b></td>
               </tr>

@@ -1792,3 +1792,6 @@ html { scrollbar-gutter: stable; }
 @media (min-width: 1200px) { .ozet-kutular { grid-template-columns: repeat(5, minmax(0, 1fr)); } }
 .uyari-karti--bag, .uyari-karti--bag:hover { text-decoration: none; }
 .uyari-karti--bag:hover { border-color: var(--uyari); }
+.ilerleme { display: inline-block; width: 64px; height: 7px; margin-right: 8px; border-radius: 999px; background: var(--kenar-ince); overflow: hidden; vertical-align: middle; }
+.ilerleme > span { display: block; height: 100%; background: #16A34A; }
+.yan-menu nav a[href="/siparisler"]::before { background: #F6C7A8; }
