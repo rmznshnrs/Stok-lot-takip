@@ -4,6 +4,7 @@ import Link from "next/link";
 import { ozet, sira, type AnaSayfaOzeti } from "@/lib/api";
 import { bugun, tarih } from "@/lib/bicim";
 import { useVeri } from "@/lib/kancalar";
+import { talepAdi } from "./musteriler/MusteriSiparisleri";
 
 const GUN_ADLARI = ["Paz", "Pzt", "Sal", "Çar", "Per", "Cum", "Cmt"];
 
@@ -81,7 +82,7 @@ export function SiradakiIsler() {
               <th>Planlanan Gün</th>
               <th>Ürün</th>
               <th className="sag">Kalan Adet</th>
-              <th>Sipariş</th>
+              <th>Talep</th>
             </tr>
           </thead>
           <tbody>
@@ -93,7 +94,7 @@ export function SiradakiIsler() {
                 <td>{tarih(e.planlananTarih)} <KalanGun tarihMetni={e.planlananTarih} /></td>
                 <td><Link href={`/uretim?eklendi=${e.id}`} className="satir-bag">{e.urunAd}</Link></td>
                 <td className="sag"><b>{e.adet - e.uretilen}</b></td>
-                <td>{e.siparisNo ? <>{e.partiAdi} · {e.musteriAd}</> : <span className="soluk">Stok için</span>}</td>
+                <td>{e.siparisId ? talepAdi(e.musteriAd, e.talepTarihi) : <span className="soluk">Stok için</span>}</td>
               </tr>
             ))}
           </tbody>
@@ -112,18 +113,16 @@ export function YaklasanTeslimler({ ozet: o }: { ozet: AnaSayfaOzeti }) {
           <thead>
             <tr>
               <th>Teslim</th>
-              <th>Sipariş</th>
               <th>Müşteri</th>
               <th className="sag">Gönderilecek</th>
             </tr>
           </thead>
           <tbody>
-            {o.yaklasanTeslimler.length === 0 && <tr className="bos"><td colSpan={4}>7 gün içinde teslim yok.</td></tr>}
+            {o.yaklasanTeslimler.length === 0 && <tr className="bos"><td colSpan={3}>7 gün içinde teslim yok.</td></tr>}
             {o.yaklasanTeslimler.map((t) => (
               <tr key={t.siparisId} className="satir-tikla">
                 <td>{tarih(t.istenenTarih)} <KalanGun tarihMetni={t.istenenTarih} /></td>
-                <td className="mono"><Link href={`/siparisler?id=${t.siparisId}`} className="satir-bag">{t.no}</Link></td>
-                <td>{t.musteriAd}</td>
+                <td><Link href={`/siparisler?id=${t.siparisId}`} className="satir-bag">{t.musteriAd}</Link></td>
                 <td className="sag"><b>{t.kalan}</b></td>
               </tr>
             ))}

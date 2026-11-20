@@ -34,7 +34,7 @@ export default function SiparislerSayfasi() {
   const musteri = Number(params.get("musteri")) || 0;
   return (
     <>
-      <SayfaSekmeleri etiket="Siparişler" sekmeler={[]} />
+      <SayfaSekmeleri etiket="Talepler" sekmeler={[]} />
       {id ? <SiparisDetay key={id} id={id} />
         : yeni && musteri ? <SiparisFormu musteriId={musteri} />
         : yeni ? <MusteriSecimi />
@@ -50,7 +50,7 @@ function MusteriSecimi() {
   return (
     <main className="icerik icerik--dikey">
       <section className="kart kart--bosluklu form-dikey">
-        <h2>Yeni Sipariş</h2>
+        <h2>Yeni Talep</h2>
         <div className="alan">
           <label htmlFor="siparis-musteri">Müşteri</label>
           <select id="siparis-musteri" className="girdi" value={secili} onChange={(e) => setSecili(e.target.value)}>
@@ -76,7 +76,7 @@ function SiparisListesi() {
   const [acik, setAcik] = useState<number | null>(null);
   const kosul = SUZGECLER.find((s) => s.deger === suzgec)!.uyar;
   const liste = tumu && tumu.filter((s) => kosul(s) && (!aranan
-    || `${s.no} ${s.musteriAd} ${s.aciklama} ${s.kalemler.map((k) => `${k.urunAd} ${k.urunKod} ${k.ayrilanlar.join(" ")}`).join(" ")}`
+    || `${(s.siparisNolari ?? []).join(" ")} ${s.musteriAd} ${s.aciklama} ${s.kalemler.map((k) => `${k.urunAd} ${k.urunKod} ${k.ayrilanlar.join(" ")}`).join(" ")}`
       .toLocaleLowerCase("tr").includes(aranan)));
   const { gorunen, cubuk } = useSayfalama(liste, `${suzgec}|${aranan}`);
 
@@ -84,7 +84,7 @@ function SiparisListesi() {
     <main className="icerik icerik--dikey">
       <section className="panel">
         <div className="panel-bas">
-          <div className="sekmeler" role="radiogroup" aria-label="Sipariş durumu">
+          <div className="sekmeler" role="radiogroup" aria-label="Talep durumu">
             {SUZGECLER.map((s) => (
               <button key={s.deger} type="button" role="radio" aria-checked={suzgec === s.deger}
                 className={`sekme${suzgec === s.deger ? " sekme--aktif" : ""}`} onClick={() => setSuzgec(s.deger)}>
@@ -93,9 +93,9 @@ function SiparisListesi() {
             ))}
           </div>
           <div className="arama-satiri">
-            <input type="search" className="girdi girdi--ara" aria-label="Siparişlerde ara" placeholder="Sipariş no, müşteri, ürün ya da seri no"
+            <input type="search" className="girdi girdi--ara" aria-label="Taleplerde ara" placeholder="Müşteri, ürün, sipariş no ya da seri no"
               value={arama} onChange={(e) => setArama(e.target.value)} />
-            <Link href="/siparisler?yeni=1" className="btn btn--kucuk">+ Yeni Sipariş</Link>
+            <Link href="/siparisler?yeni=1" className="btn btn--kucuk">+ Yeni Talep</Link>
           </div>
         </div>
         {hata && <div className="mesaj mesaj--error">{hata}</div>}
@@ -103,18 +103,18 @@ function SiparisListesi() {
           <table className="tablo">
             <thead>
               <tr>
-                <th>Sipariş No</th>
                 <th>Müşteri</th>
-                <th>Tarih</th>
+                <th>Talep Tarihi</th>
                 <th>Ürünler</th>
                 <th>İstenen Teslim</th>
                 <th>Gönderilen</th>
+                <th>Sipariş No</th>
                 <th>Durum</th>
               </tr>
             </thead>
             <tbody>
               {liste === null && !hata && <tr className="bos"><td colSpan={7}>Yükleniyor…</td></tr>}
-              {liste?.length === 0 && <tr className="bos"><td colSpan={7}>{aranan ? "Sonuç yok." : "Bu bölümde sipariş yok."}</td></tr>}
+              {liste?.length === 0 && <tr className="bos"><td colSpan={7}>{aranan ? "Sonuç yok." : "Bu bölümde talep yok."}</td></tr>}
               {gorunen?.map((s) => {
                 const ac = acik === s.id;
                 const toplam = s.kalemler.reduce((t, k) => t + k.adet, 0);
@@ -122,9 +122,8 @@ function SiparisListesi() {
                 return (
                   <Fragment key={s.id}>
                     <tr className={`satir-tikla${gecikti(s) ? " uyari-satir" : ""}`}>
-                      <td className="mono"><Link href={siparisAdresi(s.id)}>{s.no}</Link></td>
                       <td>{s.musteriAd}</td>
-                      <td>{tarih(s.tarih)}</td>
+                      <td><Link href={siparisAdresi(s.id)}>{tarih(s.tarih)}</Link></td>
                       <td>
                         <button type="button" className="btn-baglanti parca-ac satir-bag" aria-expanded={ac}
                           onClick={() => setAcik(ac ? null : s.id)}>
@@ -142,6 +141,7 @@ function SiparisListesi() {
                         </span>
                         {giden}/{toplam}
                       </td>
+                      <td className="mono">{s.siparisNolari?.length ? s.siparisNolari.join(", ") : <span className="soluk">—</span>}</td>
                       <td>{durumRozeti(s)}</td>
                     </tr>
                     {ac && (

@@ -39,19 +39,21 @@ export default function AlinanUrunler({ musteriId }: { musteriId: number }) {
             <tr>
               <th>Seri No</th>
               <th>Ürün</th>
+              <th>Sipariş No</th>
               <th>Gönderim Tarihi</th>
               <th>Durum</th>
             </tr>
           </thead>
           <tbody>
-            {satirlar === null && !hata && <tr className="bos"><td colSpan={4}>Yükleniyor…</td></tr>}
-            {satirlar?.length === 0 && <tr className="bos"><td colSpan={4}>Henüz ürün almadı.</td></tr>}
+            {satirlar === null && !hata && <tr className="bos"><td colSpan={5}>Yükleniyor…</td></tr>}
+            {satirlar?.length === 0 && <tr className="bos"><td colSpan={5}>Henüz ürün almadı.</td></tr>}
             {gorunen?.map((s) => {
               const g = s.iade ? undefined : acikGeri?.find((x) => x.seriNo === s.seriNo);
               return (
                 <tr key={`${s.satisId}-${s.seriNo}-${s.iade}`} className={`satir-tikla${g ? " uyari-satir" : ""}`}>
                   <td className="mono"><Link href={seriAdresi(s.seriNo)} className="satir-bag">{s.seriNo}</Link></td>
                   <td>{s.urunAd}</td>
+                  <td className="mono">{sevkiyatlar?.find((v) => v.id === s.satisId)?.siparisNo ?? <span className="soluk">—</span>}</td>
                   <td>{s.zaman}</td>
                   <td className={g ? "uyari-metin" : s.iade ? "soluk" : undefined}>
                     {g ? `Geri çağrıldı · ${DURUM_ADI[g.durum]}` : s.iade ? "İade alındı" : sevkiyatDurumu(s.satisId)}

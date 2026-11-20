@@ -22,6 +22,7 @@ export default function SevkiyatFormu({ ilkSiparis }: { ilkSiparis: number | nul
   const secili = secim ?? bekleyenler.map((b) => b.seriNo);
   const [firma, setFirma] = useState("");
   const [takipNo, setTakipNo] = useState("");
+  const [siparisNo, setSiparisNo] = useState("");
   const [aciklama, setAciklama] = useState("");
   const [uyarilar, setUyarilar] = useState<SatisUyarisi[]>([]);
   const [onay, setOnay] = useState(false);
@@ -31,13 +32,13 @@ export default function SevkiyatFormu({ ilkSiparis }: { ilkSiparis: number | nul
   async function kaydet(e: FormEvent) {
     e.preventDefault();
     setMesaj(null);
-    if (!siparis) return setMesaj({ tur: "error", metin: "Sipariş seçin." });
+    if (!siparis) return setMesaj({ tur: "error", metin: "Talep seçin." });
     if (!secili.length) return setMesaj({ tur: "error", metin: "Gönderilecek ürünleri seçin." });
     setBekliyor(true);
     try {
       const s = await sevkiyat.olustur({
         siparisId: siparis.id, seriNolar: secili, kargoFirmasi: firma.trim(), takipNo: takipNo.trim(),
-        aciklama: aciklama.trim(), geriCagrilanOnayi: onay,
+        aciklama: aciklama.trim(), geriCagrilanOnayi: onay, siparisNo: siparisNo.trim(),
       });
       router.push(sevkiyatAdresi(s.id));
     } catch (err) {
@@ -57,15 +58,15 @@ export default function SevkiyatFormu({ ilkSiparis }: { ilkSiparis: number | nul
         <Mesaj mesaj={mesaj} />
         {hata && <div className="mesaj mesaj--error">{hata}</div>}
         <div className="alan">
-          <label htmlFor="sv-siparis">Sipariş</label>
+          <label htmlFor="sv-siparis">Talep</label>
           <select id="sv-siparis" className="girdi" value={siparisId}
             onChange={(e) => { setSiparisId(e.target.value); setSecim(null); setUyarilar([]); setOnay(false); }}>
-            <option value="">{acikSiparisler?.length === 0 ? "Açık sipariş yok" : "Seçin"}</option>
+            <option value="">{acikSiparisler?.length === 0 ? "Açık talep yok" : "Seçin"}</option>
             {acikSiparisler?.map((s) => {
               const hazir = s.kalemler.reduce((t, k) => t + k.ayrilanlar.length - k.gonderilenler.length, 0);
               return (
                 <option key={s.id} value={s.id} disabled={hazir === 0}>
-                  {s.no} · {s.musteriAd} · {hazir} ürün gönderime hazır{s.istenenTarih ? ` · teslim ${tarih(s.istenenTarih)}` : ""}
+                  {s.musteriAd} · {tarih(s.tarih)} talebi · {hazir} ürün gönderime hazır{s.istenenTarih ? ` · teslim ${tarih(s.istenenTarih)}` : ""}
                 </option>
               );
             })}
@@ -76,9 +77,13 @@ export default function SevkiyatFormu({ ilkSiparis }: { ilkSiparis: number | nul
             <span className="not">
               {siparis.kalemler.map((k) => `${k.urunAd}: ${k.adet} istendi, ${k.gonderilenler.length} gönderildi`).join(" · ")}
             </span>
-            <SeriSecimi adaylar={bekleyenler} secili={secili} setSecili={setSecim} bos="Bu siparişte gönderime hazır ürün yok." />
+            <SeriSecimi adaylar={bekleyenler} secili={secili} setSecili={setSecim} bos="Bu talepte gönderime hazır ürün yok." />
           </>
         )}
+        <div className="alan">
+          <label htmlFor="sv-siparis-no">Sipariş No</label>
+          <input id="sv-siparis-no" className="girdi girdi--mono" maxLength={50} value={siparisNo} onChange={(e) => setSiparisNo(e.target.value)} />
+        </div>
         <div className="izgara-2">
           <div className="alan">
             <label htmlFor="sv-firma">Kargo Firması</label>

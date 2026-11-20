@@ -39,9 +39,9 @@ export default function SiparisUrunleri({ siparisId }: { siparisId: number }) {
       <table className="tablo tablo--sik">
         <thead>
           <tr>
-            <th>Parti</th>
             <th>Seri No</th>
             <th>Ürün</th>
+            <th>Sipariş No</th>
             <th>Üretim</th>
             <th>Sevkiyat / Kargo</th>
             <th>Kargoya Verildi</th>
@@ -51,16 +51,16 @@ export default function SiparisUrunleri({ siparisId }: { siparisId: number }) {
         </thead>
         <tbody>
           {veri === null && <tr className="bos"><td colSpan={8}>Yükleniyor…</td></tr>}
-          {veri?.length === 0 && <tr className="bos"><td colSpan={8}>Bu siparişte henüz ürün yok.</td></tr>}
+          {veri?.length === 0 && <tr className="bos"><td colSpan={8}>Bu talepte henüz ürün yok.</td></tr>}
           {veri?.map((u, i) => {
             const [ad, renk] = DURUM[u.durum];
             return (
               <tr key={u.seriNo ?? `bekleyen-${i}`}>
-                <td className="mono">{u.partiAdi ?? <span className="soluk">Depodan</span>}</td>
                 <td className="mono">
                   {u.seriNo ? <Link href={seriAdresi(u.seriNo)}>{u.seriNo}</Link> : <span className="soluk">{u.adet} adet</span>}
                 </td>
                 <td>{u.urunAd}</td>
+                <td className="mono">{u.siparisNo ?? <span className="soluk">—</span>}</td>
                 <td>
                   {u.uretimZamani ? tarihSaat(u.uretimZamani)
                     : u.planlananTarih ? <span className="soluk">Plan: {tarih(u.planlananTarih)}</span> : "—"}

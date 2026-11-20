@@ -19,7 +19,7 @@ export default function SiparisDetay({ id }: { id: number }) {
   const ilkUyari = params.get("uyari");
   const { veri: s, hata, yenile } = useVeri(() => siparisler.getir(id), [id]);
   const [mesaj, setMesaj] = useState<MesajBilgisi | null>(
-    ilkUyari ? { tur: "warning", metin: `Sipariş kaydedildi; sıraya eklenemeyenler: ${ilkUyari}` } : null,
+    ilkUyari ? { tur: "warning", metin: `Talep kaydedildi; sıraya eklenemeyenler: ${ilkUyari}` } : null,
   );
 
   async function calistir(is_: () => Promise<unknown>, basari: string) {
@@ -44,17 +44,17 @@ export default function SiparisDetay({ id }: { id: number }) {
       {s && (
         <section className="kart kart--genis kart--bosluklu">
           <div className="bas-satir">
-            <h2><span className="mono">{s.no}</span> · {s.musteriAd} {durumRozeti(s)}</h2>
+            <h2>{s.musteriAd} · {tarih(s.tarih)} talebi {durumRozeti(s)}</h2>
             {!s.iptalZamani && s.durum !== "tamamlandi" && (
               <button type="button" className="btn btn--ikincil btn--kucuk"
-                onClick={() => confirm(`${s.no} iptal edilsin mi? Ayrılan ürünler bırakılır, sıradaki üretimi kapatılır.`)
-                  && calistir(() => siparisler.iptal(s.id), "Sipariş iptal edildi.")}>
-                Siparişi İptal Et
+                onClick={() => confirm(`Bu talep iptal edilsin mi? Ayrılan ürünler bırakılır, sıradaki üretimi kapatılır.`)
+                  && calistir(() => siparisler.iptal(s.id), "Talep iptal edildi.")}>
+                Talebi İptal Et
               </button>
             )}
           </div>
           <div className="bilgi-liste">
-            <div className="bilgi"><span>Sipariş Tarihi</span><span>{tarih(s.tarih)}</span></div>
+            <div className="bilgi"><span>Talep Tarihi</span><span>{tarih(s.tarih)}</span></div>
             <div className="bilgi"><span>İstenen Teslim</span><span>{s.istenenTarih ? tarih(s.istenenTarih) : "—"}</span></div>
             {s.aciklama && <div className="bilgi"><span>Açıklama</span><span>{s.aciklama}</span></div>}
             <div className="bilgi"><span>Kaydeden</span><span>{s.kullaniciAd} · {tarihSaat(s.olusturmaZamani)}</span></div>
@@ -100,11 +100,11 @@ function KalemKutusu({ siparis, kalem: k, calistir }: {
           {k.ayrilanlar.map((seri) => {
             const gitti = k.gonderilenler.includes(seri);
             return (
-              <span key={seri} className={`seri-cip satir-tikla${gitti ? " seri-cip--mavi" : ""}`} title={gitti ? "Gönderildi" : "Depoda, siparişe ayrılmış"}>
+              <span key={seri} className={`seri-cip satir-tikla${gitti ? " seri-cip--mavi" : ""}`} title={gitti ? "Gönderildi" : "Depoda, talebe ayrılmış"}>
                 <Link href={seriAdresi(seri)} className="satir-bag">{seri}</Link>
                 {acik && !gitti && (
                   <button type="button" className="btn-baglanti" aria-label={`${seri} ayrımını kaldır`}
-                    onClick={() => calistir(() => siparisler.birak(k.id, seri), `${seri} siparişten çıkarıldı.`)}> ×</button>
+                    onClick={() => calistir(() => siparisler.birak(k.id, seri), `${seri} talepten çıkarıldı.`)}> ×</button>
                 )}
               </span>
             );
@@ -137,7 +137,7 @@ function KalemKutusu({ siparis, kalem: k, calistir }: {
           {secili.length > 0 && (
             <div>
               <button type="button" className="btn btn--kucuk"
-                onClick={() => calistir(async () => { await siparisler.ayir(k.id, secili); setAyir(false); }, `${secili.length} ürün siparişe ayrıldı.`)}>
+                onClick={() => calistir(async () => { await siparisler.ayir(k.id, secili); setAyir(false); }, `${secili.length} ürün talebe ayrıldı.`)}>
                 Seçilen {secili.length} Ürünü Ayır
               </button>
             </div>
@@ -164,7 +164,7 @@ function Sevkiyatlar({ siparis: s }: { siparis: Siparis }) {
       {liste.map((x) => (
         <div key={x.id} className="bas-satir satir-tikla kutu kutu--ince">
           <span>
-            <Link href={sevkiyatAdresi(x.id)} className="mono satir-bag">{x.no}</Link> · {x.zaman ? tarihSaat(x.zaman) : tarih(x.tarih)} · {urunOzeti(x)}
+            <Link href={sevkiyatAdresi(x.id)} className="mono satir-bag">{x.no}</Link>{x.siparisNo && <> · Sipariş No <b className="mono">{x.siparisNo}</b></>} · {x.zaman ? tarihSaat(x.zaman) : tarih(x.tarih)} · {urunOzeti(x)}
             {x.takipNo && <> · {x.kargoFirmasi} <span className="mono">{x.takipNo}</span></>}
           </span>
           {sevkiyatRozeti(x)}

@@ -9,7 +9,7 @@ import { seriAdresi } from "@/lib/adres";
 import { ETIKET_TURLERI, etiketTuruKaydet, kayitliEtiketTuru, type EtiketTuru } from "@/lib/etiket";
 import { useGecikmeli, useVeri } from "@/lib/kancalar";
 import UretimSekmeleri from "./UretimSekmeleri";
-import { siparisAdresi } from "../musteriler/MusteriSiparisleri";
+import { siparisAdresi, talepAdi } from "../musteriler/MusteriSiparisleri";
 
 export default function UretimSirasi({ uretimde }: { uretimde: boolean }) {
   const params = useSearchParams();
@@ -19,7 +19,7 @@ export default function UretimSirasi({ uretimde }: { uretimde: boolean }) {
   const [arama, setArama] = useState("");
   const aranan = useGecikmeli(arama.trim().toLocaleLowerCase("tr"));
   const liste = tumu && tumu.filter((e) => basladi(e) === uretimde
-    && (!aranan || `${e.urunAd} ${e.urunKod} ${e.partiAdi ?? ""} ${e.musteriAd ?? ""} ${e.aciklama}`.toLocaleLowerCase("tr").includes(aranan)));
+    && (!aranan || `${e.urunAd} ${e.urunKod} ${e.musteriAd ?? ""} ${e.aciklama}`.toLocaleLowerCase("tr").includes(aranan)));
   const [acik, setAcik] = useState<number | null>(null);
   const [sonuc, setSonuc] = useState<UretimSonucu | null>(null);
   const [mesaj, setMesaj] = useState<MesajBilgisi | null>(null);
@@ -52,7 +52,7 @@ export default function UretimSirasi({ uretimde }: { uretimde: boolean }) {
             )}
           </div>
           <div className="arama-satiri">
-            <input type="search" className="girdi girdi--ara" aria-label="Üretimde ara" placeholder="Ürün, sipariş ya da müşteri"
+            <input type="search" className="girdi girdi--ara" aria-label="Üretimde ara" placeholder="Ürün ya da müşteri"
               value={arama} onChange={(e) => setArama(e.target.value)} />
             <Link href="/uretim?yeni=1" className="btn btn--kucuk">+ Sıraya Ekle</Link>
           </div>
@@ -66,7 +66,7 @@ export default function UretimSirasi({ uretimde }: { uretimde: boolean }) {
                 <th className="hucre-dar">Sıra</th>
                 <th>Ürün</th>
                 <th className="sag">Adet</th>
-                <th>Sipariş</th>
+                <th>Talep</th>
                 <th>Planlanan Gün</th>
                 <th>Ayrılan Parçalar</th>
                 <th><span className="gorunmez">İşlem</span></th>
@@ -90,7 +90,7 @@ export default function UretimSirasi({ uretimde }: { uretimde: boolean }) {
                     </td>
                     <td>
                       {e.siparisId ? (
-                        <><Link href={siparisAdresi(e.siparisId)} className="mono">{e.partiAdi}</Link> · {e.musteriAd}</>
+                        <Link href={siparisAdresi(e.siparisId)}>{talepAdi(e.musteriAd, e.talepTarihi)}</Link>
                       ) : (
                         <span className="soluk">Stok için</span>
                       )}

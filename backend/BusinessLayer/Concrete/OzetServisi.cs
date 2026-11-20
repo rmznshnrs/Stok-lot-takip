@@ -61,14 +61,15 @@ public class OzetServisi(AppDbContext db, IStokServisi stok) : IOzetServisi
 
         var gecikenSiparis = siparisler
             .Where(s => s.Durum is not ("tamamlandi" or "iptal") && s.IstenenTarih is { } t && t < bugun)
-            .Select(s => new GecikenIsDto("siparis", s.Id, s.No, s.MusteriAd, s.IstenenTarih!.Value,
+            .Select(s => new GecikenIsDto("siparis", s.Id, s.MusteriAd,
+                string.Join(", ", s.Kalemler.Select(k => $"{k.UrunAd} × {k.Adet}")), s.IstenenTarih!.Value,
                 s.Kalemler.Sum(k => k.Adet - k.Gonderilenler.Count), s.Id));
         var gecikenUretim = (await db.UretimEmirleri.AsNoTracking()
                 .Where(e => e.Durum == UretimEmriDurumu.Bekliyor && e.PlanlananTarih < bugun)
                 .Select(e => new { e.Id, e.PlanlananTarih, Kalan = e.Adet - e.Uretilen, UrunAd = e.Urun!.Ad, SiparisId = (int?)e.SiparisKalemi!.SiparisId,
-                    SiparisNo = e.SiparisKalemi!.Siparis!.No })
+                    MusteriAd = e.SiparisKalemi!.Siparis!.Musteri!.Ad })
                 .ToListAsync(ct))
-            .Select(e => new GecikenIsDto("uretim", e.Id, e.SiparisNo ?? "Stok için", e.UrunAd, e.PlanlananTarih, e.Kalan, e.SiparisId));
+            .Select(e => new GecikenIsDto("uretim", e.Id, e.MusteriAd ?? "Stok için", e.UrunAd, e.PlanlananTarih, e.Kalan, e.SiparisId));
         var gecikenler = gecikenSiparis.Concat(gecikenUretim).OrderBy(g => g.Tarih).ThenBy(g => g.No).ToList();
 
         var urunler = await db.Urunler.AsNoTracking()

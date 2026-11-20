@@ -32,8 +32,8 @@ export function GecikenIsler({ veri }: { veri: GrafikVerisi | null }) {
             <thead>
               <tr>
                 <th>Tür</th>
-                <th>Sipariş</th>
-                <th>Müşteri / Ürün</th>
+                <th>Müşteri / İş</th>
+                <th>Ürün</th>
                 <th className="sag">Kalan Adet</th>
                 <th>İstenen / Planlanan</th>
               </tr>
@@ -42,7 +42,7 @@ export function GecikenIsler({ veri }: { veri: GrafikVerisi | null }) {
               {liste.map((g) => (
                 <tr key={`${g.tur}-${g.id}`} className="satir-tikla">
                   <td>{g.tur === "siparis" ? "Teslim" : "Üretim"}</td>
-                  <td className="mono">
+                  <td>
                     <Link href={g.tur === "siparis" ? `/siparisler?id=${g.id}` : `/uretim?eklendi=${g.id}`} className="satir-bag">{g.no}</Link>
                   </td>
                   <td>{g.ad}</td>
@@ -95,8 +95,8 @@ export function SiparisDurumuGrafigi({ veri }: { veri: GrafikVerisi | null }) {
   return (
     <section className="panel">
       <div className="panel-bas">
-        <h3>Sipariş Durumu</h3>
-        <Link href="/siparisler" className="btn btn--ikincil btn--kucuk">Siparişler</Link>
+        <h3>Talep Durumu</h3>
+        <Link href="/siparisler" className="btn btn--ikincil btn--kucuk">Talepler</Link>
       </div>
       <div className="panel-ic halka-duzeni">
         <svg viewBox="0 0 42 42" className="halka" role="img"
@@ -112,7 +112,7 @@ export function SiparisDurumuGrafigi({ veri }: { veri: GrafikVerisi | null }) {
             return parca;
           })}
           <text x="21" y="20.5" textAnchor="middle" className="halka-sayi">{toplam}</text>
-          <text x="21" y="26" textAnchor="middle" className="halka-alt">sipariş</text>
+          <text x="21" y="26" textAnchor="middle" className="halka-alt">talep</text>
         </svg>
         <ul className="lejant">
           {sayilar.map((x) => (

@@ -13,7 +13,7 @@ const GRUPLAR: { ad: string | null; baglantilar: Baglanti[]; admin?: boolean }[]
   {
     ad: "İşlemler",
     baglantilar: [
-      { yol: "/siparisler", ad: "Siparişler" },
+      { yol: "/siparisler", ad: "Talepler" },
       { yol: "/uretim", ad: "Üretim" },
       { yol: "/stok", ad: "Stok" },
       { yol: "/sevkiyat", ad: "Sevkiyat" },

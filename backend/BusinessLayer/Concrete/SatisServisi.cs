@@ -82,9 +82,9 @@ public class SatisServisi(AppDbContext db) : ISatisServisi
             var baskasina = await db.Uretimler
                 .Where(u => uretimIdleri.Contains(u.Id) && u.SiparisKalemiId != null
                             && (musteriId == null || u.SiparisKalemi!.Siparis!.MusteriId != musteriId))
-                .Select(u => u.SeriNo + " (" + u.SiparisKalemi!.Siparis!.No + ")").ToListAsync(ct);
+                .Select(u => u.SeriNo + " (" + u.SiparisKalemi!.Siparis!.Musteri!.Ad + ")").ToListAsync(ct);
             if (baskasina.Count > 0)
-                throw new SatisHatasi($"Başka bir siparişe ayrılmış: {string.Join(", ", baskasina.Order())}");
+                throw new SatisHatasi($"Başka bir müşterinin talebine ayrılmış: {string.Join(", ", baskasina.Order())}");
             var yeniMusteri = musteri is null;
             musteri ??= new Musteri { Ad = musteriAdi };
 

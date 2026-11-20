@@ -12,10 +12,12 @@ function cevir(metin: string) {
   }).join("");
 }
 
+const hazir = (e: Element) => Object.keys(e).some((k) => k.startsWith("__reactFiber$"));
+
 function duzelt(dugum: Node) {
   if (dugum.nodeType === Node.TEXT_NODE) {
     const ebeveyn = dugum.parentElement;
-    if (!ebeveyn || ebeveyn.closest(ATLA)) return;
+    if (!ebeveyn || !hazir(ebeveyn) || ebeveyn.closest(ATLA)) return;
     const eski = dugum.nodeValue ?? "";
     const yeni = cevir(eski);
     if (yeni !== eski) dugum.nodeValue = yeni;
@@ -36,7 +38,11 @@ export default function BuyukHarf() {
       }
     });
     gozcu.observe(document.body, { subtree: true, childList: true, characterData: true });
-    return () => gozcu.disconnect();
+    const zamanlayicilar = [50, 250, 800, 2000].map((ms) => window.setTimeout(() => duzelt(document.body), ms));
+    return () => {
+      gozcu.disconnect();
+      zamanlayicilar.forEach((z) => window.clearTimeout(z));
+    };
   }, []);
   return null;
 }

@@ -10,14 +10,13 @@ public class UretimSirasiServisi(AppDbContext db, IStokLotuRepository lotlar, IU
     private static readonly Expression<Func<UretimEmri, UretimEmriDto>> Donustur = e => new UretimEmriDto(
         e.Id, e.Sira, e.UrunId, e.Urun!.Kod, e.Urun.Ad, e.Adet, e.Uretilen, e.Durum.ToString(), e.PlanlananTarih, e.Aciklama,
         e.SiparisKalemi == null ? null : e.SiparisKalemi.SiparisId,
-        e.SiparisKalemi == null ? null : e.SiparisKalemi.Siparis!.No,
+        e.SiparisKalemi == null ? null : e.SiparisKalemi.Siparis!.Tarih,
         e.SiparisKalemi == null ? null : e.SiparisKalemi.Siparis!.Musteri!.Ad,
         e.OlusturmaZamani, e.OlusturanKullanici!.Ad + " " + e.OlusturanKullanici.Soyad, e.BaslamaZamani, e.BitisZamani,
         e.Parcalar.OrderBy(p => p.Parca!.Kod).Select(p => new EmirParcasiDto(
             new ParcaOzetDto(p.Parca!.Id, p.Parca.Kod, p.Parca.Ad), p.BirimAdet,
             e.Durum == UretimEmriDurumu.Bekliyor ? p.BirimAdet * (e.Adet - e.Uretilen) : 0)).ToList(),
-        e.Uretimler.OrderBy(u => u.SeriNo).Select(u => u.SeriNo).ToList(),
-        e.SiparisKalemi == null ? null : e.SiparisKalemi.Siparis!.Kalemler.SelectMany(k => k.UretimEmirleri).Count(x => x.Id <= e.Id));
+        e.Uretimler.OrderBy(u => u.SeriNo).Select(u => u.SeriNo).ToList());
 
     public async Task<List<UretimEmriDto>> ListeAsync(bool bitenler = false, CancellationToken ct = default)
     {
@@ -42,18 +41,18 @@ public class UretimSirasiServisi(AppDbContext db, IStokLotuRepository lotlar, IU
             {
                 kalem = await db.SiparisKalemleri.Include(k => k.Siparis).Include(k => k.Ayrilanlar).Include(k => k.UretimEmirleri)
                             .SingleOrDefaultAsync(k => k.Id == kalemId, ct)
-                        ?? throw new BulunamadiHatasi("Sipariş kalemi bulunamadı.");
+                        ?? throw new BulunamadiHatasi("Talep kalemi bulunamadı.");
                 if (kalem.Siparis!.IptalZamani is not null)
-                    throw new IsKuraliHatasi("Sipariş iptal edilmiş.");
+                    throw new IsKuraliHatasi("Talep iptal edilmiş.");
                 if (kalem.UrunId != istek.UrunId)
-                    throw new IsKuraliHatasi("Ürün sipariş kalemiyle uyuşmuyor.");
+                    throw new IsKuraliHatasi("Ürün talep kalemiyle uyuşmuyor.");
                 var eksik = kalem.Adet - kalem.Ayrilanlar.Count
                             - kalem.UretimEmirleri.Where(e => e.Durum == UretimEmriDurumu.Bekliyor).Sum(e => e.Adet - e.Uretilen);
                 if (eksik <= 0)
-                    throw new IsKuraliHatasi("Bu sipariş kalemi için üretilecek ürün kalmadı.");
+                    throw new IsKuraliHatasi("Bu talep kalemi için üretilecek ürün kalmadı.");
                 adet = istek.Adet ?? eksik;
                 if (adet > eksik)
-                    throw new IsKuraliHatasi($"Bu sipariş kalemi için en fazla {eksik} adet sıraya eklenebilir.");
+                    throw new IsKuraliHatasi($"Bu talep kalemi için en fazla {eksik} adet sıraya eklenebilir.");
             }
             else
             {

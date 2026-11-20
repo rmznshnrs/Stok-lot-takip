@@ -9,6 +9,9 @@ import SiparisUrunleri from "./SiparisUrunleri";
 
 export const siparisAdresi = (id: number) => `/siparisler?id=${id}`;
 
+export const talepAdi = (musteriAd: string | null, talepTarihi: string | null) =>
+  `${musteriAd ?? ""}${talepTarihi ? ` · ${tarih(talepTarihi)} talebi` : ""}`;
+
 export function durumRozeti(s: Siparis) {
   const renk = s.durum === "tamamlandi" || s.durum === "hazir" ? "rozet--basari" : s.durum === "iptal" ? "" : "rozet--uyari";
   return <span className={`rozet rozet--kucuk ${renk}`}>{SIPARIS_DURUM_ADI[s.durum]}</span>;
@@ -20,15 +23,14 @@ export default function MusteriSiparisleri({ musteriId }: { musteriId: number })
   return (
     <div className="form-dikey">
       <div className="bas-satir">
-        <h3>Siparişler {liste && <span className="rozet rozet--kucuk rozet--mavi">{liste.length}</span>}</h3>
-        <Link href={`/siparisler?yeni=1&musteri=${musteriId}`} className="btn btn--kucuk">+ Yeni Sipariş</Link>
+        <h3>Talepler {liste && <span className="rozet rozet--kucuk rozet--mavi">{liste.length}</span>}</h3>
+        <Link href={`/siparisler?yeni=1&musteri=${musteriId}`} className="btn btn--kucuk">+ Yeni Talep</Link>
       </div>
       {hata && <div className="mesaj mesaj--error">{hata}</div>}
       <div className="tablo-kap">
         <table className="tablo tablo--sik">
           <thead>
             <tr>
-              <th>Sipariş No</th>
               <th>Tarih</th>
               <th>Ürünler</th>
               <th>İstenen Teslim</th>
@@ -36,15 +38,14 @@ export default function MusteriSiparisleri({ musteriId }: { musteriId: number })
             </tr>
           </thead>
           <tbody>
-            {liste === null && !hata && <tr className="bos"><td colSpan={5}>Yükleniyor…</td></tr>}
-            {liste?.length === 0 && <tr className="bos"><td colSpan={5}>Sipariş yok.</td></tr>}
+            {liste === null && !hata && <tr className="bos"><td colSpan={4}>Yükleniyor…</td></tr>}
+            {liste?.length === 0 && <tr className="bos"><td colSpan={4}>Talep yok.</td></tr>}
             {liste?.map((s) => {
               const acikMi = acik === s.id;
               return (
                 <Fragment key={s.id}>
                   <tr className="satir-tikla">
-                    <td className="mono"><Link href={siparisAdresi(s.id)}>{s.no}</Link></td>
-                    <td>{tarih(s.tarih)}</td>
+                    <td><Link href={siparisAdresi(s.id)}>{tarih(s.tarih)}</Link></td>
                     <td>
                       <button type="button" className="btn-baglanti parca-ac satir-bag" aria-expanded={acikMi}
                         onClick={() => setAcik(acikMi ? null : s.id)}>
@@ -57,7 +58,7 @@ export default function MusteriSiparisleri({ musteriId }: { musteriId: number })
                   </tr>
                   {acikMi && (
                     <tr className="acilan-satir">
-                      <td colSpan={5}>
+                      <td colSpan={4}>
                         <SiparisUrunleri siparisId={s.id} />
                       </td>
                     </tr>

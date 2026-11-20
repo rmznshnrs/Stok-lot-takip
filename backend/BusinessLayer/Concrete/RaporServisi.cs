@@ -77,16 +77,16 @@ public class RaporServisi(AppDbContext db, IOzetServisi ozet, ISiparisServisi si
         Tablo(ozetSayfa, satir, ["Teslim", "Sipariş", "Müşteri", "Gönderilecek"],
             [.. o.YaklasanTeslimler.Select(t => new object?[] { t.IstenenTarih, t.No, t.MusteriAd, t.Kalan })]);
 
-        Tablo(wb.Worksheets.Add("Siparişler"), 1,
-            ["Sipariş No", "Tarih", "Müşteri", "İstenen Teslim", "Ürün", "Adet", "Ayrılan", "Gönderilen", "Üretimde", "Eksik", "Durum", "Açıklama"],
+        Tablo(wb.Worksheets.Add("Talepler"), 1,
+            ["Tarih", "Müşteri", "İstenen Teslim", "Ürün", "Adet", "Ayrılan", "Gönderilen", "Üretimde", "Eksik", "Durum", "Açıklama"],
             [.. siparisler.SelectMany(s => s.Kalemler.Select(k => new object?[] {
-                s.No, s.Tarih, s.MusteriAd, s.IstenenTarih, k.UrunAd, k.Adet, k.Ayrilanlar.Count, k.Gonderilenler.Count,
+                s.Tarih, s.MusteriAd, s.IstenenTarih, k.UrunAd, k.Adet, k.Ayrilanlar.Count, k.Gonderilenler.Count,
                 k.Uretimde, k.Eksik, SiparisDurumu.GetValueOrDefault(s.Durum, s.Durum), s.Aciklama }))]);
 
         Tablo(wb.Worksheets.Add("Üretim Sırası"), 1,
-            ["Sıra", "Ürün", "Adet", "Üretilen", "Planlanan Gün", "Sipariş", "Müşteri", "Ayrılan Parçalar", "Açıklama"],
+            ["Sıra", "Ürün", "Adet", "Üretilen", "Planlanan Gün", "Müşteri", "Talep Tarihi", "Ayrılan Parçalar", "Açıklama"],
             [.. bekleyen.Select((e, i) => new object?[] {
-                i + 1, e.UrunAd, e.Adet, e.Uretilen, e.PlanlananTarih, e.PartiAdi, e.MusteriAd,
+                i + 1, e.UrunAd, e.Adet, e.Uretilen, e.PlanlananTarih, e.MusteriAd, e.TalepTarihi,
                 string.Join(", ", e.Parcalar.Select(p => $"{p.Parca.Kod} {p.Ayrilan}")), e.Aciklama })]);
 
         Tablo(wb.Worksheets.Add("Üretim"), 1,
@@ -97,7 +97,7 @@ public class RaporServisi(AppDbContext db, IOzetServisi ozet, ISiparisServisi si
                 u.MusteriAd, u.SatisTarihi, string.Join(", ", u.GeriCagrilanLotlar) })]);
 
         Tablo(wb.Worksheets.Add("Sevkiyat"), 1,
-            ["Sevkiyat No", "Tarih", "Müşteri", "Sipariş", "Ürünler", "Seri Numaraları", "Kargo Firması", "Takip No", "Durum",
+            ["Sevkiyat No", "Tarih", "Müşteri", "Sipariş No", "Ürünler", "Seri Numaraları", "Kargo Firması", "Takip No", "Durum",
              "Kargoya Verildi", "Teslim Edildi"],
             [.. sevkiyatlar.Select(s => new object?[] {
                 s.No, s.Zaman is { } z ? Yerel(z) : s.Tarih, s.MusteriAd, s.SiparisNo,

@@ -21,6 +21,7 @@ public class Satis : IDenetimli
     public SevkiyatDurumu Durum { get; set; }
     public string KargoFirmasi { get; set; } = "";
     public string TakipNo { get; set; } = "";
+    public string SiparisNo { get; set; } = "";
     public string Aciklama { get; set; } = "";
     public DateTimeOffset? KargoZamani { get; set; }
     public DateTimeOffset? TeslimZamani { get; set; }

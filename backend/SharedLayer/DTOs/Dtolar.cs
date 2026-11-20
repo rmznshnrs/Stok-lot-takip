@@ -162,7 +162,7 @@ public record SiparisKalemiDto(
 public record SiparisDto(
     int Id, string No, int MusteriId, string MusteriAd, DateOnly Tarih, DateOnly? IstenenTarih, string Aciklama,
     string Durum, IReadOnlyList<SiparisKalemiDto> Kalemler, DateTimeOffset OlusturmaZamani, string KullaniciAd,
-    DateTimeOffset? IptalZamani);
+    DateTimeOffset? IptalZamani, IReadOnlyList<string>? SiparisNolari = null);
 
 public record SeriAyirIstek(IReadOnlyList<string> SeriNolar);
 
@@ -175,12 +175,9 @@ public record EmirParcasiDto(ParcaOzetDto Parca, int BirimAdet, int Ayrilan);
 
 public record UretimEmriDto(
     int Id, int Sira, int UrunId, string UrunKod, string UrunAd, int Adet, int Uretilen, string Durum,
-    DateOnly PlanlananTarih, string Aciklama, int? SiparisId, string? SiparisNo, string? MusteriAd,
+    DateOnly PlanlananTarih, string Aciklama, int? SiparisId, DateOnly? TalepTarihi, string? MusteriAd,
     DateTimeOffset OlusturmaZamani, string KullaniciAd, DateTimeOffset? BaslamaZamani, DateTimeOffset? BitisZamani,
-    IReadOnlyList<EmirParcasiDto> Parcalar, IReadOnlyList<string> SeriNolar, int? PartiNo = null)
-{
-    public string? PartiAdi => SiparisNo is null ? null : $"{SiparisNo}/{PartiNo}";
-}
+    IReadOnlyList<EmirParcasiDto> Parcalar, IReadOnlyList<string> SeriNolar);
 
 public record EmirUretIstek(int? Adet = null);
 
@@ -189,7 +186,9 @@ public record EmirTasiIstek(int Yon);
 public record EmirPlanIstek(DateOnly PlanlananTarih);
 
 public record SevkiyatIstek(int SiparisId, IReadOnlyList<string> SeriNolar, string? KargoFirmasi = null, string? TakipNo = null,
-                            string? Aciklama = null, bool GeriCagrilanOnayi = false);
+                            string? Aciklama = null, bool GeriCagrilanOnayi = false, string? SiparisNo = null);
+
+public record SiparisNoIstek(string SiparisNo);
 
 public record KargoIstek(string KargoFirmasi, string TakipNo);
 
@@ -216,7 +215,7 @@ public record AnaSayfaOzetiDto(
 public record UrunKapasitesiDto(int UrunId, string UrunAd, int Uretilebilir);
 
 public record SiparisUrunuDto(
-    string Durum, string UrunAd, int Adet, string? SeriNo, string? PartiAdi, DateOnly? PlanlananTarih, DateTimeOffset? UretimZamani,
+    string Durum, string UrunAd, int Adet, string? SeriNo, string? SiparisNo, DateOnly? PlanlananTarih, DateTimeOffset? UretimZamani,
     int? SevkiyatId, string? SevkiyatNo, string KargoFirmasi, string TakipNo, DateTimeOffset? KargoZamani, DateTimeOffset? TeslimZamani);
 
 public record HaftalikUretimDto(DateOnly HaftaBasi, int Adet);

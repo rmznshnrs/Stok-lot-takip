@@ -82,7 +82,7 @@ export default function SiparisFormu({ musteriId }: { musteriId: number }) {
       }
       router.push(`${siparisAdresi(s.id)}${uyarilar.length ? `&uyari=${encodeURIComponent(uyarilar.join(" | "))}` : ""}`);
     } catch (err) {
-      setMesaj({ tur: "error", metin: err instanceof Error ? err.message : "Sipariş kaydedilemedi." });
+      setMesaj({ tur: "error", metin: err instanceof Error ? err.message : "Talep kaydedilemedi." });
       setBekliyor(false);
     }
   }
@@ -93,7 +93,7 @@ export default function SiparisFormu({ musteriId }: { musteriId: number }) {
         <GeriIleri />
       </div>
       <form className="kart kart--genis kart--bosluklu" onSubmit={kaydet}>
-        <h2>Yeni Sipariş{musteri && ` · ${musteri.ad}`}</h2>
+        <h2>Yeni Talep{musteri && ` · ${musteri.ad}`}</h2>
         <Mesaj mesaj={mesaj} />
         <div className="izgara-2">
           <div className="alan">
@@ -127,7 +127,7 @@ export default function SiparisFormu({ musteriId }: { musteriId: number }) {
         </label>
         <div className="kart-alt">
           <span />
-          <button type="submit" className="btn" disabled={bekliyor}>{bekliyor ? "Kaydediliyor…" : "Siparişi Kaydet"}</button>
+          <button type="submit" className="btn" disabled={bekliyor}>{bekliyor ? "Kaydediliyor…" : "Talebi Kaydet"}</button>
         </div>
       </form>
     </main>

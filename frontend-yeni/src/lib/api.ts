@@ -108,11 +108,9 @@ export interface Islem { zaman: string; tur: IslemTuru; kullaniciAd: string; aci
 export interface UretimEmri {
   id: number; sira: number; urunId: number; urunKod: string; urunAd: string; adet: number; uretilen: number;
   durum: "Bekliyor" | "Tamamlandi" | "Iptal"; planlananTarih: string; aciklama: string;
-  siparisId: number | null; siparisNo: string | null; musteriAd: string | null;
+  siparisId: number | null; talepTarihi: string | null; musteriAd: string | null;
   olusturmaZamani: string; kullaniciAd: string; baslamaZamani: string | null; bitisZamani: string | null;
   parcalar: { parca: ParcaOzet; birimAdet: number; ayrilan: number }[]; seriNolar: string[];
-  /** Siparişin kaçıncı üretim partisi; partiAdi: SP-0005/2 */
-  partiNo: number | null; partiAdi: string | null;
 }
 export interface UretimEmriIstek { urunId: number; adet?: number; siparisKalemiId?: number; planlananTarih?: string; aciklama?: string }
 
@@ -128,6 +126,7 @@ export interface SiparisKalemi {
 export interface Siparis {
   id: number; no: string; musteriId: number; musteriAd: string; tarih: string; istenenTarih: string | null; aciklama: string;
   durum: SiparisDurumu; kalemler: SiparisKalemi[]; olusturmaZamani: string; kullaniciAd: string; iptalZamani: string | null;
+  siparisNolari: string[] | null;
 }
 export interface SiparisIstek {
   musteriId: number; kalemler: { urunId: number; adet: number; seriNolar?: string[] }[];
@@ -147,6 +146,7 @@ export interface Sevkiyat {
 }
 export interface SevkiyatIstek {
   siparisId: number; seriNolar: string[]; kargoFirmasi?: string; takipNo?: string; aciklama?: string; geriCagrilanOnayi?: boolean;
+  siparisNo?: string;
 }
 
 export interface UretilebilirUyari {
@@ -155,7 +155,7 @@ export interface UretilebilirUyari {
 }
 export type SiparisUrunDurumu = "sirada" | "uretimde" | "depoda" | "hurda" | SevkiyatDurumu;
 export interface SiparisUrunu {
-  durum: SiparisUrunDurumu; urunAd: string; adet: number; seriNo: string | null; partiAdi: string | null; planlananTarih: string | null;
+  durum: SiparisUrunDurumu; urunAd: string; adet: number; seriNo: string | null; siparisNo: string | null; planlananTarih: string | null;
   uretimZamani: string | null; sevkiyatId: number | null; sevkiyatNo: string | null; kargoFirmasi: string; takipNo: string;
   kargoZamani: string | null; teslimZamani: string | null;
 }
@@ -350,6 +350,7 @@ export const sevkiyat = {
   getir: (id: number) => al<Sevkiyat>(`sevkiyat/${id}`),
   olustur: (s: SevkiyatIstek) => gonder<Sevkiyat>("sevkiyat", s),
   kargo: (id: number, kargoFirmasi: string, takipNo: string) => guncelle<Sevkiyat>(`sevkiyat/${id}/kargo`, { kargoFirmasi, takipNo }),
+  siparisNo: (id: number, siparisNo: string) => guncelle<Sevkiyat>(`sevkiyat/${id}/siparis-no`, { siparisNo }),
   teslim: (id: number) => gonder<Sevkiyat>(`sevkiyat/${id}/teslim`),
 };
 

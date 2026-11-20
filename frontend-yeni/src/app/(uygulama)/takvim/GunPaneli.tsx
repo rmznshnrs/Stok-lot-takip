@@ -6,6 +6,7 @@ import Mesaj, { type MesajBilgisi } from "@/components/Mesaj";
 import { ApiHatasi, ozet, parcalar, sira, tedarikciler, urunler, type TakvimGunu, type UretimEmri } from "@/lib/api";
 import { tarih } from "@/lib/bicim";
 import { useVeri } from "@/lib/kancalar";
+import { talepAdi } from "../musteriler/MusteriSiparisleri";
 
 export default function GunPaneli({ gun, veri, isler, kapat, degisti }: {
   gun: string;
@@ -70,7 +71,7 @@ export default function GunPaneli({ gun, veri, isler, kapat, degisti }: {
               <div key={e.id} className="bas-satir kutu kutu--ince">
                 <span>
                   {e.urunAd} · {e.adet - e.uretilen} adet
-                  {e.siparisNo && <span className="yardim"> · {e.partiAdi} {e.musteriAd}</span>}
+                  {e.siparisId && <span className="yardim"> · {talepAdi(e.musteriAd, e.talepTarihi)}</span>}
                   {e.aciklama && <span className="yardim"> · {e.aciklama}</span>}
                 </span>
                 <Link href={`/uretim?eklendi=${e.id}`} className="btn-baglanti">Sırada Gör</Link>

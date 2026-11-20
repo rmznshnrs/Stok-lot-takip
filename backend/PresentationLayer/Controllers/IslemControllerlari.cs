@@ -142,6 +142,9 @@ public class SevkiyatController(ISevkiyatServisi sevkiyat) : ControllerBase
     [HttpPut("{id:int}/kargo")]
     public Task<SevkiyatDto> Kargo(int id, KargoIstek istek, CancellationToken ct) => sevkiyat.KargoAsync(id, istek, ct);
 
+    [HttpPut("{id:int}/siparis-no")]
+    public Task<SevkiyatDto> SiparisNo(int id, SiparisNoIstek istek, CancellationToken ct) => sevkiyat.SiparisNoAsync(id, istek, ct);
+
     [HttpPost("{id:int}/teslim")]
     public Task<SevkiyatDto> Teslim(int id, CancellationToken ct) => sevkiyat.TeslimAsync(id, ct);
 }

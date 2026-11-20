@@ -8,7 +8,6 @@ import { useSayfalama } from "@/components/Sayfalama";
 import { sevkiyat, type SevkiyatDurumu } from "@/lib/api";
 import { tarih, tarihSaat } from "@/lib/bicim";
 import { useGecikmeli, useVeri } from "@/lib/kancalar";
-import { siparisAdresi } from "../musteriler/MusteriSiparisleri";
 import SevkiyatDetay from "./SevkiyatDetay";
 import SevkiyatFormu from "./SevkiyatFormu";
 import { sevkiyatAdresi, sevkiyatRozeti, urunOzeti } from "./ortak";
@@ -53,7 +52,7 @@ function SevkiyatListesi() {
             ))}
           </div>
           <div className="arama-satiri">
-            <input type="search" className="girdi girdi--ara" aria-label="Sevkiyatlarda ara" placeholder="No, müşteri, takip no, seri no"
+            <input type="search" className="girdi girdi--ara" aria-label="Sevkiyatlarda ara" placeholder="Sipariş no, müşteri, takip no, seri no"
               value={arama} onChange={(e) => setArama(e.target.value)} />
             <Link href="/sevkiyat?yeni=1" className="btn btn--kucuk">+ Yeni Sevkiyat</Link>
           </div>
@@ -66,7 +65,7 @@ function SevkiyatListesi() {
                 <th>Sevkiyat No</th>
                 <th>Tarih</th>
                 <th>Müşteri</th>
-                <th>Sipariş</th>
+                <th>Sipariş No</th>
                 <th>Ürünler</th>
                 <th>Kargo</th>
                 <th>Durum</th>
@@ -80,7 +79,7 @@ function SevkiyatListesi() {
                   <td className="mono"><Link href={sevkiyatAdresi(s.id)} className="satir-bag">{s.no}</Link></td>
                   <td>{s.zaman ? tarihSaat(s.zaman) : tarih(s.tarih)}</td>
                   <td><Link href={`/musteriler?id=${s.musteriId}`}>{s.musteriAd}</Link></td>
-                  <td className="mono">{s.siparisId ? <Link href={siparisAdresi(s.siparisId)}>{s.siparisNo}</Link> : <span className="soluk">—</span>}</td>
+                  <td className="mono">{s.siparisNo ?? <span className="soluk">—</span>}</td>
                   <td>{urunOzeti(s) || <span className="soluk">{s.iadeler.length} ürün iade alındı</span>}</td>
                   <td>{s.takipNo ? <>{s.kargoFirmasi} · <span className="mono">{s.takipNo}</span></> : <span className="soluk">—</span>}</td>
                   <td>{sevkiyatRozeti(s)}</td>
