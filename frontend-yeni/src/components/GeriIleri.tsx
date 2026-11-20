@@ -8,8 +8,16 @@ const gezinme = () => (typeof window === "undefined" ? undefined : (window as un
 
 function abone(degisti: () => void) {
   const g = gezinme();
-  g?.addEventListener("currententrychange", degisti);
-  return () => g?.removeEventListener("currententrychange", degisti);
+  let zamanlayici = 0;
+  const ertele = () => {
+    window.clearTimeout(zamanlayici);
+    zamanlayici = window.setTimeout(degisti, 0);
+  };
+  g?.addEventListener("currententrychange", ertele);
+  return () => {
+    window.clearTimeout(zamanlayici);
+    g?.removeEventListener("currententrychange", ertele);
+  };
 }
 
 export default function GeriIleri() {
