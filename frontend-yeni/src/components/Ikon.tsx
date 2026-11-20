@@ -1,8 +1,8 @@
 const CIZIMLER: Record<string, React.ReactNode> = {
   "/": <><path d="M3 11l9-7 9 7" /><path d="M5 10v10h14V10" /><path d="M10 20v-6h4v6" /></>,
   "/siparisler": <><path d="M8 4h8l1 3H7l1-3z" /><rect x="5" y="7" width="14" height="13" rx="2" /><path d="M9 12h6M9 16h4" /></>,
-  "/uretim": <><circle cx="12" cy="12" r="3" /><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1" /></>,
-  "/stok": <><path d="M3 7l9-4 9 4-9 4-9-4z" /><path d="M3 7v10l9 4 9-4V7" /><path d="M12 11v10" /></>,
+  "/uretim": <><rect x="2" y="14" width="20" height="5" rx="2.5" /><circle cx="6" cy="16.5" r="1" /><circle cx="18" cy="16.5" r="1" /><rect x="7" y="6" width="5" height="5" rx="1" /><path d="M15 8h4M17 6l2 2-2 2" /></>,
+  "/stok": <><path d="M3 21V8l9-5 9 5v13" /><path d="M7 21v-8h10v8" /><path d="M7 17h10" /></>,
   "/sevkiyat": <><path d="M3 6h11v10H3z" /><path d="M14 9h4l3 3v4h-7" /><circle cx="7" cy="18" r="1.8" /><circle cx="17" cy="18" r="1.8" /></>,
   "/takvim": <><rect x="4" y="5" width="16" height="15" rx="2" /><path d="M8 3v4M16 3v4M4 10h16" /><path d="M8 14h2M12 14h2M8 17h2" /></>,
   "/musteriler": <><circle cx="9" cy="8" r="3.5" /><path d="M2.5 20c.8-3.5 3.4-5.5 6.5-5.5s5.7 2 6.5 5.5" /><path d="M16 4.5a3.5 3.5 0 010 7M18 14.5c2 .7 3.2 2.6 3.5 5.5" /></>,
