@@ -104,7 +104,7 @@ public class HesapServisi(AppDbContext db, IPostaGonderici posta) : IHesapServis
         await posta.GonderAsync(k.Eposta!, "Şifre sıfırlama",
             $"Merhaba {k.Ad},\n\n{k.KullaniciAdi} hesabı için şifre sıfırlama istendi. Yeni şifre belirlemek için " +
             $"{KodSuresi.TotalMinutes:0} dakika içinde şu bağlantıyı açın:\n\n{baglanti}\n\n" +
-            "Bu isteği siz yapmadıysanız bu e-postayı dikkate almayın; şifreniz değişmez.\n\nMKC Bilişim", ct);
+            "Bu isteği siz yapmadıysanız bu e-postayı dikkate almayın; şifreniz değişmez.\n\nMKC Teknoloji", ct);
     }
 
     public Task SifreSifirlaAsync(SifreSifirlaIstek istek, CancellationToken ct = default)

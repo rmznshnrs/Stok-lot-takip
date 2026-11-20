@@ -17,7 +17,7 @@ const montserrat = Montserrat({
 });
 
 export const metadata: Metadata = {
-  title: { default: "MKC Bilişim", template: "%s – MKC Bilişim" },
+  title: { default: "MKC Teknoloji", template: "%s – MKC Teknoloji" },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

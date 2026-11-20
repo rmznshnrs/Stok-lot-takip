@@ -34,7 +34,7 @@ export default function GirisFormu() {
 
   return (
     <form className="kart kart--giris" onSubmit={gonder}>
-      <h2>MKC Bilişim</h2>
+      <h2>MKC Teknoloji</h2>
 
       <div className="alan">
         <label htmlFor="kullaniciAdi">Kullanıcı adı</label>

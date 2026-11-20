@@ -1961,3 +1961,6 @@ body { background: var(--zemin); }
   background: #2B2630; color: #8E8893;
 }
 .sayfa-dugme--aktif, .sayfa-dugme--aktif:hover { background: var(--ana) !important; border-color: var(--ana) !important; color: #fff !important; }
+.ust-cubuk-marka, .ust-cubuk-marka:hover { font-size: 18px; font-weight: 800; letter-spacing: -.01em; color: var(--metin); text-decoration: none; }
+.ust-cubuk-sag { display: flex; align-items: center; gap: 18px; }
+.ust-cubuk-sag .ust-cubuk-tarih { padding-right: 18px; border-right: 1px solid var(--kenar); }

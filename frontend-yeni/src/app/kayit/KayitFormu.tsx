@@ -52,7 +52,7 @@ export default function KayitFormu() {
   return (
     <form className="kart kart--giris" onSubmit={gonder}>
       <div className="baslik-grup">
-        <h2>MKC Bilişim</h2>
+        <h2>MKC Teknoloji</h2>
         <span className="not">Kayıt ol</span>
       </div>
 

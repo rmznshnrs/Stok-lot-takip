@@ -22,7 +22,7 @@ public class PostaGonderici(IOptions<PostaAyarlari> secenek, IHostEnvironment or
     {
         var ayar = secenek.Value;
         var ileti = new MimeMessage();
-        ileti.From.Add(new MailboxAddress("MKC Bilişim", ayar.Gonderen));
+        ileti.From.Add(new MailboxAddress("MKC Teknoloji", ayar.Gonderen));
         ileti.To.Add(MailboxAddress.Parse(alici));
         ileti.Subject = konu;
         ileti.Body = new TextPart("plain") { Text = metin };
