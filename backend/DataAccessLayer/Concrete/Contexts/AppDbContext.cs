@@ -48,6 +48,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             e.ToTable("Parca", t => t.HasCheckConstraint("CK_Parca_MinStok", "[MinStok] >= 0"));
             e.Property(x => x.Kod).HasMaxLength(50);
             e.Property(x => x.Ad).HasMaxLength(200);
+            e.Property(x => x.Aciklama).HasMaxLength(500);
             e.HasIndex(x => x.Kod).IsUnique();
         });
 
@@ -89,6 +90,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             e.Property(x => x.Kod).HasMaxLength(50);
             e.Property(x => x.Ad).HasMaxLength(200);
             e.Property(x => x.SeriOneki).HasMaxLength(20);
+            e.Property(x => x.Aciklama).HasMaxLength(500);
             e.HasIndex(x => x.Kod).IsUnique();
             e.HasIndex(x => x.SeriOneki).IsUnique();
         });

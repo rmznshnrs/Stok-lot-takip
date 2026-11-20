@@ -72,6 +72,10 @@ public class UretimController(IUretimServisi uretim, IUretimSirasiServisi sira) 
     [HttpPost("sira/{id:int}/tasi")]
     public Task<List<UretimEmriDto>> SiraTasi(int id, EmirTasiIstek istek, CancellationToken ct) => sira.TasiAsync(id, istek.Yon, ct);
 
+    [HttpPost("sira/{id:int}/konum")]
+    public Task<List<UretimEmriDto>> SiraKonum(int id, EmirKonumIstek istek, CancellationToken ct) =>
+        sira.KonumaTasiAsync(id, istek.HedefId, ct);
+
     [HttpPut("sira/{id:int}/plan")]
     public Task<UretimEmriDto> SiraPlan(int id, EmirPlanIstek istek, CancellationToken ct) =>
         sira.PlanlaAsync(id, istek.PlanlananTarih, ct);

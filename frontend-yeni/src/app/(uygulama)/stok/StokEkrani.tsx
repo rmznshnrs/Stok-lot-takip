@@ -4,8 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Fragment, useState } from "react";
 import { useSayfalama } from "@/components/Sayfalama";
-import { ozet, parcalar, stok, type StokGrubu } from "@/lib/api";
-import { ParcaStoguGrafigi, UrunDagilimi } from "@/components/Grafikler";
+import { parcalar, stok, type StokGrubu } from "@/lib/api";
 import { useGecikmeli, useVeri } from "@/lib/kancalar";
 import StokGirisleri from "@/components/StokGirisleri";
 import MalGirisiFormu from "./MalGirisiFormu";
@@ -34,7 +33,6 @@ export default function StokEkrani() {
     [aranan, parcaKod, gorunum],
   );
   const { veri: tumParcalar, yenile: parcalariYenile } = useVeri(() => parcalar.listele(), []);
-  const { veri: grafik } = useVeri(() => (gorunum === "urun" ? ozet.grafikler() : Promise.resolve(null)), [gorunum]);
 
   function adres(degisen: Record<string, string | null>) {
     const p = new URLSearchParams(params.toString());
@@ -105,7 +103,6 @@ export default function StokEkrani() {
           </div>
         )}
         {hata && <div className="panel-ic"><div className="mesaj mesaj--error">{hata}</div></div>}
-        {gorunum === "urun" ? <UrunDagilimi veri={grafik} /> : !parcaKod && !aranan && <ParcaStoguGrafigi gruplar={gruplar} />}
 
         <div className="tablo-kap">
           {gorunum === "urun" ? (
@@ -115,6 +112,7 @@ export default function StokEkrani() {
               gruplar={gruplar}
               aranan={aranan}
               ilkAcik={parcaKod}
+              degisti={() => { yenile(); parcalariYenile(); }}
             />
           )}
         </div>
@@ -133,10 +131,11 @@ function BosSatir({ gruplar, aranan, sutun }: { gruplar: StokGrubu[] | null; ara
   );
 }
 
-function ParcaTablosu({ gruplar, aranan, ilkAcik }: {
+function ParcaTablosu({ gruplar, aranan, ilkAcik, degisti }: {
   gruplar: StokGrubu[] | null;
   aranan: string;
   ilkAcik: string;
+  degisti: () => void;
 }) {
   const [acik, setAcik] = useState<string | null>(ilkAcik || null);
   const { gorunen, cubuk } = useSayfalama(gruplar, aranan);
@@ -151,11 +150,10 @@ function ParcaTablosu({ gruplar, aranan, ilkAcik }: {
             <th className="sag">Kullanılabilir</th>
             <th className="sag">Üretim Sırasında</th>
             <th className="sag">Min stok</th>
-            <th className="sag">Hatalı</th>
           </tr>
         </thead>
         <tbody>
-          <BosSatir gruplar={gruplar} aranan={aranan} sutun={7} />
+          <BosSatir gruplar={gruplar} aranan={aranan} sutun={6} />
           {gorunen?.map((g) => {
             const { parca: p } = g;
             const acikMi = acik === p.kod;
@@ -176,12 +174,11 @@ function ParcaTablosu({ gruplar, aranan, ilkAcik }: {
                   </td>
                   <td className={`sag${p.ayrilan ? "" : " soluk"}`}>{p.ayrilan}</td>
                   <td className="sag soluk">{p.minStok}</td>
-                  <td className={`sag${p.hataliAdet ? " uyari-metin" : " soluk"}`}>{p.hataliAdet}</td>
                 </tr>
                 {acikMi && (
                   <tr className="acilan-satir">
-                    <td colSpan={7}>
-                      <StokGirisleri lotlar={g.lotlar} />
+                    <td colSpan={6}>
+                      <StokGirisleri lotlar={g.lotlar} islemler degisti={degisti} />
                     </td>
                   </tr>
                 )}

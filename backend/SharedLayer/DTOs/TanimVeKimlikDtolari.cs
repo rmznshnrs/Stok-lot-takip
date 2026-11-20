@@ -24,19 +24,19 @@ public record KullaniciOlusturIstek(
 
 public record KullaniciGuncelleIstek([Required] string Ad, [Required] string Soyad, [Required] string Rol, string? YeniSifre = null);
 
-public record ParcaIstek([Required] string Kod, [Required] string Ad, int MinStok = 0);
+public record ParcaIstek([Required] string Kod, [Required] string Ad, int MinStok = 0, string? Aciklama = null);
 
-public record UrunIstek([Required] string Kod, [Required] string Ad, string? SeriOneki = null);
+public record UrunIstek([Required] string Kod, [Required] string Ad, string? SeriOneki = null, string? Aciklama = null);
 
 public record UrunAgaciSatiriIstek(int ParcaId, int Adet);
 
-public record UrunListeDto(int Id, string Kod, string Ad, string SeriOneki, int ParcaCesidi, int UretimSayisi);
+public record UrunListeDto(int Id, string Kod, string Ad, string SeriOneki, int ParcaCesidi, int UretimSayisi, string Aciklama = "");
 
 public record UrunAgaciSatiriDto(int ParcaId, string ParcaKod, string ParcaAd, int Adet,
                                  int KullanilabilirStok, bool MinAltinda);
 
 public record UrunDetayDto(int Id, string Kod, string Ad, string SeriOneki, bool SeriOnekiDegistirilebilir,
-                           IReadOnlyList<UrunAgaciSatiriDto> Agac);
+                           IReadOnlyList<UrunAgaciSatiriDto> Agac, string Aciklama = "");
 
 public record IletisimDto(int Id, string Ad, string Iletisim, string Telefon = "", string Eposta = "", string Adres = "");
 

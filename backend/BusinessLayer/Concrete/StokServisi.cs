@@ -17,7 +17,7 @@ public class StokServisi(AppDbContext db) : IStokServisi
     {
         var satirlar = await q.OrderBy(p => p.Kod).Select(p => new
         {
-            p.Id, p.Kod, p.Ad, p.MinStok,
+            p.Id, p.Kod, p.Ad, p.MinStok, p.Aciklama,
             Toplam = p.Lotlar.Sum(l => (int?)l.KalanAdet) ?? 0,
             Kullanilabilir = p.Lotlar.Where(l => !l.GeriCagrildi).Sum(l => (int?)l.KalanAdet) ?? 0,
             LotSayisi = p.Lotlar.Count(l => l.KalanAdet > 0),
@@ -27,7 +27,7 @@ public class StokServisi(AppDbContext db) : IStokServisi
         var ayrilan = await Ayrilan.ParcalarAsync(db, [.. satirlar.Select(s => s.Id)], null, ct);
         return [.. satirlar.Select(s => new ParcaStokDto(
             s.Id, s.Kod, s.Ad, s.MinStok, s.Toplam, s.Kullanilabilir, s.LotSayisi, s.Urunler, s.Hatali,
-            ayrilan.GetValueOrDefault(s.Id)))];
+            ayrilan.GetValueOrDefault(s.Id), s.Aciklama))];
     }
 
     public async Task<List<StokGrubuDto>> StokDurumuAsync(string? arama = null, string? parcaKod = null,

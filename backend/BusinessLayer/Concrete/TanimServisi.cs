@@ -4,6 +4,13 @@ namespace BusinessLayer.Concrete;
 
 public class TanimServisi(AppDbContext db, IStokServisi stok) : ITanimServisi
 {
+    private static string AciklamaTemizle(string? aciklama)
+    {
+        var a = (aciklama ?? "").Trim();
+        if (a.Length > 500)
+            throw new IsKuraliHatasi("Açıklama en fazla 500 karakter olabilir.");
+        return a;
+    }
 
     public Task<ParcaOzetDto> ParcaOlusturAsync(ParcaIstek istek, CancellationToken ct = default) =>
         ParcaKaydetAsync(null, istek, ct);
@@ -19,6 +26,7 @@ public class TanimServisi(AppDbContext db, IStokServisi stok) : ITanimServisi
             throw new IsKuraliHatasi("Parça kodu ve adı boş olamaz.");
         if (istek.MinStok < 0)
             throw new IsKuraliHatasi("Minimum stok negatif olamaz.");
+        var aciklama = AciklamaTemizle(istek.Aciklama);
 
         return Islem.CalistirAsync(db, async () =>
         {
@@ -27,7 +35,7 @@ public class TanimServisi(AppDbContext db, IStokServisi stok) : ITanimServisi
                 : await db.Parcalar.SingleOrDefaultAsync(p => p.Id == id, ct) ?? throw new BulunamadiHatasi("Parça bulunamadı.");
             if (await db.Parcalar.AnyAsync(p => p.Kod == kod && p.Id != parca.Id, ct))
                 throw new IsKuraliHatasi("Bu kodla bir parça zaten var.");
-            (parca.Kod, parca.Ad, parca.MinStok) = (kod, ad, istek.MinStok);
+            (parca.Kod, parca.Ad, parca.MinStok, parca.Aciklama) = (kod, ad, istek.MinStok, aciklama);
             await db.SaveChangesAsync(ct);
             return Donusum.Ozet(parca);
         }, ct);
@@ -40,7 +48,7 @@ public class TanimServisi(AppDbContext db, IStokServisi stok) : ITanimServisi
         if (!string.IsNullOrEmpty(arama))
             q = q.Where(u => EF.Functions.Like(u.Kod, Arama.Desen(arama)) || EF.Functions.Like(u.Ad, Arama.Desen(arama)));
         return await q.OrderBy(u => u.Kod)
-            .Select(u => new UrunListeDto(u.Id, u.Kod, u.Ad, u.SeriOneki, u.Agac.Count, u.Uretimler.Count))
+            .Select(u => new UrunListeDto(u.Id, u.Kod, u.Ad, u.SeriOneki, u.Agac.Count, u.Uretimler.Count, u.Aciklama))
             .ToListAsync(ct);
     }
 
@@ -55,7 +63,7 @@ public class TanimServisi(AppDbContext db, IStokServisi stok) : ITanimServisi
         return new UrunDetayDto(urun.Id, urun.Kod, urun.Ad, urun.SeriOneki, !uretimVar,
             [.. urun.Agac.OrderBy(a => a.Parca!.Kod).Select(a => new UrunAgaciSatiriDto(
                 a.ParcaId, a.Parca!.Kod, a.Parca.Ad, a.Adet,
-                stoklar[a.ParcaId].KullanilabilirStok, stoklar[a.ParcaId].MinAltinda))]);
+                stoklar[a.ParcaId].KullanilabilirStok, stoklar[a.ParcaId].MinAltinda))], urun.Aciklama);
     }
 
     public Task<UrunDetayDto> UrunOlusturAsync(UrunIstek istek, CancellationToken ct = default) =>
@@ -71,6 +79,7 @@ public class TanimServisi(AppDbContext db, IStokServisi stok) : ITanimServisi
         var verilenOnek = (istek.SeriOneki ?? "").Trim();
         if (kod.Length == 0 || ad.Length == 0)
             throw new IsKuraliHatasi("Ürün kodu ve adı boş olamaz.");
+        var aciklama = AciklamaTemizle(istek.Aciklama);
 
         var urunId = await Islem.CalistirAsync(db, async () =>
         {
@@ -87,7 +96,7 @@ public class TanimServisi(AppDbContext db, IStokServisi stok) : ITanimServisi
             if (id is not null && !string.Equals(urun.SeriOneki, onek, StringComparison.OrdinalIgnoreCase)
                 && await db.Uretimler.AnyAsync(u => u.UrunId == urun.Id, ct))
                 throw new IsKuraliHatasi("Üretim yapıldığı için seri no öneki değişemez.");
-            (urun.Kod, urun.Ad, urun.SeriOneki) = (kod, ad, onek);
+            (urun.Kod, urun.Ad, urun.SeriOneki, urun.Aciklama) = (kod, ad, onek, aciklama);
             await db.SaveChangesAsync(ct);
             return urun.Id;
         }, ct);

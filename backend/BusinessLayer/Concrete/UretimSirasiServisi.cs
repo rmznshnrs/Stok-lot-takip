@@ -151,6 +151,25 @@ public class UretimSirasiServisi(AppDbContext db, IStokLotuRepository lotlar, IU
             return await ListeAsync(ct: ct);
         }, ct);
 
+    public Task<List<UretimEmriDto>> KonumaTasiAsync(int id, int hedefId, CancellationToken ct = default) =>
+        Islem.CalistirAsync(db, async () =>
+        {
+            var emir = await BekleyenGetirAsync(id, ct);
+            var hedef = await BekleyenGetirAsync(hedefId, ct);
+            if (emir.Id != hedef.Id)
+            {
+                var sira = await db.UretimEmirleri.Where(e => e.Durum == UretimEmriDurumu.Bekliyor)
+                    .OrderBy(e => e.Sira).ThenBy(e => e.Id).ToListAsync(ct);
+                var asagi = sira.IndexOf(emir) < sira.IndexOf(hedef);
+                sira.Remove(emir);
+                sira.Insert(sira.IndexOf(hedef) + (asagi ? 1 : 0), emir);
+                for (var i = 0; i < sira.Count; i++)
+                    sira[i].Sira = i + 1;
+                await db.SaveChangesAsync(ct);
+            }
+            return await ListeAsync(ct: ct);
+        }, ct);
+
     public Task<UretimEmriDto> PlanlaAsync(int id, DateOnly tarih, CancellationToken ct = default) =>
         Islem.CalistirAsync(db, async () =>
         {

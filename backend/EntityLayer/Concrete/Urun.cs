@@ -6,6 +6,7 @@ public class Urun
     public required string Kod { get; set; }
     public required string Ad { get; set; }
     public required string SeriOneki { get; set; }
+    public string Aciklama { get; set; } = "";
 
     public List<UrunAgaci> Agac { get; set; } = [];
     public List<Uretim> Uretimler { get; set; } = [];

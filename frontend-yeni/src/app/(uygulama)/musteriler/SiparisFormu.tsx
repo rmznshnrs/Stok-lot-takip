@@ -9,6 +9,7 @@ import { ApiHatasi, firmalar, parcalar, sira, siparisler, urunler } from "@/lib/
 import { bugun, tarih } from "@/lib/bicim";
 import { useVeri } from "@/lib/kancalar";
 import { siparisAdresi } from "./MusteriSiparisleri";
+import SayiGirdi from "@/components/SayiGirdi";
 
 const YENI = "yeni";
 
@@ -169,8 +170,8 @@ function KalemSatiri({ kalem, sira, digerUrunler, degistir, kaldir }: {
         </div>
         <div className="alan">
           <label htmlFor={`k-adet-${kalem.anahtar}`}>Adet</label>
-          <input id={`k-adet-${kalem.anahtar}`} type="number" min={1} max={999} required className="girdi"
-            value={kalem.adet} onChange={(e) => degistir({ adet: e.target.value })} />
+          <SayiGirdi id={`k-adet-${kalem.anahtar}`} min={1} max={999} required
+            value={kalem.adet} onChange={(v) => degistir({ adet: v })} />
         </div>
       </div>
       {yeni && <YeniUrun kalem={kalem} degistir={degistir} />}
@@ -238,8 +239,8 @@ function YeniUrun({ kalem, degistir }: { kalem: Kalem; degistir: (d: Partial<Kal
           </div>
           <div className="alan">
             <label htmlFor={`y-adet-${a.anahtar}`}>Adet</label>
-            <input id={`y-adet-${a.anahtar}`} type="number" min={1} className="girdi girdi--kucuk" value={a.adet}
-              onChange={(e) => agacDegistir(a.anahtar, { adet: e.target.value })} />
+            <SayiGirdi id={`y-adet-${a.anahtar}`} min={1} kucuk value={a.adet}
+              onChange={(v) => agacDegistir(a.anahtar, { adet: v })} />
           </div>
           {kalem.agac.length > 1 && (
             <button type="button" className="btn-baglanti" onClick={() => degistir({ agac: kalem.agac.filter((x) => x.anahtar !== a.anahtar) })}>

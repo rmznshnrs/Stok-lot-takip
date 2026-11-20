@@ -16,5 +16,7 @@ public interface IUretimSirasiServisi
 
     Task<List<UretimEmriDto>> TasiAsync(int id, int yon, CancellationToken ct = default);
 
+    Task<List<UretimEmriDto>> KonumaTasiAsync(int id, int hedefId, CancellationToken ct = default);
+
     Task<UretimEmriDto> PlanlaAsync(int id, DateOnly tarih, CancellationToken ct = default);
 }

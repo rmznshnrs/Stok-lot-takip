@@ -10,6 +10,7 @@ import { ETIKET_TURLERI, etiketTuruKaydet, kayitliEtiketTuru, type EtiketTuru } 
 import { useGecikmeli, useVeri } from "@/lib/kancalar";
 import UretimSekmeleri from "./UretimSekmeleri";
 import { siparisAdresi, talepAdi } from "../musteriler/MusteriSiparisleri";
+import SayiGirdi from "@/components/SayiGirdi";
 
 export default function UretimSirasi({ uretimde }: { uretimde: boolean }) {
   const params = useSearchParams();
@@ -23,6 +24,9 @@ export default function UretimSirasi({ uretimde }: { uretimde: boolean }) {
   const [acik, setAcik] = useState<number | null>(null);
   const [sonuc, setSonuc] = useState<UretimSonucu | null>(null);
   const [mesaj, setMesaj] = useState<MesajBilgisi | null>(null);
+  const [surukle, setSurukle] = useState<number | null>(null);
+  const [hedef, setHedef] = useState<number | null>(null);
+  const tasi = (id: number, hedefId: number | undefined) => hedefId !== undefined && hedefId !== id && calistir(() => sira.konum(id, hedefId));
 
   async function calistir(is_: () => Promise<unknown>, basari?: string) {
     setMesaj(null);
@@ -79,8 +83,13 @@ export default function UretimSirasi({ uretimde }: { uretimde: boolean }) {
               )}
               {liste?.map((e, i) => (
                 <Fragment key={e.id}>
-                  <tr className={e.id === eklendi ? "secili-satir" : undefined}>
-                    <td className="hucre-dar">{i + 1}</td>
+                  <tr className={[e.id === eklendi && "secili-satir", !uretimde && "surukle-satir", hedef === e.id && surukle !== e.id && (liste.findIndex((x) => x.id === surukle) < i ? "surukle-hedef surukle-hedef--alt" : "surukle-hedef"), surukle === e.id && "surukleniyor"].filter(Boolean).join(" ") || undefined}
+                    draggable={!uretimde}
+                    onDragStart={(ev) => { setSurukle(e.id); ev.dataTransfer.effectAllowed = "move"; }}
+                    onDragOver={(ev) => { if (surukle !== null) { ev.preventDefault(); setHedef(e.id); } }}
+                    onDrop={(ev) => { ev.preventDefault(); if (surukle !== null) tasi(surukle, e.id); setSurukle(null); setHedef(null); }}
+                    onDragEnd={() => { setSurukle(null); setHedef(null); }}>
+                    <td className="hucre-dar">{!uretimde && <span className="surukle-tutamak" title="Sürükleyip istediğin yere bırak" aria-hidden="true">⠿</span>}{i + 1}</td>
                     <td>
                       {e.urunAd} <span className="mono yardim">{e.urunKod}</span>
                       {e.aciklama && <div className="yardim">{e.aciklama}</div>}
@@ -111,10 +120,16 @@ export default function UretimSirasi({ uretimde }: { uretimde: boolean }) {
                               <button type="button" className="btn btn--kucuk" aria-expanded={acik === e.id}
                                 onClick={() => setAcik(acik === e.id ? null : e.id)}>Üretildi</button>
                             ) : (<>
-                              <button type="button" className="btn btn--ikincil btn--kucuk" title="Bu işi sırada bir öne al" disabled={i === 0}
-                                onClick={() => calistir(() => sira.tasi(e.id, -1))}>↑ Öne Al</button>
-                              <button type="button" className="btn btn--ikincil btn--kucuk" title="Bu işi sırada bir arkaya al" disabled={i === liste.length - 1}
-                                onClick={() => calistir(() => sira.tasi(e.id, 1))}>↓ Arkaya Al</button>
+                              <span className="sira-dugmeleri" role="group" aria-label="Sırayı değiştir">
+                                <button type="button" className="sira-dugme" title="En üste al" aria-label="En üste al" disabled={i === 0}
+                                  onClick={() => tasi(e.id, liste[0]?.id)}>⇈</button>
+                                <button type="button" className="sira-dugme" title="Bir yukarı" aria-label="Bir yukarı" disabled={i === 0}
+                                  onClick={() => tasi(e.id, liste[i - 1]?.id)}>↑</button>
+                                <button type="button" className="sira-dugme" title="Bir aşağı" aria-label="Bir aşağı" disabled={i === liste.length - 1}
+                                  onClick={() => tasi(e.id, liste[i + 1]?.id)}>↓</button>
+                                <button type="button" className="sira-dugme" title="En alta al" aria-label="En alta al" disabled={i === liste.length - 1}
+                                  onClick={() => tasi(e.id, liste[liste.length - 1]?.id)}>⇊</button>
+                              </span>
                               <button type="button" className="btn btn--kucuk"
                                 onClick={() => calistir(() => sira.basla(e.id), `${e.urunAd} üretime alındı; Üretimde sekmesinde.`)}>Üretime Başla</button>
                             </>)}
@@ -174,8 +189,7 @@ function UretFormu({ emir, kapat, uretildi }: { emir: UretimEmri; kapat: () => v
   return (
     <form className="satir-ekle" onSubmit={kaydet}>
       <label htmlFor={`uret-${emir.id}`}>Üretilen adet (kalan {kalan})</label>
-      <input id={`uret-${emir.id}`} type="number" min={1} max={kalan} required className="girdi girdi--kucuk"
-        value={adet} onChange={(e) => setAdet(e.target.value)} />
+      <SayiGirdi id={`uret-${emir.id}`} min={1} max={kalan} required kucuk value={adet} onChange={setAdet} />
       <button type="submit" className="btn btn--kucuk" disabled={bekliyor}>{bekliyor ? "Kaydediliyor…" : "Kaydet"}</button>
       <button type="button" className="btn btn--ikincil btn--kucuk" onClick={kapat}>Vazgeç</button>
       {hata && <div className="mesaj mesaj--error" role="alert">{hata}</div>}

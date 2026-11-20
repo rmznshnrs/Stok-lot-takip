@@ -7,6 +7,7 @@ import { ApiHatasi, ozet, parcalar, sira, tedarikciler, urunler, type TakvimGunu
 import { tarih } from "@/lib/bicim";
 import { useVeri } from "@/lib/kancalar";
 import { talepAdi } from "../musteriler/MusteriSiparisleri";
+import SayiGirdi from "@/components/SayiGirdi";
 
 export default function GunPaneli({ gun, veri, isler, kapat, degisti }: {
   gun: string;
@@ -146,7 +147,7 @@ function UretimPlani({ gun, calistir }: { gun: string; calistir: Calistir }) {
       </div>
       <div className="alan">
         <label htmlFor="plan-adet">Adet</label>
-        <input id="plan-adet" type="number" min={1} max={999} required className="girdi" value={adet} onChange={(e) => setAdet(e.target.value)} />
+        <SayiGirdi id="plan-adet" min={1} max={999} required value={adet} onChange={setAdet} />
       </div>
       <div className="alan">
         <label htmlFor="plan-aciklama">Açıklama</label>
@@ -190,7 +191,7 @@ function AlimPlani({ gun, calistir }: { gun: string; calistir: Calistir }) {
       <div className="izgara-2">
         <div className="alan">
           <label htmlFor="alim-adet">Adet</label>
-          <input id="alim-adet" type="number" min={1} className="girdi" value={adet} onChange={(e) => setAdet(e.target.value)} />
+          <SayiGirdi id="alim-adet" min={1} value={adet} onChange={setAdet} />
         </div>
         <div className="alan">
           <label htmlFor="alim-tedarikci">Tedarikçi</label>

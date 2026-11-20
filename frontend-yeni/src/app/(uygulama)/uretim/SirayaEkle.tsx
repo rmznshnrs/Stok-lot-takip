@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { ApiHatasi, sira, uretim, urunler } from "@/lib/api";
 import { bugun } from "@/lib/bicim";
 import { useGecikmeli, useVeri } from "@/lib/kancalar";
+import SayiGirdi from "@/components/SayiGirdi";
 
 const EN_COK = 999;
 
@@ -37,10 +38,6 @@ export default function SirayaEkle() {
   useEffect(() => {
     if (!urunId && !aranan && liste?.length) router.replace(`/uretim?yeni=1&urun=${liste[0].id}`);
   }, [urunId, aranan, liste, router]);
-
-  function adetDegistir(fark: number) {
-    setAdetMetni((m) => String(sinirla(Number(m) + fark)));
-  }
 
   async function kaydet() {
     if (!onizleme) return;
@@ -101,18 +98,7 @@ export default function SirayaEkle() {
               <div className="adim-grup">
                 <div className="adim-baslik">2 · Kaç adet?</div>
                 <div className="adet-secici">
-                  <button type="button" className="btn-adet" aria-label="Azalt" onClick={() => adetDegistir(-1)}>−</button>
-                  <input
-                    type="number"
-                    min={1}
-                    max={EN_COK}
-                    className="girdi girdi--adet-buyuk"
-                    aria-label="Adet"
-                    value={adetMetni}
-                    onChange={(e) => setAdetMetni(e.target.value)}
-                    onBlur={() => setAdetMetni(String(sinirla(Number(adetMetni))))}
-                  />
-                  <button type="button" className="btn-adet" aria-label="Arttır" onClick={() => adetDegistir(1)}>+</button>
+                  <SayiGirdi min={1} max={EN_COK} aria-label="Adet" value={adetMetni} onChange={setAdetMetni} />
                   <span className="adet-urun">{secili?.ad ?? guncel?.urunAd}</span>
                 </div>
               </div>

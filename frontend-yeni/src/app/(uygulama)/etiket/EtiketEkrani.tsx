@@ -9,6 +9,7 @@ import { tarihSaat } from "@/lib/bicim";
 import { ETIKET_TURLERI, etiketTuruKaydet, etiketTuruMu, kayitliEtiketTuru, type EtiketTuru } from "@/lib/etiket";
 import { gs1Tarih, type Gs1Alan } from "@/lib/gs1";
 import { useVeri } from "@/lib/kancalar";
+import SayiGirdi from "@/components/SayiGirdi";
 
 interface Etiket {
   numara: string;
@@ -110,15 +111,8 @@ export default function EtiketEkrani() {
           </div>
           <div className="alan">
             <label htmlFor="kopya">Her numaradan kaç adet</label>
-            <input
-              id="kopya"
-              type="number"
-              min={1}
-              max={50}
-              className="girdi"
-              value={kopya}
-              onChange={(e) => setKopya(Math.min(50, Math.max(1, Number(e.target.value) || 1)))}
-            />
+            <SayiGirdi id="kopya" min={1} max={50} value={kopya}
+              onChange={(v) => setKopya(Math.min(50, Math.max(1, Number(v) || 1)))} />
           </div>
         </div>
         {hata && <div className="mesaj mesaj--error">{hata}</div>}

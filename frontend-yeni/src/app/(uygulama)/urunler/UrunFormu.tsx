@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState, type FormEvent } from "react";
 import Mesaj, { type MesajBilgisi } from "@/components/Mesaj";
 import { ApiHatasi, urunler, type ParcaStok, type UrunAgaciSatiri, type UrunDetay } from "@/lib/api";
+import SayiGirdi from "@/components/SayiGirdi";
 
 interface Props {
   urun: UrunDetay | null;
@@ -14,6 +15,7 @@ interface Props {
 export default function UrunFormu({ urun, parcalar, kaydedildi }: Props) {
   const [kod, setKod] = useState(urun?.kod ?? "");
   const [ad, setAd] = useState(urun?.ad ?? "");
+  const [aciklama, setAciklama] = useState(urun?.aciklama ?? "");
   const [agac, setAgac] = useState<UrunAgaciSatiri[]>(urun?.agac ?? []);
   const [yeniParca, setYeniParca] = useState("");
   const [yeniAdet, setYeniAdet] = useState("");
@@ -51,7 +53,7 @@ export default function UrunFormu({ urun, parcalar, kaydedildi }: Props) {
     }
     setBekliyor(true);
     try {
-      const bilgi = { kod: kod.trim(), ad: ad.trim() };
+      const bilgi = { kod: kod.trim(), ad: ad.trim(), aciklama: aciklama.trim() };
       const kayitli = urun ? await urunler.guncelle(urun.id, bilgi) : await urunler.olustur(bilgi);
       await urunler.agacKaydet(kayitli.id, agac.map((s) => ({ parcaId: s.parcaId, adet: s.adet })));
       kaydedildi(kayitli.id, `${kayitli.kod} kaydedildi.`);
@@ -76,6 +78,11 @@ export default function UrunFormu({ urun, parcalar, kaydedildi }: Props) {
           <input id="kod" className="girdi girdi--mono" required maxLength={50} value={kod} onChange={(e) => setKod(e.target.value)} />
         </div>
       </div>
+      <div className="alan">
+        <label htmlFor="urun-aciklama">Açıklama</label>
+        <textarea id="urun-aciklama" className="girdi girdi--cok-satir" rows={2} maxLength={500} value={aciklama}
+          onChange={(e) => setAciklama(e.target.value)} />
+      </div>
 
       <h3>Ürün ağacı</h3>
 
@@ -99,14 +106,8 @@ export default function UrunFormu({ urun, parcalar, kaydedildi }: Props) {
                 <td>{s.parcaAd}</td>
                 <td className="mono">{s.parcaKod}</td>
                 <td>
-                  <input
-                    type="number"
-                    min={1}
-                    className="girdi girdi--adet"
-                    aria-label={`${s.parcaKod} adet`}
-                    value={Number.isNaN(s.adet) ? "" : s.adet}
-                    onChange={(e) => adetDegistir(s.parcaId, e.target.value)}
-                  />
+                  <SayiGirdi min={1} kucuk aria-label={`${s.parcaKod} adet`}
+                    value={Number.isNaN(s.adet) ? "" : s.adet} onChange={(v) => adetDegistir(s.parcaId, v)} />
                 </td>
                 <td className={`sag${s.minAltinda ? " uyari-metin" : ""}`}>{s.kullanilabilirStok}</td>
                 <td>
@@ -147,13 +148,11 @@ export default function UrunFormu({ urun, parcalar, kaydedildi }: Props) {
         </div>
         <div className="alan girdi--kisa">
           <label htmlFor="parca-adet">Adet</label>
-          <input
+          <SayiGirdi
             id="parca-adet"
-            type="number"
             min={1}
-            className="girdi girdi--kesikli"
             value={yeniAdet}
-            onChange={(e) => setYeniAdet(e.target.value)}
+            onChange={setYeniAdet}
             onKeyDown={(e) => {
               if (e.key === "Enter") {
                 e.preventDefault();

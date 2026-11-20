@@ -106,6 +106,18 @@ public class TanimTestleri(TestVeritabani vt) : IsKuraliTesti(vt)
         Assert.Equal(["Tedarikçi A"], (await Tanim.TedarikcilerAsync()).Select(t => t.Ad));
         Assert.Equal(["Atlas"], (await Tanim.MusterilerAsync()).Select(m => m.Ad));
     }
+    [Fact]
+    public async Task Parca_ve_urune_aciklama_yazilir()
+    {
+        var p = await Tanim.ParcaOlusturAsync(new ParcaIstek("AC1", "Açıklamalı", 0, "  M3 vida, paslanmaz  "));
+        Assert.Equal("M3 vida, paslanmaz", (await Stok.ParcaStoklariAsync("AC1")).Single().Aciklama);
+        await Tanim.ParcaGuncelleAsync(p.Id, new ParcaIstek("AC1", "Açıklamalı", 0, ""));
+        Assert.Equal("", (await Stok.ParcaStoklariAsync("AC1")).Single().Aciklama);
+        var u = await Tanim.UrunOlusturAsync(new UrunIstek("UA", "Ürün A", Aciklama: "Kırmızı kasa"));
+        Assert.Equal("Kırmızı kasa", u.Aciklama);
+        Assert.Equal("Kırmızı kasa", (await Tanim.UrunleriListeleAsync("UA")).Single().Aciklama);
+        await Assert.ThrowsAsync<IsKuraliHatasi>(() => Tanim.UrunGuncelleAsync(u.Id, new UrunIstek("UA", "Ürün A", Aciklama: new string('x', 501))));
+    }
 }
 
 public class KullaniciTestleri(TestVeritabani vt) : IsKuraliTesti(vt)

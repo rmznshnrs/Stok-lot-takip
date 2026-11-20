@@ -2,6 +2,7 @@
 
 import { useState, type FormEvent } from "react";
 import { ApiHatasi, stok, type DuzeltmeTuru, type Lot } from "@/lib/api";
+import SayiGirdi from "./SayiGirdi";
 
 const TURLER: { deger: DuzeltmeTuru; ad: string }[] = [
   { deger: "SayimFarki", ad: "Sayım farkı" },
@@ -48,7 +49,7 @@ export function AdetDuzeltFormu({ lot, kapat, kaydedildi }: Ozellik) {
       <div className="izgara-form">
         <div className="alan">
           <label htmlFor={`miktar-${lot.id}`}>Miktar</label>
-          <input id={`miktar-${lot.id}`} type="number" className="girdi" required value={miktar} onChange={(e) => setMiktar(e.target.value)} />
+          <SayiGirdi id={`miktar-${lot.id}`} required value={miktar} onChange={setMiktar} />
         </div>
         <div className="alan">
           <label htmlFor={`tur-${lot.id}`}>Neden</label>

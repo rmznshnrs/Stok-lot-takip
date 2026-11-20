@@ -22,6 +22,7 @@ export interface ParcaStok {
   hataliAdet: number;
   ayrilan: number; serbest: number;
   minAltinda: boolean;
+  aciklama: string;
 }
 
 export interface StokGrubu { parca: ParcaStok; lotlar: Lot[]; siradaki: Lot | null }
@@ -183,14 +184,14 @@ export interface TakvimPlani {
 }
 export interface TakvimPlaniIstek { tarih: string; parcaId?: number; adet?: number; tedarikciId?: number; aciklama?: string }
 
-export interface ParcaIstek { kod: string; ad: string; minStok?: number }
-export interface UrunIstek { kod: string; ad: string }
+export interface ParcaIstek { kod: string; ad: string; minStok?: number; aciklama?: string }
+export interface UrunIstek { kod: string; ad: string; aciklama?: string }
 export interface UrunAgaciSatiriIstek { parcaId: number; adet: number }
-export interface UrunListe { id: number; kod: string; ad: string; seriOneki: string; parcaCesidi: number; uretimSayisi: number }
+export interface UrunListe { id: number; kod: string; ad: string; seriOneki: string; parcaCesidi: number; uretimSayisi: number; aciklama: string }
 export interface UrunAgaciSatiri {
   parcaId: number; parcaKod: string; parcaAd: string; adet: number; kullanilabilirStok: number; minAltinda: boolean;
 }
-export interface UrunDetay { id: number; kod: string; ad: string; seriOneki: string; seriOnekiDegistirilebilir: boolean; agac: UrunAgaciSatiri[] }
+export interface UrunDetay { id: number; kod: string; ad: string; seriOneki: string; seriOnekiDegistirilebilir: boolean; agac: UrunAgaciSatiri[]; aciklama: string }
 export interface Iletisim { id: number; ad: string; iletisim: string; telefon: string; eposta: string; adres: string }
 export interface IletisimIstek { ad: string; telefon: string; eposta: string; adres: string }
 
@@ -331,6 +332,7 @@ export const sira = {
   uret: (id: number, adet?: number) => gonder<UretimSonucu>(`uretim/sira/${id}/uret`, { adet }),
   iptal: (id: number) => gonder<UretimEmri>(`uretim/sira/${id}/iptal`),
   tasi: (id: number, yon: -1 | 1) => gonder<UretimEmri[]>(`uretim/sira/${id}/tasi`, { yon }),
+  konum: (id: number, hedefId: number) => gonder<UretimEmri[]>(`uretim/sira/${id}/konum`, { hedefId }),
   planla: (id: number, planlananTarih: string) => guncelle<UretimEmri>(`uretim/sira/${id}/plan`, { planlananTarih }),
 };
 

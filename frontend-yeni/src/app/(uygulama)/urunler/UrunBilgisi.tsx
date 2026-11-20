@@ -14,6 +14,7 @@ export default function UrunBilgisi({ urun, uretimSayisi }: { urun: UrunDetay; u
         {uretimSayisi !== undefined && <div><dt>Üretilen</dt><dd>{uretimSayisi} adet</dd></div>}
         <div><dt>Parça çeşidi</dt><dd>{urun.agac.length}</dd></div>
       </dl>
+      {urun.aciklama && <p className="urun-aciklama">{urun.aciklama}</p>}
 
       <h3>Ürün ağacı</h3>
 

@@ -7,6 +7,7 @@ import { ApiHatasi, stok, tedarikciler, type ParcaStok } from "@/lib/api";
 import { bugun } from "@/lib/bicim";
 import { numaraAyikla } from "@/lib/gs1";
 import { useVeri } from "@/lib/kancalar";
+import SayiGirdi from "@/components/SayiGirdi";
 
 const bosForm = () => ({ parcaId: "", tedarikci: "", tedarikciLotNo: "", adet: "", siparisTarihi: bugun(), siparisNo: "" });
 
@@ -88,7 +89,7 @@ export default function MalGirisiFormu({ parcalar, kaydedildi }: { parcalar: Par
           </div>
           <div className="alan">
             <label htmlFor="adet">Adet</label>
-            <input type="number" min={1} className="girdi" required {...alan("adet")} />
+            <SayiGirdi id="adet" min={1} required value={form.adet} onChange={(v) => setForm({ ...form, adet: v })} />
           </div>
           <div className="alan">
             <label htmlFor="siparisTarihi">Sipariş tarihi</label>

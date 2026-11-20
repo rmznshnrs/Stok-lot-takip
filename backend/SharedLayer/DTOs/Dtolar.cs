@@ -16,7 +16,7 @@ public record SatisBilgisiDto(int SatisId, DateOnly Tarih, int MusteriId, string
 public record ParcaStokDto(
     int Id, string Kod, string Ad, int MinStok,
     int ToplamStok, int KullanilabilirStok, int LotSayisi, IReadOnlyList<string> KullanildigiUrunler, int HataliAdet = 0,
-    int Ayrilan = 0)
+    int Ayrilan = 0, string Aciklama = "")
 {
     public int Serbest => Math.Max(0, KullanilabilirStok - Ayrilan);
 
@@ -182,6 +182,8 @@ public record UretimEmriDto(
 public record EmirUretIstek(int? Adet = null);
 
 public record EmirTasiIstek(int Yon);
+
+public record EmirKonumIstek(int HedefId);
 
 public record EmirPlanIstek(DateOnly PlanlananTarih);
 

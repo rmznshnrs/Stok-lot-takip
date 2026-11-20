@@ -71,6 +71,18 @@ public class UretimSirasiTestleri(TestVeritabani vt) : IsKuraliTesti(vt)
         var plan = await Sira.PlanlaAsync(a.Id, new(2026, 12, 1));
         Assert.Equal(new DateOnly(2026, 12, 1), plan.PlanlananTarih);
     }
+    [Fact]
+    public async Task Sira_istenen_konuma_tek_seferde_tasinir()
+    {
+        var a = await Sira.EkleAsync(new UretimEmriIstek(Urun.Id, 1), Kullanici.Id);
+        var b = await Sira.EkleAsync(new UretimEmriIstek(Urun.Id, 1), Kullanici.Id);
+        var c = await Sira.EkleAsync(new UretimEmriIstek(Urun.Id, 1), Kullanici.Id);
+        Assert.Equal([c.Id, a.Id, b.Id], (await Sira.KonumaTasiAsync(c.Id, a.Id)).Select(x => x.Id));
+        Assert.Equal([a.Id, b.Id, c.Id], (await Sira.KonumaTasiAsync(c.Id, b.Id)).Select(x => x.Id));
+        Assert.Equal([a.Id, b.Id, c.Id], (await Sira.KonumaTasiAsync(b.Id, b.Id)).Select(x => x.Id));
+        Assert.Equal([b.Id, c.Id, a.Id], (await Sira.KonumaTasiAsync(a.Id, c.Id)).Select(x => x.Id));
+        await Assert.ThrowsAsync<BulunamadiHatasi>(() => Sira.KonumaTasiAsync(a.Id, 9999));
+    }
 }
 
 public class SiparisTestleri(TestVeritabani vt) : IsKuraliTesti(vt)

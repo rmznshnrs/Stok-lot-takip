@@ -13,6 +13,7 @@ import { useVeri } from "@/lib/kancalar";
 import { durumRozeti } from "./MusteriSiparisleri";
 import SiparisUrunleri from "./SiparisUrunleri";
 import { sevkiyatAdresi, sevkiyatRozeti, urunOzeti } from "../sevkiyat/ortak";
+import SayiGirdi from "@/components/SayiGirdi";
 
 export default function SiparisDetay({ id }: { id: number }) {
   const params = useSearchParams();
@@ -188,8 +189,7 @@ function SirayaEkle({ kalem: k, ilkGun, ekle }: {
     <div className="satir-ekle satir-ekle--alt">
       <div className="alan">
         <label htmlFor={`sira-adet-${k.id}`}>Sıraya Eklenecek Adet (eksik {k.eksik})</label>
-        <input id={`sira-adet-${k.id}`} type="number" min={1} max={k.eksik} className="girdi girdi--kucuk" value={adet}
-          onChange={(e) => setAdet(e.target.value)} />
+        <SayiGirdi id={`sira-adet-${k.id}`} min={1} max={k.eksik} kucuk value={adet} onChange={setAdet} />
       </div>
       <div className="alan">
         <label htmlFor={`sira-gun-${k.id}`}>Planlanan Gün</label>
