@@ -48,10 +48,6 @@ export function UstMenuCercevesi({ admin = false, sag, ust, children }: { admin?
   return (
     <div className="duzen">
       <aside className="yan-menu">
-        <Link className="yan-logo" href="/" aria-label="MKC Teknoloji">
-          <span className="yan-logo-harf">M</span>
-          <span className="yan-yazi">MKC Teknoloji</span>
-        </Link>
         <nav aria-label="Ana menü">
           {GRUPLAR.filter((g) => !g.admin || admin).map((g, i) => (
             <div key={i} className="yan-grup">
@@ -92,7 +88,6 @@ function UstCubuk({ ad }: { ad: string }) {
   const harfler = ad.split(" ").filter(Boolean).map((p) => p[0]).slice(0, 2).join("");
   return (
     <div className="ust-cubuk">
-      <Link href="/" className="ust-cubuk-marka">MKC Teknoloji</Link>
       <span className="ust-cubuk-sag">
         <span className="ust-cubuk-tarih" suppressHydrationWarning>{tarih}</span>
         <Link href="/profil" className="ust-cubuk-kisi" title={ad}>
