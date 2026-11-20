@@ -1682,7 +1682,7 @@ strong.takvim-cubuk { font-size: 13px; padding: 4px 8px; }
 .rapor-dugmesi:hover { background: #15803D; }
 .alan--dugme { justify-content: flex-end; }
 
-.kart--iz, .kart--iz-sutun { align-self: flex-start; }
+.kart--iz, .kart--iz-sutun { align-self: stretch; justify-content: flex-start; }
 .kart--iz .alt-not, .kart--iz .btn--tam, .kart--iz .geri-cagir-formu { margin-top: 0; }
 .kart--iz .adim-baslik.alt-not { margin-top: 6px; padding-top: 10px; border-top: 1px solid var(--kenar-ince); }
 
@@ -1691,25 +1691,23 @@ strong.takvim-cubuk { font-size: 13px; padding: 4px 8px; }
 .geri-ileri-satiri { padding: 0 0 12px; }
 @media print { .geri-ileri, .geri-ileri-satiri { display: none !important; } }
 
-/* Listeler: 10 satırdan sonra (küçük ekranda 5) kendi içinde kayar; başlık satırı yerinde kalır */
 .tablo-kap:not(.tablo-kap--tam) { max-height: 560px; overflow: auto; }
 .panel > .tablo-kap:not(.tablo-kap--tam) { overflow: auto; }
 .tablo-kap:not(.tablo-kap--tam) .tablo thead th { position: sticky; top: 0; z-index: 2; background: var(--kart); }
-.kart--liste { max-height: 640px; overflow-y: auto; }
+.kart--liste { max-height: none; overflow-y: auto; contain: size; min-height: 640px; }
+.kart--liste > * { flex-shrink: 0; }
 .liste-kaydir { max-height: 560px; overflow-y: auto; }
 @media (max-height: 820px) {
   .tablo-kap:not(.tablo-kap--tam) { max-height: 320px; }
-  .kart--liste { max-height: 420px; }
+  .kart--liste { min-height: 420px; }
   .liste-kaydir { max-height: 320px; }
 }
 .biten-lot-dugmesi { align-self: flex-start; }
 .tablo-kap.tablo-kap--bes { max-height: 300px; }
 
-/* Açılan ayrıntı satırının üzerine gelince sayfanın rengi verilmez */
 .tablo tbody tr.acilan-satir:hover > td, :root[data-tema="koyu"] .tablo tbody tr.acilan-satir:hover > td { background: var(--tablo-bas); }
 .giris-bas { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
 
-/* Düğmeler arasında rahat boşluk */
 .dugme-grup { gap: 10px; }
 .dugme-grup--sik { gap: 10px; }
 .dugme-grup--sag { gap: 8px 12px; }
@@ -1717,7 +1715,6 @@ strong.takvim-cubuk { font-size: 13px; padding: 4px 8px; }
 .tablo td.hucre-dar { padding-left: 16px; }
 .kaynak-secimi { align-self: flex-start; }
 
-/* Arama çubukları: ince çerçeve, beyaz zemin, odakta ana renkli halka */
 input[type="search"].girdi {
   border: 1px solid var(--kenar); background-color: var(--kart); box-shadow: 0 1px 2px rgba(15, 23, 42, .05);
   transition: border-color .15s, box-shadow .15s;
@@ -1728,7 +1725,6 @@ input[type="search"].girdi::placeholder { color: var(--soluk); opacity: .8; }
 .girdi--ara { width: 300px; max-width: 100%; }
 .panel-bas .arama-satiri { flex-wrap: wrap; justify-content: flex-end; }
 
-/* Basılan her şey kutu içinde: yazı gibi duran düğmeler küçük düğme görünümünde (tablodaki satır bağlantıları hariç) */
 .btn-baglanti:not(.satir-bag):not(.parca-ac) {
   display: inline-flex; align-items: center; gap: 4px; padding: 5px 12px; border-radius: 999px;
   background: var(--ana-acik); border: 1px solid var(--ana-acik-kenar); color: var(--ana-koyu);
@@ -1739,13 +1735,11 @@ input[type="search"].girdi::placeholder { color: var(--soluk); opacity: .8; }
 .seri-cip .btn-baglanti:not(.satir-bag) { padding: 0 2px; background: none; border: 0; font-weight: 700; }
 
 
-/* Üretim: iş ve adet sayısı sekmelerin yanında, kutusuz ve büyük */
 .baslik-grup--yan { flex-direction: row; align-items: center; gap: 20px; flex-wrap: wrap; }
 .sayac-grubu { display: inline-flex; align-items: baseline; gap: 18px; }
 .sayac { display: inline-flex; align-items: baseline; gap: 6px; font-size: 16px; font-weight: 600; color: var(--soluk); }
 .sayac b { font-size: 24px; font-weight: 800; color: var(--metin); }
 
-/* Kayma ve hizalama düzeltmeleri */
 html { scrollbar-gutter: stable; }
 .btn--ikincil.btn--kucuk, .btn--geri.btn--kucuk { height: 34px; padding: 0 14px; }
 .btn-baglanti:not(.satir-bag):not(.parca-ac) { min-height: 34px; padding: 0 14px; box-sizing: border-box; vertical-align: middle; }
@@ -1795,3 +1789,5 @@ html { scrollbar-gutter: stable; }
 .ilerleme { display: inline-block; width: 64px; height: 7px; margin-right: 8px; border-radius: 999px; background: var(--kenar-ince); overflow: hidden; vertical-align: middle; }
 .ilerleme > span { display: block; height: 100%; background: #16A34A; }
 .yan-menu nav a[href="/siparisler"]::before { background: #F6C7A8; }
+
+@media (max-width: 900px) { .kart--liste { contain: none; min-height: 0; max-height: 420px; } }
