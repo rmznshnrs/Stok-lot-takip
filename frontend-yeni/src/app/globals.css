@@ -1930,3 +1930,34 @@ body { background: var(--zemin); }
 .stok-cubugu-serbest { background: var(--ana); }
 .stok-cubugu-serbest--az { background: #DC2626; }
 .ilerleme > span { background: var(--ana); }
+
+:root[data-tema="koyu"] {
+  --zemin: #141216; --serit: #1A171C; --kart: #1E1B22; --kenar: #2E2932; --kenar-ince: #28242C; --girdi-kenar: #3A343F; --girdi-zemin: #26222A;
+  --metin: #EDEAF0; --metin-ikincil: #A59FAA; --soluk: #8E8893; --tablo-bas: #242027; --satir: #242027; --satir-ust: #2B2630;
+  --yumusak-golge: 0 1px 2px rgba(0, 0, 0, .3), 0 10px 28px rgba(0, 0, 0, .35);
+}
+:root[data-tema="koyu"] .duzen, :root[data-tema="koyu"] .duzen:has(.yan-menu a[href="/yonetim"].aktif) {
+  --ana: #4F8FC4; --ana-koyu: #8DBBE3; --ana-acik: #1D2A38; --ana-acik-kenar: #2B4258; --baglanti: #7FB2E0; --baglanti-koyu: #A9CBEB;
+  --btn-hover: #3F7DB2; --menu-aktif: #4F8FC4;
+}
+:root[data-tema="koyu"] .yan-menu { background: #0E0C10; }
+:root[data-tema="koyu"] .yan-menu .yan-yazi { background: #0E0C10; }
+:root[data-tema="koyu"] .btn--ikincil { background: #2B2630; color: var(--metin); }
+:root[data-tema="koyu"] .btn--ikincil:hover { background: #36303C; color: var(--metin); }
+:root[data-tema="koyu"] .sekmeler { background: #242027; }
+:root[data-tema="koyu"] .sekme--aktif, :root[data-tema="koyu"] button.sekme.sekme--aktif { background: var(--ana) !important; color: #fff !important; }
+:root[data-tema="koyu"] .ozet-kutular > :nth-child(2) { background: linear-gradient(135deg, #1D2A38, #24384D) !important; }
+:root[data-tema="koyu"] .ozet-kutular > :nth-child(2) * { color: #CFE3F5 !important; }
+:root[data-tema="koyu"] .ozet-kutular > :nth-child(3) { background: #0E0C10 !important; }
+:root[data-tema="koyu"] .ust-cubuk-harf { box-shadow: 0 0 0 3px var(--zemin), 0 4px 12px rgba(0, 0, 0, .4); }
+:root[data-tema="koyu"] .hafta-dolu { background: #2B4258; }
+:root[data-tema="koyu"] .hafta-dolu--bu { background: linear-gradient(180deg, #5B9BD0, #34709F); }
+:root[data-tema="koyu"] body, :root[data-tema="koyu"] .duzen { background: var(--zemin); }
+.btn:disabled, .btn:disabled:hover, .btn:not(.btn--ikincil):disabled, .btn:not(.btn--ikincil):disabled:hover {
+  background: #E6E2E7; border-color: transparent; color: #6F6874; box-shadow: none; cursor: not-allowed;
+}
+:root[data-tema="koyu"] .btn:disabled, :root[data-tema="koyu"] .btn:disabled:hover,
+:root[data-tema="koyu"] .btn:not(.btn--ikincil):disabled, :root[data-tema="koyu"] .btn:not(.btn--ikincil):disabled:hover {
+  background: #2B2630; color: #8E8893;
+}
+.sayfa-dugme--aktif, .sayfa-dugme--aktif:hover { background: var(--ana) !important; border-color: var(--ana) !important; color: #fff !important; }
