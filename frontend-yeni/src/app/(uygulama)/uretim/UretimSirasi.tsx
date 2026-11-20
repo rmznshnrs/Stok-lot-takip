@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { Fragment, useState, type FormEvent } from "react";
+import { Fragment, useLayoutEffect, useRef, useState, type FormEvent } from "react";
 import Mesaj, { type MesajBilgisi } from "@/components/Mesaj";
 import { ApiHatasi, sira, type UretimEmri, type UretimSonucu } from "@/lib/api";
 import { seriAdresi } from "@/lib/adres";
@@ -26,7 +26,38 @@ export default function UretimSirasi({ uretimde }: { uretimde: boolean }) {
   const [mesaj, setMesaj] = useState<MesajBilgisi | null>(null);
   const [surukle, setSurukle] = useState<number | null>(null);
   const [hedef, setHedef] = useState<number | null>(null);
-  const tasi = (id: number, hedefId: number | undefined) => hedefId !== undefined && hedefId !== id && calistir(() => sira.konum(id, hedefId));
+  function kenardaKaydir(ev: React.DragEvent<HTMLDivElement>) {
+    if (surukle === null) return;
+    const kap = ev.currentTarget;
+    const r = kap.getBoundingClientRect();
+    const pay = 70;
+    const hiz = (uzaklik: number) => Math.ceil(((pay - uzaklik) / pay) * 22);
+    if (ev.clientY > r.bottom - pay) kap.scrollTop += hiz(r.bottom - ev.clientY);
+    else if (ev.clientY < r.top + pay) kap.scrollTop -= hiz(ev.clientY - r.top);
+    if (ev.clientY > window.innerHeight - pay) window.scrollBy(0, hiz(window.innerHeight - ev.clientY));
+    else if (ev.clientY < pay) window.scrollBy(0, -hiz(ev.clientY));
+  }
+  const [tasinan, setTasinan] = useState<number | null>(null);
+  const govde = useRef<HTMLTableSectionElement>(null);
+  const eskiYerler = useRef(new Map<string, number>());
+  const siraAnahtari = liste?.map((e) => e.id).join(",");
+  useLayoutEffect(() => {
+    const satirlar = [...(govde.current?.querySelectorAll<HTMLTableRowElement>("tr[data-is]") ?? [])];
+    const yeni = new Map(satirlar.map((tr) => [tr.dataset.is!, tr.getBoundingClientRect().top]));
+    for (const tr of satirlar) {
+      const eski = eskiYerler.current.get(tr.dataset.is!);
+      const fark = eski === undefined ? 0 : eski - yeni.get(tr.dataset.is!)!;
+      if (Math.abs(fark) < 2) continue;
+      tr.animate([{ transform: `translateY(${fark}px)` }, { transform: "none" }], { duration: 450, easing: "cubic-bezier(.2, .7, .2, 1)" });
+    }
+    eskiYerler.current = yeni;
+  }, [siraAnahtari]);
+  const tasi = (id: number, hedefId: number | undefined) => {
+    if (hedefId === undefined || hedefId === id) return;
+    setTasinan(id);
+    window.setTimeout(() => setTasinan((t) => (t === id ? null : t)), 1600);
+    calistir(() => sira.konum(id, hedefId));
+  };
 
   async function calistir(is_: () => Promise<unknown>, basari?: string) {
     setMesaj(null);
@@ -63,7 +94,7 @@ export default function UretimSirasi({ uretimde }: { uretimde: boolean }) {
         </div>
         <Mesaj mesaj={mesaj} />
         {hata && <div className="mesaj mesaj--error">{hata}</div>}
-        <div className="tablo-kap">
+        <div className="tablo-kap" onDragOver={kenardaKaydir}>
           <table className="tablo">
             <thead>
               <tr>
@@ -76,14 +107,14 @@ export default function UretimSirasi({ uretimde }: { uretimde: boolean }) {
                 <th><span className="gorunmez">İşlem</span></th>
               </tr>
             </thead>
-            <tbody>
+            <tbody ref={govde}>
               {liste === null && !hata && <tr className="bos"><td colSpan={sutun}>Yükleniyor…</td></tr>}
               {liste?.length === 0 && (
                 <tr className="bos"><td colSpan={sutun}>{uretimde ? "Üretimde iş yok." : "Sırada iş yok."}</td></tr>
               )}
               {liste?.map((e, i) => (
                 <Fragment key={e.id}>
-                  <tr className={[e.id === eklendi && "secili-satir", !uretimde && "surukle-satir", hedef === e.id && surukle !== e.id && (liste.findIndex((x) => x.id === surukle) < i ? "surukle-hedef surukle-hedef--alt" : "surukle-hedef"), surukle === e.id && "surukleniyor"].filter(Boolean).join(" ") || undefined}
+                  <tr data-is={e.id} className={[e.id === eklendi && "secili-satir", tasinan === e.id && "tasindi", !uretimde && "surukle-satir", hedef === e.id && surukle !== e.id && (liste.findIndex((x) => x.id === surukle) < i ? "surukle-hedef surukle-hedef--alt" : "surukle-hedef"), surukle === e.id && "surukleniyor"].filter(Boolean).join(" ") || undefined}
                     draggable={!uretimde}
                     onDragStart={(ev) => { setSurukle(e.id); ev.dataTransfer.effectAllowed = "move"; }}
                     onDragOver={(ev) => { if (surukle !== null) { ev.preventDefault(); setHedef(e.id); } }}

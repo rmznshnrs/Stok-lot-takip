@@ -1970,3 +1970,5 @@ body { background: var(--zemin); }
 .surukleniyor > td { opacity: .45; }
 .surukle-hedef > td { box-shadow: inset 0 3px 0 var(--ana); }
 .surukle-hedef--alt > td { box-shadow: inset 0 -3px 0 var(--ana); }
+@keyframes tasindi { 0% { background: var(--ana-acik); } 100% { background: transparent; } }
+.tablo tbody tr.tasindi > td { animation: tasindi 1.6s ease-out both; }
