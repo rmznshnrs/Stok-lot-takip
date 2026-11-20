@@ -1824,8 +1824,8 @@ html { scrollbar-gutter: stable; }
 }
 :root:not([data-tema="koyu"]) .duzen,
 :root:not([data-tema="koyu"]) .duzen:has(.yan-menu a[href="/yonetim"].aktif) {
-  --ana: #E2604C; --ana-koyu: #B4402F; --ana-acik: #FCECE8; --ana-acik-kenar: #F6CEC5; --baglanti: #C9503C; --baglanti-koyu: #9E3727;
-  --btn-hover: #C9503C; --menu-aktif: #E2604C;
+  --ana: #34709F; --ana-koyu: #24527A; --ana-acik: #E4F0FA; --ana-acik-kenar: #C6DDF1; --baglanti: #2F6893; --baglanti-koyu: #214D70;
+  --btn-hover: #2F6893; --menu-aktif: #34709F;
 }
 body { background: var(--zemin); }
 .duzen { gap: 0; background: var(--zemin); }
@@ -1847,7 +1847,7 @@ body { background: var(--zemin); }
 .yan-logo::before { display: none; }
 .yan-logo-harf {
   width: 44px; height: 44px; border-radius: 14px; display: grid; place-items: center;
-  background: linear-gradient(135deg, #F28B6E, #E2604C); color: #fff; font-weight: 800; font-size: 18px;
+  background: linear-gradient(135deg, #5B9BD0, #34709F); color: #fff; font-weight: 800; font-size: 18px;
 }
 .yan-menu nav { display: flex; flex-direction: column; align-items: center; gap: 2px; width: 100%; }
 .yan-grup { padding: 6px 0; display: flex; flex-direction: column; align-items: center; gap: 4px; width: 100%; }
@@ -1861,7 +1861,7 @@ body { background: var(--zemin); }
 .yan-menu nav a:hover, .yan-alt-oge:hover { background: #2E2932; color: #fff; }
 .yan-menu nav a.aktif, .yan-alt-oge.aktif,
 :root:not([data-tema="koyu"]) .yan-menu nav a[href="/"].aktif {
-  background: #E2604C; color: #fff; box-shadow: 0 6px 16px rgba(226, 96, 76, .45);
+  background: #34709F; color: #fff; box-shadow: 0 6px 16px rgba(52, 112, 159, .45);
 }
 .yan-alt-oge--cikis:hover { background: #4A2523; color: #FFB4A8; }
 .yan-alt { margin-top: auto; padding-top: 10px; border-top: 1px solid #2E2932; display: flex; flex-direction: column; align-items: center; gap: 4px; width: 100%; }
@@ -1872,7 +1872,7 @@ body { background: var(--zemin); }
 .ust-cubuk-kisi { display: flex; align-items: center; gap: 10px; color: var(--metin); text-decoration: none; font-size: 13.5px; font-weight: 600; }
 .ust-cubuk-harf {
   width: 38px; height: 38px; border-radius: 50%; display: grid; place-items: center; color: #fff; font-size: 13px; font-weight: 700;
-  background: linear-gradient(135deg, #F28B6E, #E2604C); box-shadow: 0 0 0 3px #fff, 0 4px 12px rgba(226, 96, 76, .3);
+  background: linear-gradient(135deg, #5B9BD0, #34709F); box-shadow: 0 0 0 3px #fff, 0 4px 12px rgba(52, 112, 159, .3);
 }
 .ust-cubuk + .ust-sekme-satiri, .ust-cubuk + .icerik { padding-top: 6px; }
 
@@ -1895,16 +1895,16 @@ body { background: var(--zemin); }
 
 .ozet-kutu { position: relative; overflow: hidden; padding: 20px 22px; min-height: 120px; }
 .ozet-kutu b { font-size: 34px; letter-spacing: -.02em; }
-.ozet-kutular > :nth-child(1) { background: linear-gradient(135deg, #F49276, #E2604C) !important; color: #fff; }
-.ozet-kutular > :nth-child(2) { background: linear-gradient(135deg, #FDE3DC, #F7C9BE) !important; color: #5A2219; }
+.ozet-kutular > :nth-child(1) { background: linear-gradient(135deg, #5B9BD0, #34709F) !important; color: #fff; }
+.ozet-kutular > :nth-child(2) { background: linear-gradient(135deg, #E4F0FA, #C6DDF1) !important; color: #1D4466; }
 .ozet-kutular > :nth-child(3) { background: #1F1B22 !important; color: #fff; }
 .ozet-kutular > :nth-child(1) *, .ozet-kutular > :nth-child(3) * { color: #fff !important; }
-.ozet-kutular > :nth-child(2) * { color: #5A2219 !important; }
+.ozet-kutular > :nth-child(2) * { color: #1D4466 !important; }
 .ozet-kutular > :nth-child(-n + 3)::after {
   content: ""; position: absolute; right: -30px; top: -30px; width: 120px; height: 120px; border-radius: 50%; background: rgba(255, 255, 255, .14);
 }
-.hafta-dolu { background: #F6CEC5; }
-.hafta-dolu--bu { background: linear-gradient(180deg, #F49276, #E2604C); }
+.hafta-dolu { background: #C6DDF1; }
+.hafta-dolu--bu { background: linear-gradient(180deg, #5B9BD0, #34709F); }
 .kapasite-dolu, .parca-cubugu-dolu { background: var(--ana); }
 
 @media (max-width: 900px) {
@@ -1928,5 +1928,5 @@ body { background: var(--zemin); }
 .ust-sekme-satiri h1 { margin: 0; }
 .ust-sekme-satiri + .icerik { padding-top: 14px; }
 .stok-cubugu-serbest { background: var(--ana); }
-.stok-cubugu-serbest--az { background: #9E3727; }
+.stok-cubugu-serbest--az { background: #DC2626; }
 .ilerleme > span { background: var(--ana); }

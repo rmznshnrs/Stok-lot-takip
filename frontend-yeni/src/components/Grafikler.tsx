@@ -5,10 +5,10 @@ import { SIPARIS_DURUM_ADI, type GrafikVerisi, type SiparisDurumu, type StokGrub
 import { tarih } from "@/lib/bicim";
 
 const DURUM_RENGI: Record<SiparisDurumu, string> = {
-  bekliyor: "#94A3B8", uretimde: "#E2604C", hazir: "#0D9488", kismen_gonderildi: "#CA8A04", tamamlandi: "#16A34A", iptal: "#DC2626",
+  bekliyor: "#94A3B8", uretimde: "#34709F", hazir: "#0D9488", kismen_gonderildi: "#CA8A04", tamamlandi: "#16A34A", iptal: "#DC2626",
 };
 const DURUM_SIRASI: SiparisDurumu[] = ["bekliyor", "uretimde", "hazir", "kismen_gonderildi", "tamamlandi", "iptal"];
-const MAVILER = ["#9E3727", "#E2604C", "#F08A72", "#F6B3A2", "#FAD2C8", "#FDE9E4"];
+const MAVILER = ["#24527A", "#34709F", "#5B93C2", "#8DB6DA", "#B9D3EA", "#DCE9F5"];
 
 function gunFarki(t: string) {
   const [y, a, g] = t.split("-").map(Number);
