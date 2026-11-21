@@ -1972,3 +1972,33 @@ body { background: var(--zemin); }
 .surukle-hedef--alt > td { box-shadow: inset 0 -3px 0 var(--ana); }
 @keyframes tasindi { 0% { background: var(--ana-acik); } 100% { background: transparent; } }
 .tablo tbody tr.tasindi > td { animation: tasindi 1.6s ease-out both; }
+
+:root { --yumusak: cubic-bezier(.22, .61, .36, 1); }
+.btn, .btn--ikincil, .btn-baglanti, .sekme, .sayfa-dugme, .sira-dugme, .sayi-dugme, .yan-menu nav a, .yan-alt-oge,
+.liste-oge, .hesap-dugme, .ust-cubuk-kisi, .seri-cip, .parca-ac, .ozet-kutu, .uyari-karti, .gun-karti {
+  transition: background-color .3s var(--yumusak), color .3s var(--yumusak), border-color .3s var(--yumusak),
+    box-shadow .3s var(--yumusak), transform .25s var(--yumusak), opacity .3s var(--yumusak);
+}
+.btn:hover:not(:disabled) { transform: translateY(-1px); }
+.btn:active:not(:disabled), .sekme:active, .sira-dugme:active:not(:disabled), .yan-menu nav a:active, .yan-alt-oge:active { transform: scale(.96); transition-duration: .1s; }
+.ikon { transition: transform .3s var(--yumusak); }
+.yan-menu nav a:hover .ikon, .yan-alt-oge:hover .ikon { transform: scale(1.1); }
+.yan-menu .yan-yazi { transition: opacity .25s var(--yumusak), transform .25s var(--yumusak); }
+.ust-cubuk-harf { transition: transform .3s var(--yumusak), box-shadow .3s var(--yumusak); }
+.ust-cubuk-kisi:hover .ust-cubuk-harf { transform: scale(1.06); }
+@media (prefers-reduced-motion: reduce) {
+  .btn, .sekme, .sira-dugme, .sayi-dugme, .yan-menu nav a, .yan-alt-oge, .liste-oge, .ikon, .ozet-kutu { transition: none; transform: none !important; }
+}
+.sekmeler--kayan { position: relative; isolation: isolate; }
+.sekme-isaret {
+  position: absolute; left: 0; top: 0; z-index: 0; border-radius: 999px; background: #1F1B22; pointer-events: none;
+  box-shadow: 0 4px 12px rgba(31, 27, 34, .18);
+  transition: transform .42s cubic-bezier(.22, .9, .3, 1), width .42s cubic-bezier(.22, .9, .3, 1), height .42s cubic-bezier(.22, .9, .3, 1), opacity .2s ease;
+}
+:root[data-tema="koyu"] .sekme-isaret { background: var(--ana); box-shadow: 0 4px 12px rgba(0, 0, 0, .35); }
+.sekmeler--kayan > .sekme, .sekmeler--kayan > .sekme--aktif, .sekmeler--kayan > button.sekme.sekme--aktif {
+  position: relative; z-index: 1; background: transparent !important; box-shadow: none !important;
+}
+.sekmeler--kayan > .sekme--aktif, .sekmeler--kayan > .sekme[aria-checked="true"] { color: #fff !important; }
+.sekmeler--kayan > .sekme:not(.sekme--aktif):hover { color: var(--ana-koyu); }
+@media (prefers-reduced-motion: reduce) { .sekme-isaret { transition: none; } }

@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 import HesapMenusu from "./HesapMenusu";
 import Ikon from "./Ikon";
+import SekmeKaydiraci from "./SekmeKaydiraci";
 import { useKullanici } from "./Oturum";
 
 type Baglanti = { yol: string; ad: string };
@@ -67,6 +68,7 @@ export function UstMenuCercevesi({ admin = false, sag, ust, children }: { admin?
         {sag}
       </aside>
       <div className="govde">
+        <SekmeKaydiraci />
         {ust}
         {children}
       </div>
