@@ -188,7 +188,9 @@ public record EmirKonumIstek(int HedefId);
 public record EmirPlanIstek(DateOnly PlanlananTarih);
 
 public record SevkiyatIstek(int SiparisId, IReadOnlyList<string> SeriNolar, string? KargoFirmasi = null, string? TakipNo = null,
-                            string? Aciklama = null, bool GeriCagrilanOnayi = false);
+                            string? Aciklama = null, bool GeriCagrilanOnayi = false, string? SevkiyatNo = null);
+
+public record SevkiyatNoIstek(string? No);
 
 public record SiparisNoIstek(string SiparisNo);
 
@@ -197,7 +199,7 @@ public record KargoIstek(string KargoFirmasi, string TakipNo);
 public record SevkiyatKalemiDto(string SeriNo, string UrunAd);
 
 public record SevkiyatDto(
-    int Id, string No, int MusteriId, string MusteriAd, int? SiparisId, string? SiparisNo, DateOnly Tarih, DateTimeOffset? Zaman,
+    int Id, string? No, int MusteriId, string MusteriAd, int? SiparisId, string? SiparisNo, DateOnly Tarih, DateTimeOffset? Zaman,
     string Durum, string KargoFirmasi, string TakipNo, string Aciklama, DateTimeOffset? KargoZamani, DateTimeOffset? TeslimZamani,
     DateTimeOffset OlusturmaZamani, string KullaniciAd, IReadOnlyList<SevkiyatKalemiDto> Kalemler, IReadOnlyList<string> Iadeler);
 

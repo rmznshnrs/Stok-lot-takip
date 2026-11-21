@@ -8,6 +8,7 @@ import { useSayfalama } from "@/components/Sayfalama";
 import UretimSekmeleri from "./UretimSekmeleri";
 import { useGecikmeli, useVeri } from "@/lib/kancalar";
 import { seriAdresi } from "@/lib/adres";
+import { useSiralama } from "@/lib/siralama";
 
 export default function UretimGecmisi({ ilkArama = "" }: { ilkArama?: string }) {
   const [arama, setArama] = useState(ilkArama);
@@ -15,7 +16,11 @@ export default function UretimGecmisi({ ilkArama = "" }: { ilkArama?: string }) 
   const aranan = useGecikmeli(arama.trim());
   const { veri: liste, hata } = useVeri(() => uretim.gecmis(aranan, Number(urunId) || undefined), [aranan, urunId]);
   const { veri: tumUrunler } = useVeri(() => urunler.listele(), []);
-  const { gorunen, cubuk } = useSayfalama(liste, `${aranan}|${urunId}`);
+  const { sirali, baslik, siralamaAnahtari } = useSiralama(liste, {
+    seri: (u) => u.seriNo, urun: (u) => u.urunAd, tarih: (u) => u.tarih,
+    durum: (u) => (u.hurda ? "3" : u.kargoyaVerilecek ? "1" : u.musteriAd ? "2" : "0"),
+  });
+  const { gorunen, cubuk } = useSayfalama(sirali, `${aranan}|${urunId}|${siralamaAnahtari}`);
   const depoda = liste?.filter((u) => (!u.musteriAd || u.kargoyaVerilecek) && !u.hurda).length ?? 0;
   const ayrilan = liste?.filter((u) => u.hurda).length ?? 0;
 
@@ -47,10 +52,10 @@ export default function UretimGecmisi({ ilkArama = "" }: { ilkArama?: string }) 
           <table className="tablo">
             <thead>
               <tr>
-                <th>Seri No</th>
-                <th>Ürün</th>
-                <th>Üretim tarihi</th>
-                <th>Durum</th>
+                {baslik("seri", "Seri No")}
+                {baslik("urun", "Ürün")}
+                {baslik("tarih", "Üretim tarihi")}
+                {baslik("durum", "Durum")}
               </tr>
             </thead>
             <tbody>

@@ -17,7 +17,7 @@ export default function SevkiyatDetay({ id }: { id: number }) {
   const [mesaj, setMesaj] = useState<MesajBilgisi | null>(null);
 
   async function teslim() {
-    if (!s || !confirm(`${s.no} teslim edildi olarak işaretlensin mi?`)) return;
+    if (!s || !confirm(`${s.no ?? "Bu sevkiyat"} teslim edildi olarak işaretlensin mi?`)) return;
     setMesaj(null);
     try {
       await sevkiyat.teslim(s.id);
@@ -40,7 +40,7 @@ export default function SevkiyatDetay({ id }: { id: number }) {
         <div className="akis">
           <section className="kart kart--iz">
             <div className="adim-baslik">Sevkiyat</div>
-            <div className="buyuk-numara">{s.no}</div>
+            <SevkiyatNoBilgisi key={s.no ?? ""} id={s.id} no={s.no} degisti={yenile} />
             <div className="iz-ad">{sevkiyatRozeti(s)}</div>
             <div className="bilgi-liste">
               <div className="bilgi"><span>Müşteri</span><Link href={`/musteriler?id=${s.musteriId}`}>{s.musteriAd}</Link></div>
@@ -167,6 +167,50 @@ function KargoBilgisi({ s, degisti }: { s: Sevkiyat; degisti: () => void }) {
       <div className="dugme-grup">
         {s.takipNo && <button type="button" className="btn btn--ikincil btn--kucuk" onClick={() => setDuzenle(false)}>Vazgeç</button>}
         <button type="submit" className="btn btn--kucuk" disabled={bekliyor}>{s.durum === "Hazirlaniyor" ? "Kargoya Verildi" : "Kaydet"}</button>
+      </div>
+    </form>
+  );
+}
+
+function SevkiyatNoBilgisi({ id, no, degisti }: { id: number; no: string | null; degisti: () => void }) {
+  const [duzenle, setDuzenle] = useState(false);
+  const [deger, setDeger] = useState(no ?? "");
+  const [hata, setHata] = useState("");
+  const [bekliyor, setBekliyor] = useState(false);
+
+  async function kaydet(e: FormEvent) {
+    e.preventDefault();
+    setHata("");
+    setBekliyor(true);
+    try {
+      await sevkiyat.no(id, deger.trim());
+      setDuzenle(false);
+      degisti();
+    } catch (err) {
+      setHata(err instanceof ApiHatasi ? err.message : "Kaydedilemedi.");
+    } finally {
+      setBekliyor(false);
+    }
+  }
+
+  if (!duzenle) {
+    return (
+      <div className="bas-satir">
+        {no ? <div className="buyuk-numara">{no}</div> : <span className="soluk">Sevkiyat no girilmedi</span>}
+        <button type="button" className="btn-baglanti" onClick={() => setDuzenle(true)}>{no ? "Düzelt" : "Sevkiyat No Gir"}</button>
+      </div>
+    );
+  }
+  return (
+    <form className="form-dikey" onSubmit={kaydet}>
+      <div className="alan">
+        <label htmlFor="sevkiyat-no">Sevkiyat No</label>
+        <input id="sevkiyat-no" className="girdi girdi--mono" maxLength={20} autoFocus value={deger} onChange={(e) => setDeger(e.target.value)} />
+      </div>
+      {hata && <div className="mesaj mesaj--error" role="alert">{hata}</div>}
+      <div className="dugme-grup">
+        <button type="button" className="btn btn--ikincil btn--kucuk" onClick={() => setDuzenle(false)}>Vazgeç</button>
+        <button type="submit" className="btn btn--kucuk" disabled={bekliyor}>Kaydet</button>
       </div>
     </form>
   );

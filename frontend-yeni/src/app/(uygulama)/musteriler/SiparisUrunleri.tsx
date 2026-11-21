@@ -23,7 +23,7 @@ function Kargo({ u }: { u: SiparisUrunu }) {
   const adres = u.takipNo ? takipAdresi(u.kargoFirmasi, u.takipNo) : null;
   return (
     <>
-      <Link href={sevkiyatAdresi(u.sevkiyatId)} className="mono">{u.sevkiyatNo}</Link>
+      <Link href={sevkiyatAdresi(u.sevkiyatId)} className="mono">{u.sevkiyatNo ?? "Sevkiyatı Aç"}</Link>
       {u.kargoFirmasi && <div className="yardim">{u.kargoFirmasi}{u.takipNo && <> · {adres
         ? <a href={adres} target="_blank" rel="noreferrer" className="mono">{u.takipNo}</a>
         : <span className="mono">{u.takipNo}</span>}</>}</div>}

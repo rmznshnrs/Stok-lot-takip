@@ -8,6 +8,7 @@ import { stok } from "@/lib/api";
 import { lotAdresi } from "@/lib/adres";
 import { tarih } from "@/lib/bicim";
 import { useVeri } from "@/lib/kancalar";
+import { useSiralama } from "@/lib/siralama";
 
 export default function TedarikcilerSayfasi() {
   return (
@@ -24,7 +25,11 @@ function Alinanlar({ tedarikciAd }: { tedarikciAd: string }) {
     ? gruplar.flatMap((g) => g.lotlar).filter((l) => l.tedarikciAd === tedarikciAd)
         .sort((a, b) => b.siparisTarihi.localeCompare(a.siparisTarihi) || b.id - a.id)
     : null;
-  const { gorunen, cubuk } = useSayfalama(tum, tedarikciAd);
+  const { sirali, baslik, siralamaAnahtari } = useSiralama(tum, {
+    tarih: (l) => l.siparisTarihi, parca: (l) => l.parcaAd, lot: (l) => l.lotNo, siparisNo: (l) => l.siparisNo,
+    gelen: (l) => l.girisAdet, kalan: (l) => l.kalanAdet,
+  });
+  const { gorunen, cubuk } = useSayfalama(sirali, `${tedarikciAd}|${siralamaAnahtari}`);
 
   return (
     <div className="form-dikey">
@@ -36,12 +41,12 @@ function Alinanlar({ tedarikciAd }: { tedarikciAd: string }) {
         <table className="tablo tablo--sik">
           <thead>
             <tr>
-              <th>Sipariş Tarihi</th>
-              <th>Parça</th>
-              <th>Lot No</th>
-              <th>Sipariş No</th>
-              <th className="sag">Gelen</th>
-              <th className="sag">Elde Kalan</th>
+              {baslik("tarih", "Sipariş Tarihi")}
+              {baslik("parca", "Parça")}
+              {baslik("lot", "Lot No")}
+              {baslik("siparisNo", "Sipariş No")}
+              {baslik("gelen", "Gelen", "sag")}
+              {baslik("kalan", "Elde Kalan", "sag")}
             </tr>
           </thead>
           <tbody>

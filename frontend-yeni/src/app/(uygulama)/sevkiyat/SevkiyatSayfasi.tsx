@@ -8,6 +8,7 @@ import { useSayfalama } from "@/components/Sayfalama";
 import { sevkiyat, type SevkiyatDurumu } from "@/lib/api";
 import { tarih, tarihSaat } from "@/lib/bicim";
 import { useGecikmeli, useVeri } from "@/lib/kancalar";
+import { useSiralama } from "@/lib/siralama";
 import SevkiyatDetay from "./SevkiyatDetay";
 import SevkiyatFormu from "./SevkiyatFormu";
 import { sevkiyatAdresi, sevkiyatRozeti, urunOzeti } from "./ortak";
@@ -37,7 +38,11 @@ function SevkiyatListesi() {
   const [arama, setArama] = useState("");
   const aranan = useGecikmeli(arama.trim());
   const { veri: liste, hata } = useVeri(() => sevkiyat.liste(aranan, durum || undefined), [aranan, durum]);
-  const { gorunen, cubuk } = useSayfalama(liste, `${aranan}|${durum}`);
+  const { sirali, baslik, siralamaAnahtari } = useSiralama(liste, {
+    no: (s) => s.no, tarih: (s) => s.zaman ?? s.tarih, musteri: (s) => s.musteriAd, siparisNo: (s) => s.siparisNo,
+    kargo: (s) => s.kargoFirmasi, durum: (s) => s.durum,
+  });
+  const { gorunen, cubuk } = useSayfalama(sirali, `${aranan}|${durum}|${siralamaAnahtari}`);
 
   return (
     <main className="icerik icerik--dikey">
@@ -62,13 +67,13 @@ function SevkiyatListesi() {
           <table className="tablo">
             <thead>
               <tr>
-                <th>Sevkiyat No</th>
-                <th>Tarih</th>
-                <th>Müşteri</th>
-                <th>Sipariş No</th>
+                {baslik("no", "Sevkiyat No")}
+                {baslik("tarih", "Tarih")}
+                {baslik("musteri", "Müşteri")}
+                {baslik("siparisNo", "Sipariş No")}
                 <th>Ürünler</th>
-                <th>Kargo</th>
-                <th>Durum</th>
+                {baslik("kargo", "Kargo")}
+                {baslik("durum", "Durum")}
               </tr>
             </thead>
             <tbody>
@@ -76,7 +81,7 @@ function SevkiyatListesi() {
               {liste?.length === 0 && <tr className="bos"><td colSpan={7}>{aranan || durum ? "Sonuç yok." : "Henüz sevkiyat yok."}</td></tr>}
               {gorunen?.map((s) => (
                 <tr key={s.id} className="satir-tikla">
-                  <td className="mono"><Link href={sevkiyatAdresi(s.id)} className="satir-bag">{s.no}</Link></td>
+                  <td className="mono"><Link href={sevkiyatAdresi(s.id)} className="satir-bag">{s.no ?? <span className="soluk">Girilmedi</span>}</Link></td>
                   <td>{s.zaman ? tarihSaat(s.zaman) : tarih(s.tarih)}</td>
                   <td><Link href={`/musteriler?id=${s.musteriId}`}>{s.musteriAd}</Link></td>
                   <td className="mono">{s.siparisNo ?? <span className="soluk">—</span>}</td>

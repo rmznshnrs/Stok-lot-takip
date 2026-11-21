@@ -187,7 +187,6 @@ namespace DataAccessLayer.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("No")
-                        .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
 
@@ -221,7 +220,8 @@ namespace DataAccessLayer.Migrations
                     b.HasIndex("MusteriId");
 
                     b.HasIndex("No")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasFilter("[No] IS NOT NULL");
 
                     b.HasIndex("OlusturanKullaniciId");
 

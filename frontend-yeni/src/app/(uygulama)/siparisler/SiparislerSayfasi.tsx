@@ -8,6 +8,7 @@ import { useSayfalama } from "@/components/Sayfalama";
 import { firmalar, siparisler, type Siparis } from "@/lib/api";
 import { bugun, tarih } from "@/lib/bicim";
 import { useGecikmeli, useVeri } from "@/lib/kancalar";
+import { useSiralama } from "@/lib/siralama";
 import { KalanGun } from "../AnaSayfaPanolari";
 import { durumRozeti, siparisAdresi } from "../musteriler/MusteriSiparisleri";
 import SiparisDetay from "../musteriler/SiparisDetay";
@@ -78,7 +79,11 @@ function SiparisListesi() {
   const liste = tumu && tumu.filter((s) => kosul(s) && (!aranan
     || `${s.siparisNo ?? ""} ${s.musteriAd} ${s.aciklama} ${s.kalemler.map((k) => `${k.urunAd} ${k.urunKod} ${k.ayrilanlar.join(" ")}`).join(" ")}`
       .toLocaleLowerCase("tr").includes(aranan)));
-  const { gorunen, cubuk } = useSayfalama(liste, `${suzgec}|${aranan}`);
+  const { sirali, baslik, siralamaAnahtari } = useSiralama(liste, {
+    musteri: (s) => s.musteriAd, tarih: (s) => s.tarih, istenen: (s) => s.istenenTarih,
+    gonderilen: (s) => s.kalemler.reduce((t, k) => t + k.gonderilenler.length, 0), siparisNo: (s) => s.siparisNo, durum: (s) => s.durum,
+  });
+  const { gorunen, cubuk } = useSayfalama(sirali, `${suzgec}|${aranan}|${siralamaAnahtari}`);
 
   return (
     <main className="icerik icerik--dikey">
@@ -103,13 +108,13 @@ function SiparisListesi() {
           <table className="tablo">
             <thead>
               <tr>
-                <th>Müşteri</th>
-                <th>Talep Tarihi</th>
+                {baslik("musteri", "Müşteri")}
+                {baslik("tarih", "Talep Tarihi")}
                 <th>Ürünler</th>
-                <th>İstenen Teslim</th>
-                <th>Gönderilen</th>
-                <th>Sipariş No</th>
-                <th>Durum</th>
+                {baslik("istenen", "İstenen Teslim")}
+                {baslik("gonderilen", "Gönderilen")}
+                {baslik("siparisNo", "Sipariş No")}
+                {baslik("durum", "Durum")}
               </tr>
             </thead>
             <tbody>

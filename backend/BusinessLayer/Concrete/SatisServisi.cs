@@ -134,7 +134,7 @@ public class SatisServisi(AppDbContext db) : ISatisServisi
 
     internal static async Task<string> YeniNoAsync(AppDbContext db, CancellationToken ct)
     {
-        var mevcut = await db.Satislar.Where(s => s.No.StartsWith("SV-")).Select(s => s.No).ToListAsync(ct);
+        var mevcut = await db.Satislar.Where(s => s.No != null && s.No.StartsWith("SV-")).Select(s => s.No!).ToListAsync(ct);
         return $"SV-{Sira.EnBuyuk(mevcut, "SV-") + 1:D4}";
     }
 

@@ -10,7 +10,7 @@ public enum SevkiyatDurumu
 public class Satis : IDenetimli
 {
     public int Id { get; set; }
-    public string No { get; set; } = "";
+    public string? No { get; set; }
     public int MusteriId { get; set; }
     public Musteri? Musteri { get; set; }
     public int? SiparisId { get; set; }

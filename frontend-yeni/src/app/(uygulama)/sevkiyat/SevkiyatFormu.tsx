@@ -22,6 +22,7 @@ export default function SevkiyatFormu({ ilkSiparis }: { ilkSiparis: number | nul
   const secili = secim ?? bekleyenler.map((b) => b.seriNo);
   const [firma, setFirma] = useState("");
   const [takipNo, setTakipNo] = useState("");
+  const [sevkiyatNo, setSevkiyatNo] = useState("");
   const [aciklama, setAciklama] = useState("");
   const [uyarilar, setUyarilar] = useState<SatisUyarisi[]>([]);
   const [onay, setOnay] = useState(false);
@@ -37,7 +38,7 @@ export default function SevkiyatFormu({ ilkSiparis }: { ilkSiparis: number | nul
     try {
       const s = await sevkiyat.olustur({
         siparisId: siparis.id, seriNolar: secili, kargoFirmasi: firma.trim(), takipNo: takipNo.trim(),
-        aciklama: aciklama.trim(), geriCagrilanOnayi: onay,
+        aciklama: aciklama.trim(), geriCagrilanOnayi: onay, sevkiyatNo: sevkiyatNo.trim(),
       });
       router.push(sevkiyatAdresi(s.id));
     } catch (err) {
@@ -79,6 +80,10 @@ export default function SevkiyatFormu({ ilkSiparis }: { ilkSiparis: number | nul
             <SeriSecimi adaylar={bekleyenler} secili={secili} setSecili={setSecim} bos="Bu talepte gönderime hazır ürün yok." />
           </>
         )}
+        <div className="alan">
+          <label htmlFor="sv-no">Sevkiyat No</label>
+          <input id="sv-no" className="girdi girdi--mono" maxLength={20} value={sevkiyatNo} onChange={(e) => setSevkiyatNo(e.target.value)} />
+        </div>
         <div className="izgara-2">
           <div className="alan">
             <label htmlFor="sv-firma">Kargo Firması</label>

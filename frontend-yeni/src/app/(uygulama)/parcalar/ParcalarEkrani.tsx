@@ -7,6 +7,7 @@ import SayiGirdi from "@/components/SayiGirdi";
 import { useSayfalama } from "@/components/Sayfalama";
 import { ApiHatasi, parcalar, type ParcaStok } from "@/lib/api";
 import { useGecikmeli, useVeri } from "@/lib/kancalar";
+import { useSiralama } from "@/lib/siralama";
 
 type Form = { kod: string; ad: string; minStok: string; aciklama: string };
 const BOS_FORM: Form = { kod: "", ad: "", minStok: "0", aciklama: "" };
@@ -17,7 +18,10 @@ export default function ParcalarEkrani() {
   const [arama, setArama] = useState(ilkParca);
   const aranan = useGecikmeli(arama.trim());
   const { veri: liste, hata: listeHatasi, yenile } = useVeri(() => parcalar.listele(aranan), [aranan]);
-  const { gorunen, cubuk } = useSayfalama(liste, aranan);
+  const { sirali, baslik, siralamaAnahtari } = useSiralama(liste, {
+    kod: (p) => p.kod, ad: (p) => p.ad, aciklama: (p) => p.aciklama, min: (p) => p.minStok,
+  });
+  const { gorunen, cubuk } = useSayfalama(sirali, `${aranan}|${siralamaAnahtari}`);
   const [mesaj, setMesaj] = useState<MesajBilgisi | null>(null);
   const [yeniId, setYeniId] = useState<number | null>(null);
   const [formAcik, setFormAcik] = useState(false);
@@ -58,10 +62,10 @@ export default function ParcalarEkrani() {
           <table className="tablo">
             <thead>
               <tr>
-                <th>Kod</th>
-                <th>Ad</th>
-                <th>Açıklama</th>
-                <th className="sag">Min Stok</th>
+                {baslik("kod", "Kod")}
+                {baslik("ad", "Ad")}
+                {baslik("aciklama", "Açıklama")}
+                {baslik("min", "Min Stok", "sag")}
                 <th>Kullanıldığı Ürünler</th>
               </tr>
             </thead>

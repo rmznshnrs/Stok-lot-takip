@@ -236,7 +236,7 @@ function UretimSonucKutusu({ sonuc, kapat }: { sonuc: UretimSonucu; kapat: () =>
       <div className="bas-satir">
         <div className="sonuc-baslik">
           Üretildi, stoğa girdi: {sonuc.seriNolar.length} adet {sonuc.urunAd}
-          {sonuc.sevkiyatId && <> · <Link href={sevkiyatAdresi(sonuc.sevkiyatId)}>{sonuc.sevkiyatNo}</Link> olarak kargoya verilecekler listesine eklendi</>}
+          {sonuc.sevkiyatId && <> · kargoya verilecekler listesine eklendi (<Link href={sevkiyatAdresi(sonuc.sevkiyatId)}>sevkiyatı aç</Link>)</>}
         </div>
         <button type="button" className="btn-baglanti" onClick={kapat}>Kapat</button>
       </div>

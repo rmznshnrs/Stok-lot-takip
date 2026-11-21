@@ -9,6 +9,7 @@ import { useGecikmeli, useVeri } from "@/lib/kancalar";
 import StokGirisleri from "@/components/StokGirisleri";
 import MalGirisiFormu from "./MalGirisiFormu";
 import UrunStokTablosu from "./UrunStokTablosu";
+import { useSiralama } from "@/lib/siralama";
 
 type Gorunum = "urun" | "parca";
 
@@ -138,18 +139,22 @@ function ParcaTablosu({ gruplar, aranan, ilkAcik, degisti }: {
   degisti: () => void;
 }) {
   const [acik, setAcik] = useState<string | null>(ilkAcik || null);
-  const { gorunen, cubuk } = useSayfalama(gruplar, aranan);
+  const { sirali, baslik, siralamaAnahtari } = useSiralama(gruplar, {
+    kod: (g) => g.parca.kod, ad: (g) => g.parca.ad, toplam: (g) => g.parca.toplamStok, serbest: (g) => g.parca.serbest,
+    sirada: (g) => g.parca.ayrilan, min: (g) => g.parca.minStok,
+  });
+  const { gorunen, cubuk } = useSayfalama(sirali, `${aranan}|${siralamaAnahtari}`);
   return (
     <>
       <table className="tablo">
         <thead>
           <tr>
-            <th>Kod</th>
-            <th>Parça</th>
-            <th className="sag">Toplam</th>
-            <th className="sag">Kullanılabilir</th>
-            <th className="sag">Üretim Sırasında</th>
-            <th className="sag">Min stok</th>
+            {baslik("kod", "Kod")}
+            {baslik("ad", "Parça")}
+            {baslik("toplam", "Toplam", "sag")}
+            {baslik("serbest", "Kullanılabilir", "sag")}
+            {baslik("sirada", "Üretim Sırasında", "sag")}
+            {baslik("min", "Min stok", "sag")}
           </tr>
         </thead>
         <tbody>

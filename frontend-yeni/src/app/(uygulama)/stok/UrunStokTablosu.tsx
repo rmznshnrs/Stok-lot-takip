@@ -4,6 +4,7 @@ import { Fragment, useState } from "react";
 import { uretim, urunler } from "@/lib/api";
 import { useVeri } from "@/lib/kancalar";
 import UrunDepo from "./UrunDepo";
+import { useSiralama } from "@/lib/siralama";
 
 export default function UrunStokTablosu({ aranan }: { aranan: string }) {
   const { veri: liste, hata } = useVeri(() => urunler.listele(), []);
@@ -31,18 +32,22 @@ export default function UrunStokTablosu({ aranan }: { aranan: string }) {
       urun.kod.toLocaleLowerCase("tr").includes(q) ||
       seriler.some((g) => g.seriNo.toLocaleLowerCase("tr").includes(q)));
 
+  const { sirali, baslik } = useSiralama(satirlar, {
+    ad: (s) => s.urun.ad, depoda: (s) => s.satilabilir.length, geri: (s) => s.geriCagrilmis.length,
+    giden: (s) => s.satilan, hurda: (s) => s.hurda, toplam: (s) => s.toplam,
+  });
   const yukleniyor = (liste === null || gecmis === null) && !hata && !gecmisHatasi;
 
   return (
     <table className="tablo">
       <thead>
         <tr>
-          <th>Ürün</th>
-          <th className="sag">Depoda (gönderilebilir)</th>
-          <th className="sag">Geri çağrılmış</th>
-          <th className="sag">Gönderilen</th>
-          <th className="sag">Hurda / kayıp</th>
-          <th className="sag">Toplam üretilen</th>
+          {baslik("ad", "Ürün")}
+          {baslik("depoda", "Depoda (gönderilebilir)", "sag")}
+          {baslik("geri", "Geri çağrılmış", "sag")}
+          {baslik("giden", "Gönderilen", "sag")}
+          {baslik("hurda", "Hurda / kayıp", "sag")}
+          {baslik("toplam", "Toplam üretilen", "sag")}
         </tr>
       </thead>
       <tbody>
@@ -51,7 +56,7 @@ export default function UrunStokTablosu({ aranan }: { aranan: string }) {
         {!yukleniyor && satirlar.length === 0 && (
           <tr className="bos"><td colSpan={6}>{aranan ? "Sonuç yok." : "Ürün yok."}</td></tr>
         )}
-        {satirlar.map((s) => {
+        {(sirali ?? satirlar).map((s) => {
           const acikMi = acik === s.urun.id;
           return (
             <Fragment key={s.urun.id}>

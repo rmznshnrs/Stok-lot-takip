@@ -7,8 +7,9 @@ import { SEVKIYAT_DURUM_ADI, geriCagirma, satis, sevkiyat } from "@/lib/api";
 import { seriAdresi } from "@/lib/adres";
 import { tarih, tarihSaat } from "@/lib/bicim";
 import { useVeri } from "@/lib/kancalar";
+import { useSiralama } from "@/lib/siralama";
 
-interface Satir { satisId: number; seriNo: string; urunAd: string; zaman: string; iade: boolean }
+interface Satir { satisId: number; seriNo: string; urunAd: string; zaman: string; ham: string; iade: boolean }
 
 export default function AlinanUrunler({ musteriId }: { musteriId: number }) {
   const { veri: satislar, hata } = useVeri(() => satis.gecmis(undefined, musteriId), [musteriId]);
@@ -20,12 +21,17 @@ export default function AlinanUrunler({ musteriId }: { musteriId: number }) {
   };
   const satirlar: Satir[] | null = satislar && satislar.flatMap((s) => {
     const zaman = s.zaman ? tarihSaat(s.zaman) : tarih(s.tarih);
+    const ham = s.zaman ?? s.tarih;
     return [
-      ...s.seriNolar.map((seriNo) => ({ satisId: s.satisId, seriNo, urunAd: s.urunAd, zaman, iade: false })),
-      ...s.iadeEdilenler.map((seriNo) => ({ satisId: s.satisId, seriNo, urunAd: s.urunAd, zaman, iade: true })),
+      ...s.seriNolar.map((seriNo) => ({ satisId: s.satisId, seriNo, urunAd: s.urunAd, zaman, ham, iade: false })),
+      ...s.iadeEdilenler.map((seriNo) => ({ satisId: s.satisId, seriNo, urunAd: s.urunAd, zaman, ham, iade: true })),
     ];
   });
-  const { gorunen, cubuk } = useSayfalama(satirlar, String(musteriId));
+  const siparisNo = (satisId: number) => sevkiyatlar?.find((v) => v.id === satisId)?.siparisNo ?? null;
+  const { sirali, baslik, siralamaAnahtari } = useSiralama(satirlar, {
+    seri: (s) => s.seriNo, urun: (s) => s.urunAd, siparisNo: (s) => siparisNo(s.satisId), zaman: (s) => s.ham,
+  });
+  const { gorunen, cubuk } = useSayfalama(sirali, `${musteriId}|${siralamaAnahtari}`);
 
   return (
     <div className="form-dikey">
@@ -37,10 +43,10 @@ export default function AlinanUrunler({ musteriId }: { musteriId: number }) {
         <table className="tablo tablo--sik">
           <thead>
             <tr>
-              <th>Seri No</th>
-              <th>Ürün</th>
-              <th>Sipariş No</th>
-              <th>Gönderim Tarihi</th>
+              {baslik("seri", "Seri No")}
+              {baslik("urun", "Ürün")}
+              {baslik("siparisNo", "Sipariş No")}
+              {baslik("zaman", "Gönderim Tarihi")}
               <th>Durum</th>
             </tr>
           </thead>

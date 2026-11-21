@@ -224,7 +224,7 @@ public class SevkiyatTestleri(TestVeritabani vt) : IsKuraliTesti(vt)
     public async Task Parca_parca_gonderilir_kargo_ve_teslim()
     {
         var s1 = await Sevkiyat.OlusturAsync(new SevkiyatIstek(Sp.Id, ["SN-IP-0001"]), Kullanici.Id);
-        Assert.Equal(("SV-0001", "Hazirlaniyor", null, "Atlas"), (s1.No, s1.Durum, s1.SiparisNo, s1.MusteriAd));
+        Assert.Equal((null, "Hazirlaniyor", null, "Atlas"), (s1.No, s1.Durum, s1.SiparisNo, s1.MusteriAd));
         Assert.Equal("4500123", (await Siparis.SiparisNoAsync(Sp.Id, new SiparisNoIstek("  4500123  "))).SiparisNo);
         Assert.Equal("4500123", (await Sevkiyat.GetirAsync(s1.Id)).SiparisNo);
         Assert.Equal([s1.Id], (await Sevkiyat.ListeAsync("45001")).Select(x => x.Id));
@@ -232,21 +232,27 @@ public class SevkiyatTestleri(TestVeritabani vt) : IsKuraliTesti(vt)
         Assert.Equal("hazir", (await Siparis.GetirAsync(Sp.Id)).Durum);
 
         s1 = await Sevkiyat.KargoAsync(s1.Id, new KargoIstek("Yurtiçi Kargo", "123456"));
-        Assert.Equal(("Kargoda", "Yurtiçi Kargo", "123456"), (s1.Durum, s1.KargoFirmasi, s1.TakipNo));
+        Assert.Equal(((string?)null, "Kargoda", "Yurtiçi Kargo", "123456"), (s1.No, s1.Durum, s1.KargoFirmasi, s1.TakipNo));
+        s1 = await Sevkiyat.NoAsync(s1.Id, new SevkiyatNoIstek("  KRG-1 "));
+        Assert.Equal("KRG-1", s1.No);
         Assert.Equal("kismen_gonderildi", (await Siparis.GetirAsync(Sp.Id)).Durum);
         Assert.NotNull(s1.KargoZamani);
         s1 = await Sevkiyat.TeslimAsync(s1.Id);
-        Assert.Equal("TeslimEdildi", s1.Durum);
+        Assert.Equal(("KRG-1", "TeslimEdildi"), (s1.No, s1.Durum));
+        var s3 = await Sevkiyat.OlusturAsync(new SevkiyatIstek(Sp.Id, ["SN-IP-0002"]), Kullanici.Id);
+        await Assert.ThrowsAsync<IsKuraliHatasi>(() => Sevkiyat.NoAsync(s3.Id, new SevkiyatNoIstek("krg-1")));
+        s3 = await Sevkiyat.TeslimAsync(s3.Id);
+        Assert.Equal(((string?)null, "TeslimEdildi"), (s3.No, s3.Durum));
         await Assert.ThrowsAsync<IsKuraliHatasi>(() => Sevkiyat.TeslimAsync(s1.Id));
 
-        var s2 = await Sevkiyat.OlusturAsync(new SevkiyatIstek(Sp.Id, ["sn-ip-0002", "SN-IP-0003"], "Aras Kargo", "999"), Kullanici.Id);
-        Assert.Equal(("SV-0002", "Kargoda"), (s2.No, s2.Durum));
-        Assert.Equal(["SN-IP-0002", "SN-IP-0003"], s2.Kalemler.Select(k => k.SeriNo));
+        var s2 = await Sevkiyat.OlusturAsync(new SevkiyatIstek(Sp.Id, ["SN-IP-0003"], "Aras Kargo", "999", SevkiyatNo: "KRG-2"), Kullanici.Id);
+        Assert.Equal(("KRG-2", "Kargoda"), (s2.No, s2.Durum));
+        Assert.Equal(["SN-IP-0003"], s2.Kalemler.Select(k => k.SeriNo));
         Assert.Equal("tamamlandi", (await Siparis.GetirAsync(Sp.Id)).Durum);
 
-        Assert.Equal(["SV-0002"], (await Sevkiyat.ListeAsync(durum: "Kargoda")).Select(s => s.No));
-        Assert.Equal(["SV-0001"], (await Sevkiyat.ListeAsync("sv-0001")).Select(s => s.No));
-        Assert.Equal(["SV-0002"], (await Sevkiyat.ListeAsync("999")).Select(s => s.No));
+        Assert.Equal(["KRG-2"], (await Sevkiyat.ListeAsync(durum: "Kargoda")).Select(s => s.No));
+        Assert.Equal(["KRG-1"], (await Sevkiyat.ListeAsync("krg-1")).Select(s => s.No));
+        Assert.Equal(["KRG-2"], (await Sevkiyat.ListeAsync("999")).Select(s => s.No));
     }
 
     [Fact]

@@ -5,6 +5,7 @@ import { Fragment, useState } from "react";
 import { SIPARIS_DURUM_ADI, siparisler, type Siparis } from "@/lib/api";
 import { tarih } from "@/lib/bicim";
 import { useVeri } from "@/lib/kancalar";
+import { useSiralama } from "@/lib/siralama";
 import SiparisUrunleri from "./SiparisUrunleri";
 
 export const siparisAdresi = (id: number) => `/siparisler?id=${id}`;
@@ -20,6 +21,9 @@ export function durumRozeti(s: Siparis) {
 export default function MusteriSiparisleri({ musteriId }: { musteriId: number }) {
   const { veri: liste, hata } = useVeri(() => siparisler.liste(musteriId), [musteriId]);
   const [acik, setAcik] = useState<number | null>(null);
+  const { sirali, baslik } = useSiralama(liste, {
+    tarih: (s) => s.tarih, siparisNo: (s) => s.siparisNo, istenen: (s) => s.istenenTarih, durum: (s) => s.durum,
+  });
   return (
     <div className="form-dikey">
       <div className="bas-satir">
@@ -31,17 +35,17 @@ export default function MusteriSiparisleri({ musteriId }: { musteriId: number })
         <table className="tablo tablo--sik">
           <thead>
             <tr>
-              <th>Tarih</th>
-              <th>Sipariş No</th>
+              {baslik("tarih", "Tarih")}
+              {baslik("siparisNo", "Sipariş No")}
               <th>Ürünler</th>
-              <th>İstenen Teslim</th>
-              <th>Durum</th>
+              {baslik("istenen", "İstenen Teslim")}
+              {baslik("durum", "Durum")}
             </tr>
           </thead>
           <tbody>
             {liste === null && !hata && <tr className="bos"><td colSpan={5}>Yükleniyor…</td></tr>}
             {liste?.length === 0 && <tr className="bos"><td colSpan={5}>Talep yok.</td></tr>}
-            {liste?.map((s) => {
+            {sirali?.map((s) => {
               const acikMi = acik === s.id;
               return (
                 <Fragment key={s.id}>

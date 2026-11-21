@@ -61,7 +61,9 @@ public class SevkiyatServisi(AppDbContext db) : ISevkiyatServisi
             var sevkiyat = await db.Satislar.SingleAsync(s => s.Id == sonuc.SatisId, ct);
             sevkiyat.SiparisId = siparis.Id;
             sevkiyat.Aciklama = (istek.Aciklama ?? "").Trim();
+            sevkiyat.No = null;
             KargoYaz(sevkiyat, istek.KargoFirmasi, istek.TakipNo, zorunlu: false);
+            sevkiyat.No = await NoKontrolAsync(sevkiyat.Id, istek.SevkiyatNo, ct);
             await db.SaveChangesAsync(ct);
             return await GetirAsync(sevkiyat.Id, ct);
         }, ct);
@@ -87,6 +89,27 @@ public class SevkiyatServisi(AppDbContext db) : ISevkiyatServisi
             await db.SaveChangesAsync(ct);
             return await GetirAsync(id, ct);
         }, ct);
+
+    public Task<SevkiyatDto> NoAsync(int id, SevkiyatNoIstek istek, CancellationToken ct = default) =>
+        Islem.CalistirAsync(db, async () =>
+        {
+            var s = await db.Satislar.SingleOrDefaultAsync(x => x.Id == id, ct) ?? throw new BulunamadiHatasi("Sevkiyat bulunamadı.");
+            s.No = await NoKontrolAsync(id, istek.No, ct);
+            await db.SaveChangesAsync(ct);
+            return await GetirAsync(id, ct);
+        }, ct);
+
+    private async Task<string?> NoKontrolAsync(int id, string? no, CancellationToken ct)
+    {
+        no = (no ?? "").Trim();
+        if (no.Length == 0)
+            return null;
+        if (no.Length > 20)
+            throw new IsKuraliHatasi("Sevkiyat no en fazla 20 karakter olabilir.");
+        if (await db.Satislar.AnyAsync(x => x.No == no && x.Id != id, ct))
+            throw new IsKuraliHatasi("Bu sevkiyat no başka bir sevkiyatta kullanılıyor.");
+        return no;
+    }
 
     private static void KargoYaz(Satis s, string? firma, string? takipNo, bool zorunlu)
     {

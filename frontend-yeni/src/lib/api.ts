@@ -141,13 +141,14 @@ export const SEVKIYAT_DURUM_ADI: Record<SevkiyatDurumu, string> = {
   Hazirlaniyor: "Kargoya Verilecek", Kargoda: "Kargoda", TeslimEdildi: "Teslim Edildi",
 };
 export interface Sevkiyat {
-  id: number; no: string; musteriId: number; musteriAd: string; siparisId: number | null; siparisNo: string | null;
+  id: number; no: string | null; musteriId: number; musteriAd: string; siparisId: number | null; siparisNo: string | null;
   tarih: string; zaman: string | null; durum: SevkiyatDurumu; kargoFirmasi: string; takipNo: string; aciklama: string;
   kargoZamani: string | null; teslimZamani: string | null; olusturmaZamani: string; kullaniciAd: string;
   kalemler: { seriNo: string; urunAd: string }[]; iadeler: string[];
 }
 export interface SevkiyatIstek {
   siparisId: number; seriNolar: string[]; kargoFirmasi?: string; takipNo?: string; aciklama?: string; geriCagrilanOnayi?: boolean;
+  sevkiyatNo?: string;
 }
 
 export interface UretilebilirUyari {
@@ -353,6 +354,7 @@ export const sevkiyat = {
   getir: (id: number) => al<Sevkiyat>(`sevkiyat/${id}`),
   olustur: (s: SevkiyatIstek) => gonder<Sevkiyat>("sevkiyat", s),
   kargo: (id: number, kargoFirmasi: string, takipNo: string) => guncelle<Sevkiyat>(`sevkiyat/${id}/kargo`, { kargoFirmasi, takipNo }),
+  no: (id: number, no: string) => guncelle<Sevkiyat>(`sevkiyat/${id}/no`, { no }),
   teslim: (id: number) => gonder<Sevkiyat>(`sevkiyat/${id}/teslim`),
 };
 

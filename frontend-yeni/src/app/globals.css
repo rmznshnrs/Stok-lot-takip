@@ -2002,3 +2002,8 @@ body { background: var(--zemin); }
 .sekmeler--kayan > .sekme--aktif, .sekmeler--kayan > .sekme[aria-checked="true"] { color: #fff !important; }
 .sekmeler--kayan > .sekme:not(.sekme--aktif):hover { color: var(--ana-koyu); }
 @media (prefers-reduced-motion: reduce) { .sekme-isaret { transition: none; } }
+.sirala-dugme { display: inline-flex; align-items: center; gap: 6px; padding: 0; border: 0; background: none; color: inherit; font: inherit; font-weight: inherit; cursor: pointer; white-space: nowrap; }
+th.sag .sirala-dugme { flex-direction: row-reverse; }
+.sirala-ok { font-size: 10px; opacity: .35; transition: opacity .2s var(--yumusak), color .2s var(--yumusak); }
+.sirala-dugme:hover .sirala-ok { opacity: .8; }
+.sirala-dugme--aktif, .sirala-dugme--aktif .sirala-ok { color: var(--ana-koyu); opacity: 1; }

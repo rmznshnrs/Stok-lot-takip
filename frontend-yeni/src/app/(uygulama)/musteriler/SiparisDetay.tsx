@@ -167,7 +167,7 @@ function Sevkiyatlar({ siparis: s }: { siparis: Siparis }) {
       {liste.map((x) => (
         <div key={x.id} className="bas-satir satir-tikla kutu kutu--ince">
           <span>
-            <Link href={sevkiyatAdresi(x.id)} className="mono satir-bag">{x.no}</Link> · {x.zaman ? tarihSaat(x.zaman) : tarih(x.tarih)} · {urunOzeti(x)}
+            <Link href={sevkiyatAdresi(x.id)} className="mono satir-bag">{x.no ?? "Sevkiyat"}</Link> · {x.zaman ? tarihSaat(x.zaman) : tarih(x.tarih)} · {urunOzeti(x)}
             {x.takipNo && <> · {x.kargoFirmasi} <span className="mono">{x.takipNo}</span></>}
           </span>
           {sevkiyatRozeti(x)}
