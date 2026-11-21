@@ -108,7 +108,18 @@ public class UretimSirasiServisi(AppDbContext db, IStokLotuRepository lotlar, IU
                 emir.BitisZamani = Zaman.Simdi();
             }
             await db.SaveChangesAsync(ct);
-            return sonuc;
+            if (emir.SiparisKalemiId is not { } kalemId)
+                return sonuc;
+            var siparisId = await db.SiparisKalemleri.Where(k => k.Id == kalemId).Select(k => k.SiparisId).SingleAsync(ct);
+            try
+            {
+                var sevkiyat = await new SevkiyatServisi(db).OlusturAsync(new SevkiyatIstek(siparisId, sonuc.SeriNolar), kullaniciId, ct);
+                return sonuc with { SevkiyatId = sevkiyat.Id, SevkiyatNo = sevkiyat.No };
+            }
+            catch (SatisHatasi)
+            {
+                return sonuc;
+            }
         }, ct);
 
     public Task<UretimEmriDto> BaslaAsync(int id, CancellationToken ct = default) =>

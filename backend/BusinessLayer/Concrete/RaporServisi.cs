@@ -78,9 +78,9 @@ public class RaporServisi(AppDbContext db, IOzetServisi ozet, ISiparisServisi si
             [.. o.YaklasanTeslimler.Select(t => new object?[] { t.IstenenTarih, t.No, t.MusteriAd, t.Kalan })]);
 
         Tablo(wb.Worksheets.Add("Talepler"), 1,
-            ["Tarih", "Müşteri", "İstenen Teslim", "Ürün", "Adet", "Ayrılan", "Gönderilen", "Üretimde", "Eksik", "Durum", "Açıklama"],
+            ["Sipariş No", "Tarih", "Müşteri", "İstenen Teslim", "Ürün", "Adet", "Ayrılan", "Gönderilen", "Üretimde", "Eksik", "Durum", "Açıklama"],
             [.. siparisler.SelectMany(s => s.Kalemler.Select(k => new object?[] {
-                s.Tarih, s.MusteriAd, s.IstenenTarih, k.UrunAd, k.Adet, k.Ayrilanlar.Count, k.Gonderilenler.Count,
+                s.SiparisNo, s.Tarih, s.MusteriAd, s.IstenenTarih, k.UrunAd, k.Adet, k.Ayrilanlar.Count, k.Gonderilenler.Count,
                 k.Uretimde, k.Eksik, SiparisDurumu.GetValueOrDefault(s.Durum, s.Durum), s.Aciklama }))]);
 
         Tablo(wb.Worksheets.Add("Üretim Sırası"), 1,
@@ -93,7 +93,7 @@ public class RaporServisi(AppDbContext db, IOzetServisi ozet, ISiparisServisi si
             ["Seri No", "Ürün", "Üretim Tarihi", "Durum", "Müşteri", "Gönderim Tarihi", "Hatalı Lot"],
             [.. uretimler.Select(u => new object?[] {
                 u.SeriNo, u.UrunAd, Yerel(u.Tarih),
-                u.Hurda is not null ? (u.Hurda.Tur == "Kayip" ? "Kayıp" : "Hurda") : u.MusteriAd is not null ? "Gönderildi" : "Depoda",
+                u.Hurda is not null ? (u.Hurda.Tur == "Kayip" ? "Kayıp" : "Hurda") : u.KargoyaVerilecek ? "Kargoya verilecek" : u.MusteriAd is not null ? "Gönderildi" : "Depoda",
                 u.MusteriAd, u.SatisTarihi, string.Join(", ", u.GeriCagrilanLotlar) })]);
 
         Tablo(wb.Worksheets.Add("Sevkiyat"), 1,

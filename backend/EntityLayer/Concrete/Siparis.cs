@@ -9,6 +9,7 @@ public class Siparis : IDenetimli
     public DateOnly Tarih { get; set; }
     public DateOnly? IstenenTarih { get; set; }
     public string Aciklama { get; set; } = "";
+    public string SiparisNo { get; set; } = "";
 
     public DateTimeOffset? IptalZamani { get; set; }
 

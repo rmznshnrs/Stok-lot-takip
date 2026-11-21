@@ -30,6 +30,7 @@ export default function SiparisFormu({ musteriId }: { musteriId: number }) {
   const [kalemler, setKalemler] = useState<Kalem[]>(() => [yeniKalem()]);
   const [istenen, setIstenen] = useState("");
   const [aciklama, setAciklama] = useState("");
+  const [siparisNo, setSiparisNo] = useState("");
   const [siraya, setSiraya] = useState(true);
   const [mesaj, setMesaj] = useState<MesajBilgisi | null>(null);
   const [bekliyor, setBekliyor] = useState(false);
@@ -70,6 +71,7 @@ export default function SiparisFormu({ musteriId }: { musteriId: number }) {
         tarih: bugun(),
         istenenTarih: istenen || undefined,
         aciklama: aciklama.trim(),
+        siparisNo: siparisNo.trim(),
       });
       const uyarilar: string[] = [];
       if (siraya) {
@@ -96,7 +98,11 @@ export default function SiparisFormu({ musteriId }: { musteriId: number }) {
       <form className="kart kart--genis kart--bosluklu" onSubmit={kaydet}>
         <h2>Yeni Talep{musteri && ` · ${musteri.ad}`}</h2>
         <Mesaj mesaj={mesaj} />
-        <div className="izgara-2">
+        <div className="izgara-form">
+          <div className="alan">
+            <label htmlFor="sip-no">Sipariş No</label>
+            <input id="sip-no" className="girdi girdi--mono" maxLength={50} value={siparisNo} onChange={(e) => setSiparisNo(e.target.value)} />
+          </div>
           <div className="alan">
             <label htmlFor="sip-istenen">İstenen Teslim Tarihi</label>
             <input id="sip-istenen" type="date" className="girdi" min={bugun()} value={istenen} onChange={(e) => setIstenen(e.target.value)} />

@@ -32,20 +32,22 @@ export default function MusteriSiparisleri({ musteriId }: { musteriId: number })
           <thead>
             <tr>
               <th>Tarih</th>
+              <th>Sipariş No</th>
               <th>Ürünler</th>
               <th>İstenen Teslim</th>
               <th>Durum</th>
             </tr>
           </thead>
           <tbody>
-            {liste === null && !hata && <tr className="bos"><td colSpan={4}>Yükleniyor…</td></tr>}
-            {liste?.length === 0 && <tr className="bos"><td colSpan={4}>Talep yok.</td></tr>}
+            {liste === null && !hata && <tr className="bos"><td colSpan={5}>Yükleniyor…</td></tr>}
+            {liste?.length === 0 && <tr className="bos"><td colSpan={5}>Talep yok.</td></tr>}
             {liste?.map((s) => {
               const acikMi = acik === s.id;
               return (
                 <Fragment key={s.id}>
                   <tr className="satir-tikla">
                     <td><Link href={siparisAdresi(s.id)}>{tarih(s.tarih)}</Link></td>
+                    <td className="mono">{s.siparisNo ?? <span className="soluk">—</span>}</td>
                     <td>
                       <button type="button" className="btn-baglanti parca-ac satir-bag" aria-expanded={acikMi}
                         onClick={() => setAcik(acikMi ? null : s.id)}>
@@ -58,7 +60,7 @@ export default function MusteriSiparisleri({ musteriId }: { musteriId: number })
                   </tr>
                   {acikMi && (
                     <tr className="acilan-satir">
-                      <td colSpan={4}>
+                      <td colSpan={5}>
                         <SiparisUrunleri siparisId={s.id} />
                       </td>
                     </tr>

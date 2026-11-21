@@ -22,7 +22,6 @@ export default function SevkiyatFormu({ ilkSiparis }: { ilkSiparis: number | nul
   const secili = secim ?? bekleyenler.map((b) => b.seriNo);
   const [firma, setFirma] = useState("");
   const [takipNo, setTakipNo] = useState("");
-  const [siparisNo, setSiparisNo] = useState("");
   const [aciklama, setAciklama] = useState("");
   const [uyarilar, setUyarilar] = useState<SatisUyarisi[]>([]);
   const [onay, setOnay] = useState(false);
@@ -38,7 +37,7 @@ export default function SevkiyatFormu({ ilkSiparis }: { ilkSiparis: number | nul
     try {
       const s = await sevkiyat.olustur({
         siparisId: siparis.id, seriNolar: secili, kargoFirmasi: firma.trim(), takipNo: takipNo.trim(),
-        aciklama: aciklama.trim(), geriCagrilanOnayi: onay, siparisNo: siparisNo.trim(),
+        aciklama: aciklama.trim(), geriCagrilanOnayi: onay,
       });
       router.push(sevkiyatAdresi(s.id));
     } catch (err) {
@@ -66,7 +65,7 @@ export default function SevkiyatFormu({ ilkSiparis }: { ilkSiparis: number | nul
               const hazir = s.kalemler.reduce((t, k) => t + k.ayrilanlar.length - k.gonderilenler.length, 0);
               return (
                 <option key={s.id} value={s.id} disabled={hazir === 0}>
-                  {s.musteriAd} · {tarih(s.tarih)} talebi · {hazir} ürün gönderime hazır{s.istenenTarih ? ` · teslim ${tarih(s.istenenTarih)}` : ""}
+                  {s.musteriAd} · {s.siparisNo ? `Sipariş ${s.siparisNo}` : `${tarih(s.tarih)} talebi`} · {hazir} ürün gönderime hazır{s.istenenTarih ? ` · teslim ${tarih(s.istenenTarih)}` : ""}
                 </option>
               );
             })}
@@ -80,10 +79,6 @@ export default function SevkiyatFormu({ ilkSiparis }: { ilkSiparis: number | nul
             <SeriSecimi adaylar={bekleyenler} secili={secili} setSecili={setSecim} bos="Bu talepte gönderime hazır ürün yok." />
           </>
         )}
-        <div className="alan">
-          <label htmlFor="sv-siparis-no">Sipariş No</label>
-          <input id="sv-siparis-no" className="girdi girdi--mono" maxLength={50} value={siparisNo} onChange={(e) => setSiparisNo(e.target.value)} />
-        </div>
         <div className="izgara-2">
           <div className="alan">
             <label htmlFor="sv-firma">Kargo Firması</label>

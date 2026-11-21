@@ -10,6 +10,7 @@ import { ETIKET_TURLERI, etiketTuruKaydet, kayitliEtiketTuru, type EtiketTuru } 
 import { useGecikmeli, useVeri } from "@/lib/kancalar";
 import UretimSekmeleri from "./UretimSekmeleri";
 import { siparisAdresi, talepAdi } from "../musteriler/MusteriSiparisleri";
+import { sevkiyatAdresi } from "../sevkiyat/ortak";
 import SayiGirdi from "@/components/SayiGirdi";
 
 export default function UretimSirasi({ uretimde }: { uretimde: boolean }) {
@@ -233,7 +234,10 @@ function UretimSonucKutusu({ sonuc, kapat }: { sonuc: UretimSonucu; kapat: () =>
   return (
     <div className="sonuc-kutu" role="status">
       <div className="bas-satir">
-        <div className="sonuc-baslik">Üretildi, stoğa girdi: {sonuc.seriNolar.length} adet {sonuc.urunAd}</div>
+        <div className="sonuc-baslik">
+          Üretildi, stoğa girdi: {sonuc.seriNolar.length} adet {sonuc.urunAd}
+          {sonuc.sevkiyatId && <> · <Link href={sevkiyatAdresi(sonuc.sevkiyatId)}>{sonuc.sevkiyatNo}</Link> olarak kargoya verilecekler listesine eklendi</>}
+        </div>
         <button type="button" className="btn-baglanti" onClick={kapat}>Kapat</button>
       </div>
       <div className="seri-listesi">

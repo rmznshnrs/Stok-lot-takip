@@ -13,6 +13,7 @@ import { useVeri } from "@/lib/kancalar";
 import { durumRozeti } from "./MusteriSiparisleri";
 import SiparisUrunleri from "./SiparisUrunleri";
 import { sevkiyatAdresi, sevkiyatRozeti, urunOzeti } from "../sevkiyat/ortak";
+import { SiparisNoBilgisi } from "../sevkiyat/SevkiyatDetay";
 import SayiGirdi from "@/components/SayiGirdi";
 
 export default function SiparisDetay({ id }: { id: number }) {
@@ -56,6 +57,7 @@ export default function SiparisDetay({ id }: { id: number }) {
           </div>
           <div className="bilgi-liste">
             <div className="bilgi"><span>Talep Tarihi</span><span>{tarih(s.tarih)}</span></div>
+            <SiparisNoBilgisi key={s.siparisNo ?? ""} siparisId={s.id} siparisNo={s.siparisNo} degisti={yenile} />
             <div className="bilgi"><span>İstenen Teslim</span><span>{s.istenenTarih ? tarih(s.istenenTarih) : "—"}</span></div>
             {s.aciklama && <div className="bilgi"><span>Açıklama</span><span>{s.aciklama}</span></div>}
             <div className="bilgi"><span>Kaydeden</span><span>{s.kullaniciAd} · {tarihSaat(s.olusturmaZamani)}</span></div>
@@ -165,7 +167,7 @@ function Sevkiyatlar({ siparis: s }: { siparis: Siparis }) {
       {liste.map((x) => (
         <div key={x.id} className="bas-satir satir-tikla kutu kutu--ince">
           <span>
-            <Link href={sevkiyatAdresi(x.id)} className="mono satir-bag">{x.no}</Link>{x.siparisNo && <> · Sipariş No <b className="mono">{x.siparisNo}</b></>} · {x.zaman ? tarihSaat(x.zaman) : tarih(x.tarih)} · {urunOzeti(x)}
+            <Link href={sevkiyatAdresi(x.id)} className="mono satir-bag">{x.no}</Link> · {x.zaman ? tarihSaat(x.zaman) : tarih(x.tarih)} · {urunOzeti(x)}
             {x.takipNo && <> · {x.kargoFirmasi} <span className="mono">{x.takipNo}</span></>}
           </span>
           {sevkiyatRozeti(x)}

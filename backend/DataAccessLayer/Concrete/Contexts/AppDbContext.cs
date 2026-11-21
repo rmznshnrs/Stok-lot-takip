@@ -121,6 +121,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             e.Property(x => x.No).HasMaxLength(20);
             e.HasIndex(x => x.No).IsUnique();
             e.Property(x => x.Aciklama).HasMaxLength(500);
+            e.Property(x => x.SiparisNo).HasMaxLength(50);
+            e.HasIndex(x => x.SiparisNo);
             e.HasOne(x => x.Musteri).WithMany(mu => mu.Siparisler).HasForeignKey(x => x.MusteriId);
             e.HasOne(x => x.OlusturanKullanici).WithMany().HasForeignKey(x => x.OlusturanKullaniciId);
         });
@@ -191,8 +193,6 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             e.HasIndex(x => x.No).IsUnique();
             e.Property(x => x.KargoFirmasi).HasMaxLength(100);
             e.Property(x => x.TakipNo).HasMaxLength(100);
-            e.Property(x => x.SiparisNo).HasMaxLength(50);
-            e.HasIndex(x => x.SiparisNo);
             e.Property(x => x.Aciklama).HasMaxLength(500);
             e.HasIndex(x => x.Durum);
             e.HasOne(x => x.Musteri).WithMany(mu => mu.Satislar).HasForeignKey(x => x.MusteriId);

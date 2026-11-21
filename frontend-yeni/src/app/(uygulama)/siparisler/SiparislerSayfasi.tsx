@@ -76,7 +76,7 @@ function SiparisListesi() {
   const [acik, setAcik] = useState<number | null>(null);
   const kosul = SUZGECLER.find((s) => s.deger === suzgec)!.uyar;
   const liste = tumu && tumu.filter((s) => kosul(s) && (!aranan
-    || `${(s.siparisNolari ?? []).join(" ")} ${s.musteriAd} ${s.aciklama} ${s.kalemler.map((k) => `${k.urunAd} ${k.urunKod} ${k.ayrilanlar.join(" ")}`).join(" ")}`
+    || `${s.siparisNo ?? ""} ${s.musteriAd} ${s.aciklama} ${s.kalemler.map((k) => `${k.urunAd} ${k.urunKod} ${k.ayrilanlar.join(" ")}`).join(" ")}`
       .toLocaleLowerCase("tr").includes(aranan)));
   const { gorunen, cubuk } = useSayfalama(liste, `${suzgec}|${aranan}`);
 
@@ -141,7 +141,7 @@ function SiparisListesi() {
                         </span>
                         {giden}/{toplam}
                       </td>
-                      <td className="mono">{s.siparisNolari?.length ? s.siparisNolari.join(", ") : <span className="soluk">—</span>}</td>
+                      <td className="mono">{s.siparisNo ?? <span className="soluk">—</span>}</td>
                       <td>{durumRozeti(s)}</td>
                     </tr>
                     {ac && (

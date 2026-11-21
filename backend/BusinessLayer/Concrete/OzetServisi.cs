@@ -17,14 +17,14 @@ public class OzetServisi(AppDbContext db, IStokServisi stok) : IOzetServisi
             {
                 s.Id, s.No, MusteriAd = s.Musteri!.Ad, s.IstenenTarih,
                 Adet = s.Kalemler.Sum(k => k.Adet),
-                Gonderilen = s.Kalemler.Sum(k => k.Ayrilanlar.Count(u => u.SatisKalemi != null)),
+                Gonderilen = s.Kalemler.Sum(k => k.Ayrilanlar.Count(u => u.SatisKalemi != null && u.SatisKalemi.Satis!.Durum != SevkiyatDurumu.Hazirlaniyor)),
             })
             .Where(s => s.Gonderilen < s.Adet).ToListAsync(ct);
         var bekleyen = await db.UretimEmirleri.AsNoTracking().Where(e => e.Durum == UretimEmriDurumu.Bekliyor)
             .Select(e => new { e.PlanlananTarih, Kalan = e.Adet - e.Uretilen }).ToListAsync(ct);
         var sevkiyat = await db.Satislar.AsNoTracking().Where(s => s.Durum != SevkiyatDurumu.TeslimEdildi)
             .GroupBy(s => s.Durum).Select(g => new { g.Key, Sayi = g.Count() }).ToListAsync(ct);
-        var depoda = await db.Uretimler.CountAsync(u => u.SatisKalemi == null && u.Hurda == null, ct);
+        var depoda = await db.Uretimler.CountAsync(u => (u.SatisKalemi == null || u.SatisKalemi.Satis!.Durum == SevkiyatDurumu.Hazirlaniyor) && u.Hurda == null, ct);
         var acikGeri = await db.UrunGeriCagirmalari.CountAsync(g => g.KapanmaZamani == null && g.Uretim!.Hurda == null, ct);
         var parcalar = await stok.ParcaStoklariAsync(ct: ct);
 
@@ -76,8 +76,8 @@ public class OzetServisi(AppDbContext db, IStokServisi stok) : IOzetServisi
             .Select(u => new
             {
                 u.Id, u.Ad,
-                Gonderilen = db.Uretimler.Count(x => x.UrunId == u.Id && x.SatisKalemi != null),
-                Depoda = db.Uretimler.Count(x => x.UrunId == u.Id && x.SatisKalemi == null && x.Hurda == null),
+                Gonderilen = db.Uretimler.Count(x => x.UrunId == u.Id && x.SatisKalemi != null && x.SatisKalemi.Satis!.Durum != SevkiyatDurumu.Hazirlaniyor),
+                Depoda = db.Uretimler.Count(x => x.UrunId == u.Id && (x.SatisKalemi == null || x.SatisKalemi.Satis!.Durum == SevkiyatDurumu.Hazirlaniyor) && x.Hurda == null),
             }).ToListAsync(ct);
         var dagilim = urunler.Select(u => new UrunDagilimiDto(u.Id, u.Ad, u.Gonderilen, u.Depoda))
             .OrderByDescending(u => u.Gonderilen).ThenBy(u => u.UrunAd, StringComparer.CurrentCulture).ToList();

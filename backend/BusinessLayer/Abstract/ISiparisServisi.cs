@@ -9,6 +9,8 @@ public interface ISiparisServisi
 
     Task<List<SiparisUrunuDto>> UrunlerAsync(int id, CancellationToken ct = default);
 
+    Task<SiparisDto> SiparisNoAsync(int id, SiparisNoIstek istek, CancellationToken ct = default);
+
     Task<SiparisDto> OlusturAsync(SiparisIstek istek, int kullaniciId, CancellationToken ct = default);
 
     Task<SiparisDto> SeriAyirAsync(int kalemId, SeriAyirIstek istek, CancellationToken ct = default);

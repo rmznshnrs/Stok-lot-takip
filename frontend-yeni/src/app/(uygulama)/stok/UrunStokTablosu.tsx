@@ -14,13 +14,13 @@ export default function UrunStokTablosu({ aranan }: { aranan: string }) {
   const satirlar = (liste ?? [])
     .map((u) => {
       const seriler = (gecmis ?? []).filter((g) => g.urunId === u.id);
-      const depoda = seriler.filter((g) => !g.musteriAd && !g.hurda);
+      const depoda = seriler.filter((g) => (!g.musteriAd || g.kargoyaVerilecek) && !g.hurda);
       return {
         urun: u,
         seriler,
         satilabilir: depoda.filter((g) => !g.geriCagirmaDurumu),
         geriCagrilmis: depoda.filter((g) => g.geriCagirmaDurumu),
-        satilan: seriler.filter((g) => g.musteriAd && !g.hurda).length,
+        satilan: seriler.filter((g) => g.musteriAd && !g.kargoyaVerilecek && !g.hurda).length,
         hurda: seriler.filter((g) => g.hurda).length,
         toplam: seriler.length,
       };

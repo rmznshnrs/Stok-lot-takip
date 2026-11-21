@@ -48,7 +48,7 @@ export interface UretimOnizleme {
   parcalar: ParcaIhtiyaci[]; seriNolar: string[]; eksikler: ParcaIhtiyaci[]; yeterli: boolean; atlananLotlar: string[];
   sorunluKullanilanLotlar: string[];
 }
-export interface UretimSonucu { urunId: number; urunAd: string; seriNolar: string[] }
+export interface UretimSonucu { urunId: number; urunAd: string; seriNolar: string[]; sevkiyatId: number | null; sevkiyatNo: string | null }
 
 export interface LotIzUretim {
   uretimId: number; seriNo: string; tarih: string; urunKod: string; urunAd: string; adet: number; satis: SatisBilgisi | null;
@@ -78,6 +78,7 @@ export interface UretimGecmisi {
   uretimId: number; seriNo: string; urunId: number; urunAd: string; tarih: string;
   musteriAd: string | null; satisTarihi: string | null; geriCagrilanLotlar: string[]; hurda: HurdaBilgisi | null;
   geriCagirmaDurumu: string | null;
+  kargoyaVerilecek: boolean;
 }
 export type HurdaTuru = "Hurda" | "Kayip";
 export interface HurdaBilgisi { tur: HurdaTuru; aciklama: string; zaman: string; kullaniciAd: string }
@@ -127,11 +128,11 @@ export interface SiparisKalemi {
 export interface Siparis {
   id: number; no: string; musteriId: number; musteriAd: string; tarih: string; istenenTarih: string | null; aciklama: string;
   durum: SiparisDurumu; kalemler: SiparisKalemi[]; olusturmaZamani: string; kullaniciAd: string; iptalZamani: string | null;
-  siparisNolari: string[] | null;
+  siparisNo: string | null;
 }
 export interface SiparisIstek {
   musteriId: number; kalemler: { urunId: number; adet: number; seriNolar?: string[] }[];
-  tarih?: string; istenenTarih?: string; aciklama?: string;
+  tarih?: string; istenenTarih?: string; aciklama?: string; siparisNo?: string;
 }
 export interface HazirSeri { seriNo: string; tarih: string }
 
@@ -147,7 +148,6 @@ export interface Sevkiyat {
 }
 export interface SevkiyatIstek {
   siparisId: number; seriNolar: string[]; kargoFirmasi?: string; takipNo?: string; aciklama?: string; geriCagrilanOnayi?: boolean;
-  siparisNo?: string;
 }
 
 export interface UretilebilirUyari {
@@ -156,7 +156,7 @@ export interface UretilebilirUyari {
 }
 export type SiparisUrunDurumu = "sirada" | "uretimde" | "depoda" | "hurda" | SevkiyatDurumu;
 export interface SiparisUrunu {
-  durum: SiparisUrunDurumu; urunAd: string; adet: number; seriNo: string | null; siparisNo: string | null; planlananTarih: string | null;
+  durum: SiparisUrunDurumu; urunAd: string; adet: number; seriNo: string | null; planlananTarih: string | null;
   uretimZamani: string | null; sevkiyatId: number | null; sevkiyatNo: string | null; kargoFirmasi: string; takipNo: string;
   kargoZamani: string | null; teslimZamani: string | null;
 }
@@ -340,6 +340,7 @@ export const siparisler = {
   liste: (musteriId?: number, acik = false) => al<Siparis[]>("siparis", { musteriId, acik }),
   getir: (id: number) => al<Siparis>(`siparis/${id}`),
   urunler: (id: number) => al<SiparisUrunu[]>(`siparis/${id}/urunler`),
+  siparisNo: (id: number, siparisNo: string) => guncelle<Siparis>(`siparis/${id}/siparis-no`, { siparisNo }),
   olustur: (s: SiparisIstek) => gonder<Siparis>("siparis", s),
   iptal: (id: number) => gonder<Siparis>(`siparis/${id}/iptal`),
   ayir: (kalemId: number, seriNolar: string[]) => gonder<Siparis>(`siparis/kalem/${kalemId}/ayir`, { seriNolar }),
@@ -352,7 +353,6 @@ export const sevkiyat = {
   getir: (id: number) => al<Sevkiyat>(`sevkiyat/${id}`),
   olustur: (s: SevkiyatIstek) => gonder<Sevkiyat>("sevkiyat", s),
   kargo: (id: number, kargoFirmasi: string, takipNo: string) => guncelle<Sevkiyat>(`sevkiyat/${id}/kargo`, { kargoFirmasi, takipNo }),
-  siparisNo: (id: number, siparisNo: string) => guncelle<Sevkiyat>(`sevkiyat/${id}/siparis-no`, { siparisNo }),
   teslim: (id: number) => gonder<Sevkiyat>(`sevkiyat/${id}/teslim`),
 };
 

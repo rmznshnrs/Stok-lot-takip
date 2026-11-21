@@ -16,7 +16,7 @@ export default function UretimGecmisi({ ilkArama = "" }: { ilkArama?: string }) 
   const { veri: liste, hata } = useVeri(() => uretim.gecmis(aranan, Number(urunId) || undefined), [aranan, urunId]);
   const { veri: tumUrunler } = useVeri(() => urunler.listele(), []);
   const { gorunen, cubuk } = useSayfalama(liste, `${aranan}|${urunId}`);
-  const depoda = liste?.filter((u) => !u.musteriAd && !u.hurda).length ?? 0;
+  const depoda = liste?.filter((u) => (!u.musteriAd || u.kargoyaVerilecek) && !u.hurda).length ?? 0;
   const ayrilan = liste?.filter((u) => u.hurda).length ?? 0;
 
   return (
@@ -73,6 +73,8 @@ export default function UretimGecmisi({ ilkArama = "" }: { ilkArama?: string }) 
                         <span className="rozet rozet--kucuk rozet--hata">{hurdaAdi(u.hurda.tur)}</span>{" "}
                         <span className="not">{u.hurda.aciklama}</span>
                       </span>
+                    ) : u.kargoyaVerilecek ? (
+                      <><span className="rozet rozet--kucuk rozet--uyari">Kargoya Verilecek</span> {u.musteriAd}</>
                     ) : u.musteriAd ? (
                       <>
                         <span className="rozet rozet--kucuk rozet--mavi">Gönderildi</span> {u.musteriAd}

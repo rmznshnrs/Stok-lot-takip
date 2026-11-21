@@ -12,7 +12,7 @@ import { seriAdresi } from "@/lib/adres";
 export default function UrunDepo({ urunId, degisti }: { urunId: number; degisti?: () => void }) {
   const admin = useAdminMi();
   const { veri: liste, hata, yenile } = useVeri(() => uretim.gecmis(undefined, urunId), [urunId]);
-  const depoda = liste?.filter((u) => !u.musteriAd && !u.hurda) ?? [];
+  const depoda = liste?.filter((u) => (!u.musteriAd || u.kargoyaVerilecek) && !u.hurda) ?? [];
   const ayrilan = liste?.filter((u) => u.hurda).length ?? 0;
 
   const [ara, setAra] = useState("");
@@ -83,7 +83,7 @@ export default function UrunDepo({ urunId, degisti }: { urunId: number; degisti?
               </label>
             )}
             {gorunen.map((u) =>
-              admin ? (
+              admin && !u.kargoyaVerilecek ? (
                 <label key={u.uretimId} className={`depo-oge${secili.includes(u.seriNo) ? " depo-oge--secili" : ""}`}>
                   <input type="checkbox" checked={secili.includes(u.seriNo)} onChange={() => degistir(u.seriNo)} />
                   <span className="mono">{u.seriNo}</span>
@@ -92,7 +92,7 @@ export default function UrunDepo({ urunId, degisti }: { urunId: number; degisti?
               ) : (
                 <Link key={u.uretimId} href={seriAdresi(u.seriNo)} className="depo-oge">
                   <span className="mono">{u.seriNo}</span>
-                  <span className="not">{tarihSaat(u.tarih)}</span>
+                  <span className="not">{u.kargoyaVerilecek ? `Kargoya verilecek · ${u.musteriAd}` : tarihSaat(u.tarih)}</span>
                 </Link>
               ),
             )}

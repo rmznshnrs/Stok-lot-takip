@@ -24,7 +24,7 @@ public class SevkiyatServisi(AppDbContext db) : ISevkiyatServisi
             var desen = Arama.Desen(arama);
             q = q.Where(s => EF.Functions.Like(s.No, desen) || EF.Functions.Like(s.Musteri!.Ad, desen)
                              || EF.Functions.Like(s.TakipNo, desen)
-                             || EF.Functions.Like(s.SiparisNo, desen)
+                             || (s.Siparis != null && EF.Functions.Like(s.Siparis.SiparisNo, desen))
                              || s.Kalemler.Any(k => EF.Functions.Like(k.Uretim!.SeriNo, desen))
                              || s.Iadeler.Any(i => EF.Functions.Like(i.Uretim!.SeriNo, desen)));
         }
@@ -61,7 +61,6 @@ public class SevkiyatServisi(AppDbContext db) : ISevkiyatServisi
             var sevkiyat = await db.Satislar.SingleAsync(s => s.Id == sonuc.SatisId, ct);
             sevkiyat.SiparisId = siparis.Id;
             sevkiyat.Aciklama = (istek.Aciklama ?? "").Trim();
-            sevkiyat.SiparisNo = SiparisNoTemizle(istek.SiparisNo);
             KargoYaz(sevkiyat, istek.KargoFirmasi, istek.TakipNo, zorunlu: false);
             await db.SaveChangesAsync(ct);
             return await GetirAsync(sevkiyat.Id, ct);
@@ -76,23 +75,6 @@ public class SevkiyatServisi(AppDbContext db) : ISevkiyatServisi
             await db.SaveChangesAsync(ct);
             return await GetirAsync(id, ct);
         }, ct);
-
-    public Task<SevkiyatDto> SiparisNoAsync(int id, SiparisNoIstek istek, CancellationToken ct = default) =>
-        Islem.CalistirAsync(db, async () =>
-        {
-            var s = await db.Satislar.SingleOrDefaultAsync(x => x.Id == id, ct) ?? throw new BulunamadiHatasi("Sevkiyat bulunamadı.");
-            s.SiparisNo = SiparisNoTemizle(istek.SiparisNo);
-            await db.SaveChangesAsync(ct);
-            return await GetirAsync(id, ct);
-        }, ct);
-
-    private static string SiparisNoTemizle(string? no)
-    {
-        no = (no ?? "").Trim();
-        if (no.Length > 50)
-            throw new IsKuraliHatasi("Sipariş no en fazla 50 karakter olabilir.");
-        return no;
-    }
 
     public Task<SevkiyatDto> TeslimAsync(int id, CancellationToken ct = default) =>
         Islem.CalistirAsync(db, async () =>
@@ -132,7 +114,7 @@ public class SevkiyatServisi(AppDbContext db) : ISevkiyatServisi
         .AsSplitQuery();
 
     private static SevkiyatDto Donustur(Satis s) => new(
-        s.Id, s.No, s.MusteriId, s.Musteri!.Ad, s.SiparisId, s.SiparisNo.Length > 0 ? s.SiparisNo : null, s.Tarih, s.Zaman, s.Durum.ToString(),
+        s.Id, s.No, s.MusteriId, s.Musteri!.Ad, s.SiparisId, s.Siparis is { SiparisNo.Length: > 0 } ? s.Siparis.SiparisNo : null, s.Tarih, s.Zaman, s.Durum.ToString(),
         s.KargoFirmasi, s.TakipNo, s.Aciklama, s.KargoZamani, s.TeslimZamani, s.OlusturmaZamani,
         $"{s.OlusturanKullanici!.Ad} {s.OlusturanKullanici.Soyad}",
         [.. s.Kalemler.Select(k => new SevkiyatKalemiDto(k.Uretim!.SeriNo, k.Uretim.Urun!.Ad)).OrderBy(k => k.SeriNo)],

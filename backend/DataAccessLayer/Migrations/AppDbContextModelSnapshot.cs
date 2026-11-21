@@ -200,11 +200,6 @@ namespace DataAccessLayer.Migrations
                     b.Property<int?>("SiparisId")
                         .HasColumnType("int");
 
-                    b.Property<string>("SiparisNo")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
                     b.Property<string>("TakipNo")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -231,8 +226,6 @@ namespace DataAccessLayer.Migrations
                     b.HasIndex("OlusturanKullaniciId");
 
                     b.HasIndex("SiparisId");
-
-                    b.HasIndex("SiparisNo");
 
                     b.ToTable("Satis", (string)null);
                 });
@@ -360,6 +353,11 @@ namespace DataAccessLayer.Migrations
                     b.Property<DateTimeOffset>("OlusturmaZamani")
                         .HasColumnType("datetimeoffset");
 
+                    b.Property<string>("SiparisNo")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
                     b.Property<DateOnly>("Tarih")
                         .HasColumnType("date");
 
@@ -371,6 +369,8 @@ namespace DataAccessLayer.Migrations
                         .IsUnique();
 
                     b.HasIndex("OlusturanKullaniciId");
+
+                    b.HasIndex("SiparisNo");
 
                     b.ToTable("Siparis", (string)null);
                 });

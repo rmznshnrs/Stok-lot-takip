@@ -11,7 +11,5 @@ public interface ISevkiyatServisi
 
     Task<SevkiyatDto> KargoAsync(int id, KargoIstek istek, CancellationToken ct = default);
 
-    Task<SevkiyatDto> SiparisNoAsync(int id, SiparisNoIstek istek, CancellationToken ct = default);
-
     Task<SevkiyatDto> TeslimAsync(int id, CancellationToken ct = default);
 }

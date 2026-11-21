@@ -27,7 +27,8 @@ public class UretimServisi(AppDbContext db, IStokLotuRepository lotlar, IUretimR
                 u.Tuketimler.Where(t => t.StokLotu!.Sorunlu).Select(t => t.StokLotu!.LotNo).Distinct().OrderBy(l => l).ToList(),
                 u.Hurda == null ? null : new HurdaBilgisiDto(u.Hurda.Tur.ToString(), u.Hurda.Aciklama, u.Hurda.OlusturmaZamani,
                     u.Hurda.OlusturanKullanici!.Ad + " " + u.Hurda.OlusturanKullanici.Soyad),
-                u.Hurda == null && u.GeriCagirmalar.Any(g => g.KapanmaZamani == null) ? "acik" : null))
+                u.Hurda == null && u.GeriCagirmalar.Any(g => g.KapanmaZamani == null) ? "acik" : null,
+                u.SatisKalemi != null && u.SatisKalemi.Satis!.Durum == SevkiyatDurumu.Hazirlaniyor))
             .ToListAsync(ct);
     }
 

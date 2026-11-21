@@ -4,7 +4,7 @@ import Link from "next/link";
 import GeriIleri from "@/components/GeriIleri";
 import { useState, type FormEvent } from "react";
 import Mesaj, { type MesajBilgisi } from "@/components/Mesaj";
-import { ApiHatasi, sevkiyat, type Sevkiyat } from "@/lib/api";
+import { ApiHatasi, sevkiyat, siparisler, type Sevkiyat } from "@/lib/api";
 import { seriAdresi } from "@/lib/adres";
 import { tarih, tarihSaat } from "@/lib/bicim";
 import { KARGO_FIRMALARI, takipAdresi } from "@/lib/kargo";
@@ -48,7 +48,7 @@ export default function SevkiyatDetay({ id }: { id: number }) {
               {s.aciklama && <div className="bilgi"><span>Açıklama</span><span>{s.aciklama}</span></div>}
               <div className="bilgi"><span>Kaydeden</span><span>{s.kullaniciAd}</span></div>
             </div>
-            <SiparisNoBilgisi key={s.siparisNo ?? ""} s={s} degisti={yenile} />
+            {s.siparisId && <SiparisNoBilgisi key={s.siparisNo ?? ""} siparisId={s.siparisId} siparisNo={s.siparisNo} degisti={yenile} />}
             <Adimlar s={s} />
             <Mesaj mesaj={mesaj} />
             <KargoBilgisi s={s} degisti={yenile} />
@@ -172,9 +172,9 @@ function KargoBilgisi({ s, degisti }: { s: Sevkiyat; degisti: () => void }) {
   );
 }
 
-function SiparisNoBilgisi({ s, degisti }: { s: Sevkiyat; degisti: () => void }) {
+export function SiparisNoBilgisi({ siparisId, siparisNo, degisti }: { siparisId: number; siparisNo: string | null; degisti: () => void }) {
   const [duzenle, setDuzenle] = useState(false);
-  const [no, setNo] = useState(s.siparisNo ?? "");
+  const [no, setNo] = useState(siparisNo ?? "");
   const [hata, setHata] = useState("");
   const [bekliyor, setBekliyor] = useState(false);
 
@@ -183,7 +183,7 @@ function SiparisNoBilgisi({ s, degisti }: { s: Sevkiyat; degisti: () => void }) 
     setHata("");
     setBekliyor(true);
     try {
-      await sevkiyat.siparisNo(s.id, no.trim());
+      await siparisler.siparisNo(siparisId, no.trim());
       setDuzenle(false);
       degisti();
     } catch (err) {
@@ -196,8 +196,8 @@ function SiparisNoBilgisi({ s, degisti }: { s: Sevkiyat; degisti: () => void }) 
   if (!duzenle) {
     return (
       <div className="bas-satir siparis-no-satiri">
-        <span>Sipariş No: {s.siparisNo ? <b className="mono">{s.siparisNo}</b> : <span className="soluk">Girilmedi</span>}</span>
-        <button type="button" className="btn-baglanti" onClick={() => setDuzenle(true)}>{s.siparisNo ? "Düzelt" : "Sipariş No Gir"}</button>
+        <span>Sipariş No: {siparisNo ? <b className="mono">{siparisNo}</b> : <span className="soluk">Girilmedi</span>}</span>
+        <button type="button" className="btn-baglanti" onClick={() => setDuzenle(true)}>{siparisNo ? "Düzelt" : "Sipariş No Gir"}</button>
       </div>
     );
   }
