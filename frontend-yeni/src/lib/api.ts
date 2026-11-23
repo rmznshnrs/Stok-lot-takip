@@ -116,9 +116,9 @@ export interface UretimEmri {
 }
 export interface UretimEmriIstek { urunId: number; adet?: number; siparisKalemiId?: number; planlananTarih?: string; aciklama?: string }
 
-export type SiparisDurumu = "bekliyor" | "uretimde" | "hazir" | "kismen_gonderildi" | "tamamlandi" | "iptal";
+export type SiparisDurumu = "bekliyor" | "uretimde" | "kismen_hazir" | "hazir" | "kismen_gonderildi" | "tamamlandi" | "iptal";
 export const SIPARIS_DURUM_ADI: Record<SiparisDurumu, string> = {
-  bekliyor: "Bekliyor", uretimde: "Üretimde", hazir: "Gönderime Hazır", kismen_gonderildi: "Kısmen Gönderildi",
+  bekliyor: "Bekliyor", uretimde: "Üretimde", kismen_hazir: "Kısmen Hazır", hazir: "Gönderime Hazır", kismen_gonderildi: "Kısmen Gönderildi",
   tamamlandi: "Tamamlandı", iptal: "İptal Edildi",
 };
 export interface SiparisKalemi {

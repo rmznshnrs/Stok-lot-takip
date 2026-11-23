@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import Mesaj, { type MesajBilgisi } from "@/components/Mesaj";
 import { parcalar, urunler } from "@/lib/api";
 import { useGecikmeli, useVeri } from "@/lib/kancalar";
 import UrunBilgisi from "./UrunBilgisi";
@@ -19,7 +20,7 @@ export default function UrunlerEkrani() {
   const aranan = useGecikmeli(arama.trim());
   const { veri: liste, hata, yenile } = useVeri(() => urunler.listele(aranan), [aranan]);
   const { veri: tumParcalar } = useVeri(() => parcalar.listele(), []);
-  const [basari, setBasari] = useState<{ id: number; metin: string } | null>(null);
+  const [basari, setBasari] = useState<{ id: number; mesaj: MesajBilgisi } | null>(null);
   const { veri: detay, hata: detayHatasi, yenile: detayYenile } = useVeri(
     () => (seciliId ? urunler.getir(seciliId) : Promise.resolve(null)),
     [seciliId],
@@ -31,7 +32,7 @@ export default function UrunlerEkrani() {
   }, [yeni, seciliId, liste, aranan, router]);
 
   function kaydedildi(id: number, metin: string) {
-    setBasari({ id, metin });
+    setBasari({ id, mesaj: { tur: "success", metin } });
     yenile();
     if (id === seciliId) detayYenile();
     router.replace(`/urunler?urun=${id}`);
@@ -76,7 +77,7 @@ export default function UrunlerEkrani() {
 
       <section className="kart kart--genis kart--bosluklu">
         {detayHatasi && !yeni && <div className="mesaj mesaj--error">{detayHatasi}</div>}
-        {!yeni && basari?.id === seciliId && <div className="mesaj mesaj--success" role="status">{basari.metin}</div>}
+        {!yeni && basari?.id === seciliId && <Mesaj mesaj={basari.mesaj} />}
         {yeni ? (
           <UrunFormu key="yeni" urun={null} parcalar={tumParcalar ?? []} kaydedildi={kaydedildi} />
         ) : detay && detay.id === seciliId ? (

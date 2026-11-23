@@ -2007,3 +2007,7 @@ th.sag .sirala-dugme { flex-direction: row-reverse; }
 .sirala-ok { font-size: 10px; opacity: .35; transition: opacity .2s var(--yumusak), color .2s var(--yumusak); }
 .sirala-dugme:hover .sirala-ok { opacity: .8; }
 .sirala-dugme--aktif, .sirala-dugme--aktif .sirala-ok { color: var(--ana-koyu); opacity: 1; }
+textarea.girdi, .girdi--cok-satir { height: auto; min-height: 88px; padding: 12px 18px; line-height: 1.5; resize: vertical; }
+.gun-formlari { align-items: stretch; }
+.gun-formlari > .kutu { height: 100%; display: flex; flex-direction: column; }
+.gun-formlari > .kutu > div:last-child { margin-top: auto; }

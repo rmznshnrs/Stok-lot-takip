@@ -106,7 +106,8 @@ function LotDetayi({ iz, degisti }: { iz: LotIz; degisti: () => void }) {
 
       <section className="kart kart--genis kart--iz-sutun">
         <div className="adim-baslik">Kullanıldığı ürünler</div>
-        <div className="liste-kaydir form-dikey">
+        {!iz.uretimler.length && <p className="not">Kullanılmadı.</p>}
+        {iz.uretimler.length > 0 && <div className="liste-kaydir form-dikey">
         {iz.uretimler.map((u) => (
           <Link key={u.uretimId} href={seriAdresi(u.seriNo)} className="akis-oge">
             <div className="baslik-grup">
@@ -116,14 +117,14 @@ function LotDetayi({ iz, degisti }: { iz: LotIz; degisti: () => void }) {
             <UrunDurumu u={u} />
           </Link>
         ))}
-        </div>
-        {!iz.uretimler.length && <p className="not">Kullanılmadı.</p>}
+        </div>}
       </section>
 
 
       <section className="kart kart--genis kart--iz-sutun">
         <div className="adim-baslik">Ürünlerin gittiği müşteriler</div>
-        <div className="liste-kaydir form-dikey">
+        {!iz.musteriler.length && <p className="not">Müşteride ürün yok.</p>}
+        {iz.musteriler.length > 0 && <div className="liste-kaydir form-dikey">
         {iz.musteriler.map((m) => (
           <div key={m.id} className="akis-oge akis-oge--dikey">
             <span className="iz-musteri">{m.ad}</span>
@@ -135,8 +136,7 @@ function LotDetayi({ iz, degisti }: { iz: LotIz; degisti: () => void }) {
             {m.iletisim && <span className="not">{m.iletisim}</span>}
           </div>
         ))}
-        </div>
-        {!iz.musteriler.length && <p className="not">Müşteride ürün yok.</p>}
+        </div>}
       </section>
     </div>
   );

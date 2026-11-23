@@ -115,7 +115,7 @@ public class SiparisTestleri(TestVeritabani vt) : IsKuraliTesti(vt)
         Assert.Equal(("Hazirlaniyor", "MS-1001"), (otomatik.Durum, otomatik.SiparisNo));
         Assert.Equal(["SN-IP-0004"], otomatik.Kalemler.Select(x => x.SeriNo));
         Assert.Equal(depodaOnce + 1, (await new OzetServisi(Db, Stok).AnaSayfaAsync()).DepodaUrun);
-        Assert.Equal("uretimde", (await Siparis.GetirAsync(s.Id)).Durum);
+        Assert.Equal("kismen_hazir", (await Siparis.GetirAsync(s.Id)).Durum);
         var sv = await sevkiyat.KargoAsync(otomatik.Id, new KargoIstek("Aras Kargo", "777"));
         Assert.Equal("kismen_gonderildi", (await Siparis.GetirAsync(s.Id)).Durum);
         Assert.Equal(depodaOnce, (await new OzetServisi(Db, Stok).AnaSayfaAsync()).DepodaUrun);
@@ -134,7 +134,7 @@ public class SiparisTestleri(TestVeritabani vt) : IsKuraliTesti(vt)
     {
         var s = await Siparis.OlusturAsync(new SiparisIstek(Musteri.Id,
             [new SiparisKalemiIstek(Urun.Id, 5, ["sn-ip-0001", "SN-IP-0002"])], IstenenTarih: new(2026, 12, 15)), Kullanici.Id);
-        Assert.Equal(("SP-0001", "bekliyor"), (s.No, s.Durum));
+        Assert.Equal(("SP-0001", "kismen_hazir"), (s.No, s.Durum));
         var k = Assert.Single(s.Kalemler);
         Assert.Equal((2, 0, 3), (k.Ayrilanlar.Count, k.Uretimde, k.Eksik));
         Assert.Equal(["SN-IP-0003"], (await Siparis.HazirSerilerAsync(Urun.Id)).Select(h => h.SeriNo));
@@ -142,7 +142,7 @@ public class SiparisTestleri(TestVeritabani vt) : IsKuraliTesti(vt)
         var e = await Sira.EkleAsync(new UretimEmriIstek(Urun.Id, null, k.Id), Kullanici.Id);
         Assert.Equal((3, s.Tarih, "Atlas"), (e.Adet, e.TalepTarihi, e.MusteriAd));
         s = await Siparis.GetirAsync(s.Id);
-        Assert.Equal(("uretimde", 0), (s.Durum, s.Kalemler[0].Eksik));
+        Assert.Equal(("kismen_hazir", 0), (s.Durum, s.Kalemler[0].Eksik));
         await Assert.ThrowsAsync<IsKuraliHatasi>(() => Sira.EkleAsync(new UretimEmriIstek(Urun.Id, 1, k.Id), Kullanici.Id));
 
         await Sira.UretAsync(e.Id, new EmirUretIstek(), Kullanici.Id);
