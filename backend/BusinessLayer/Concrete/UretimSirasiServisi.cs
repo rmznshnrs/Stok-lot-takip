@@ -31,6 +31,39 @@ public class UretimSirasiServisi(AppDbContext db, IStokLotuRepository lotlar, IU
         await db.UretimEmirleri.AsNoTracking().Where(e => e.Id == id).Select(Donustur).SingleOrDefaultAsync(ct)
         ?? throw new BulunamadiHatasi("Üretim işi bulunamadı.");
 
+    public async Task<List<string>> EksikleriSirayaAlAsync(int kullaniciId, CancellationToken ct = default)
+    {
+        var bugun = Zaman.Bugun();
+        var kalemler = await db.SiparisKalemleri.AsNoTracking()
+            .Where(k => k.Siparis!.IptalZamani == null)
+            .Select(k => new
+            {
+                k.Id, k.UrunId, UrunAd = k.Urun!.Ad, MusteriAd = k.Siparis!.Musteri!.Ad, k.Siparis.IstenenTarih, k.SiparisId,
+                Eksik = k.Adet - k.Ayrilanlar.Count
+                        - k.UretimEmirleri.Where(e => e.Durum == UretimEmriDurumu.Bekliyor).Sum(e => e.Adet - e.Uretilen),
+            })
+            .Where(k => k.Eksik > 0)
+            .ToListAsync(ct);
+        var girenler = new List<string>();
+        foreach (var k in kalemler.OrderBy(k => k.IstenenTarih ?? DateOnly.MaxValue).ThenBy(k => k.SiparisId))
+        {
+            var gun = k.IstenenTarih is { } t && t > bugun ? t : bugun;
+            for (var adet = k.Eksik; adet >= 1; adet--)
+            {
+                try
+                {
+                    await EkleAsync(new UretimEmriIstek(k.UrunId, adet, k.Id, gun), kullaniciId, ct);
+                    girenler.Add($"{k.MusteriAd} · {k.UrunAd} × {adet}");
+                    break;
+                }
+                catch (YetersizStokHatasi)
+                {
+                }
+            }
+        }
+        return girenler;
+    }
+
     public Task<UretimEmriDto> EkleAsync(UretimEmriIstek istek, int kullaniciId, CancellationToken ct = default) =>
         Islem.CalistirAsync(db, async () =>
         {
@@ -63,7 +96,7 @@ public class UretimSirasiServisi(AppDbContext db, IStokLotuRepository lotlar, IU
             var parcaIdleri = urun.Agac.Select(a => a.ParcaId).ToList();
             var kilitli = await lotlar.KullanilabilirLotlariKilitleAsync(parcaIdleri, ct);
             var ayrilan = await Ayrilan.ParcalarAsync(db, parcaIdleri, null, ct);
-            var eksikler = urun.Agac.OrderBy(a => a.Parca!.Kod)
+            var eksikler = urun.Agac.OrderBy(a => a.Parca!.Kod, DogalSira.Ornek)
                 .Select(a =>
                 {
                     var gereken = a.Adet * adet;
@@ -100,7 +133,7 @@ public class UretimSirasiServisi(AppDbContext db, IStokLotuRepository lotlar, IU
                 throw new IsKuraliHatasi($"1 ile {kalan} arasında adet girin.");
             var urun = await uretim.UrunGetirAsync(emir.UrunId, adet, ct);
             emir.BaslamaZamani ??= Zaman.Simdi();
-            var sonuc = await uretim.UretIcAsync(urun, adet, kullanici, null, emir, ct);
+            var sonuc = await uretim.UretIcAsync(urun, adet, kullanici, null, emir, ct, istek.SeriNolar);
             emir.Uretilen += adet;
             if (emir.Uretilen == emir.Adet)
             {
@@ -113,7 +146,9 @@ public class UretimSirasiServisi(AppDbContext db, IStokLotuRepository lotlar, IU
             var siparisId = await db.SiparisKalemleri.Where(k => k.Id == kalemId).Select(k => k.SiparisId).SingleAsync(ct);
             try
             {
-                var sevkiyat = await new SevkiyatServisi(db).OlusturAsync(new SevkiyatIstek(siparisId, sonuc.SeriNolar), kullaniciId, ct);
+                var sevkiyatlar = new SevkiyatServisi(db);
+                var yeni = await sevkiyatlar.OlusturAsync(new SevkiyatIstek(siparisId, sonuc.SeriNolar), kullaniciId, ct);
+                var sevkiyat = await sevkiyatlar.BekleyenleBirlestirAsync(yeni.Id, ct);
                 return sonuc with { SevkiyatId = sevkiyat.Id, SevkiyatNo = sevkiyat.No };
             }
             catch (SatisHatasi)

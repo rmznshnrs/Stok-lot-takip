@@ -29,7 +29,7 @@ export default function StokGirisleri({ lotlar, islemler = false, degisti }: {
       setHata(err instanceof ApiHatasi ? err.message : "İşlem yapılamadı.");
     }
   }
-  const sutun = admin ? 8 : 7;
+  const sutun = admin ? 7 : 6;
   const ac = (lotId: number, islem: LotIslemi) =>
     setAcik(acik?.lotId === lotId && acik.islem === islem ? null : { lotId, islem });
   if (!lotlar.length) return <p className="not">Stok yok.</p>;
@@ -40,7 +40,6 @@ export default function StokGirisleri({ lotlar, islemler = false, degisti }: {
       <thead>
         <tr>
           <th>Lot No</th>
-          <th>Tedarikçi lot no</th>
           <th>Tedarikçi</th>
           <th>Sipariş tarihi</th>
           <th className="sag">Gelen</th>
@@ -60,7 +59,6 @@ export default function StokGirisleri({ lotlar, islemler = false, degisti }: {
                 <td className="mono">
                   <Link href={lotAdresi(lot.lotNo)} className={`giris-no satir-bag${lot.sorunlu ? " uyari-metin" : ""}`}>{lot.lotNo}</Link>
                 </td>
-                <td className="mono soluk">{lot.tedarikciLotNo || "—"}</td>
                 <td>{lot.tedarikciAd}</td>
                 <td>{tarih(lot.siparisTarihi)}</td>
                 <td className="sag">{lot.girisAdet}</td>

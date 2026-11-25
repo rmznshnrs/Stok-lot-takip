@@ -25,12 +25,9 @@ export default function UrunFormu({ urun, parcalar, kaydedildi }: Props) {
 
   function satirEkle() {
     setSatirHatasi("");
-    const metin = yeniParca.trim().toLocaleLowerCase("tr");
     const adet = Number(yeniAdet);
-    const p =
-      parcalar.find((x) => x.kod.toLocaleLowerCase("tr") === metin) ??
-      parcalar.find((x) => x.ad.toLocaleLowerCase("tr") === metin);
-    if (!p) return setSatirHatasi("Bu kod veya adla bir parça yok.");
+    const p = parcalar.find((x) => String(x.id) === yeniParca);
+    if (!p) return setSatirHatasi("Parça seçin.");
     if (!Number.isInteger(adet) || adet < 1) return setSatirHatasi("Adet en az 1 olmalı.");
     if (agac.some((s) => s.parcaId === p.id)) return setSatirHatasi(`${p.kod} zaten ağaçta; adedini satırdan değiştirin.`);
     setAgac([
@@ -130,23 +127,15 @@ export default function UrunFormu({ urun, parcalar, kaydedildi }: Props) {
       <div className="satir-ekle satir-ekle--alt">
         <div className="alan girdi--esnek">
           <label htmlFor="parca-ekle">Parça ekle</label>
-          <input
-            id="parca-ekle"
-            list="parca-listesi"
-            className="girdi girdi--kesikli"
-            autoComplete="off"
-            value={yeniParca}
-            onChange={(e) => setYeniParca(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                e.preventDefault();
-                satirEkle();
-              }
-            }}
-          />
+          <select id="parca-ekle" className="girdi" value={yeniParca} onChange={(e) => setYeniParca(e.target.value)}>
+            <option value="">Parça seçin</option>
+            {parcalar.filter((p) => !agac.some((s) => s.parcaId === p.id)).map((p) => (
+              <option key={p.id} value={p.id}>{p.kod} · {p.ad}</option>
+            ))}
+          </select>
           {satirHatasi && <span className="hata">{satirHatasi}</span>}
         </div>
-        <div className="alan girdi--kisa">
+        <div className="alan alan--adet">
           <label htmlFor="parca-adet">Adet</label>
           <SayiGirdi
             id="parca-adet"
@@ -163,11 +152,6 @@ export default function UrunFormu({ urun, parcalar, kaydedildi }: Props) {
         </div>
         <button type="button" className="btn btn--ikincil" onClick={satirEkle}>Ekle</button>
       </div>
-      <datalist id="parca-listesi">
-        {parcalar.map((p) => (
-          <option key={p.id} value={p.kod}>{p.ad}</option>
-        ))}
-      </datalist>
 
       <div className="kart-alt">
         <span />

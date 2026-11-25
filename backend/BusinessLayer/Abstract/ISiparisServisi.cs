@@ -13,7 +13,7 @@ public interface ISiparisServisi
 
     Task<SiparisDto> OlusturAsync(SiparisIstek istek, int kullaniciId, CancellationToken ct = default);
 
-    Task<SiparisDto> SeriAyirAsync(int kalemId, SeriAyirIstek istek, CancellationToken ct = default);
+    Task<SiparisDto> SeriAyirAsync(int kalemId, SeriAyirIstek istek, CancellationToken ct = default, int? kullaniciId = null);
 
     Task<SiparisDto> SeriBirakAsync(int kalemId, string seriNo, CancellationToken ct = default);
 

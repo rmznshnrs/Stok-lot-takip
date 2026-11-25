@@ -35,6 +35,40 @@ internal static class Sira
         .DefaultIfEmpty(0).Max();
 }
 
+internal sealed class DogalSira : IComparer<string>
+{
+    public static readonly DogalSira Ornek = new();
+
+    public int Compare(string? x, string? y)
+    {
+        if (ReferenceEquals(x, y)) return 0;
+        if (x is null) return -1;
+        if (y is null) return 1;
+        int i = 0, j = 0;
+        while (i < x.Length && j < y.Length)
+        {
+            if (char.IsAsciiDigit(x[i]) && char.IsAsciiDigit(y[j]))
+            {
+                int bi = i, bj = j;
+                while (i < x.Length && char.IsAsciiDigit(x[i])) i++;
+                while (j < y.Length && char.IsAsciiDigit(y[j])) j++;
+                var a = x[bi..i].TrimStart('0');
+                var b = y[bj..j].TrimStart('0');
+                var fark = a.Length != b.Length ? a.Length.CompareTo(b.Length) : string.CompareOrdinal(a, b);
+                if (fark != 0) return fark;
+            }
+            else
+            {
+                var fark = string.Compare(x[i].ToString(), y[j].ToString(), StringComparison.CurrentCultureIgnoreCase);
+                if (fark != 0) return fark;
+                i++;
+                j++;
+            }
+        }
+        return (x.Length - i).CompareTo(y.Length - j);
+    }
+}
+
 internal static class SeriListesi
 {
     public static List<string> Temizle(IEnumerable<string?>? seriler) =>

@@ -34,8 +34,9 @@ public class GeriCagirmaTestleri(TestVeritabani vt) : IsKuraliTesti(vt)
         Assert.Equal("SN-IP-0004", (await Satis.SatilabilirAsync("SN-IP-0004")).SeriNo);
 
         var ilk = kayit.Single(k => k.SeriNo == "SN-IP-0001");
-        var alinan = await Geri.GeriAlAsync(ilk.Id, Admin.Id);
-        Assert.Equal(("geri_alindi", "Atlas"), (alinan.Durum, alinan.MusteriAd));
+        await Assert.ThrowsAsync<IsKuraliHatasi>(() => Geri.GeriAlAsync(ilk.Id, Admin.Id, kargo: new KargoIstek("", "123")));
+        var alinan = await Geri.GeriAlAsync(ilk.Id, Admin.Id, kargo: new KargoIstek(" Aras Kargo ", " 555 "));
+        Assert.Equal(("geri_alindi", "Atlas", "Aras Kargo", "555"), (alinan.Durum, alinan.MusteriAd, alinan.GeriAlmaKargoFirmasi, alinan.GeriAlmaTakipNo));
         Assert.Equal(["SN-IP-0001"], Assert.Single(await Satis.SatisGecmisiAsync()).IadeEdilenler);
         await Assert.ThrowsAsync<SatisHatasi>(() => Satis.SatilabilirAsync("SN-IP-0001"));
         await Assert.ThrowsAsync<IsKuraliHatasi>(() => Geri.GeriAlAsync(ilk.Id, Admin.Id));

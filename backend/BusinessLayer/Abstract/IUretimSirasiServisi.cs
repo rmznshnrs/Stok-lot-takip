@@ -14,6 +14,8 @@ public interface IUretimSirasiServisi
 
     Task<UretimEmriDto> IptalAsync(int id, int kullaniciId, CancellationToken ct = default);
 
+    Task<List<string>> EksikleriSirayaAlAsync(int kullaniciId, CancellationToken ct = default);
+
     Task<List<UretimEmriDto>> TasiAsync(int id, int yon, CancellationToken ct = default);
 
     Task<List<UretimEmriDto>> KonumaTasiAsync(int id, int hedefId, CancellationToken ct = default);

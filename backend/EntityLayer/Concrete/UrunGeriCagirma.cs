@@ -17,6 +17,10 @@ public class UrunGeriCagirma : IDenetimli
     public DateTimeOffset? GeriAlinmaZamani { get; set; }
     public DateTimeOffset? KapanmaZamani { get; set; }
     public bool MusteriyeVerildi { get; set; }
+    public string GeriAlmaKargoFirmasi { get; set; } = "";
+    public string GeriAlmaTakipNo { get; set; } = "";
+    public string GeriGondermeKargoFirmasi { get; set; } = "";
+    public string GeriGondermeTakipNo { get; set; } = "";
     public int? KapatanKullaniciId { get; set; }
     public Kullanici? KapatanKullanici { get; set; }
 }

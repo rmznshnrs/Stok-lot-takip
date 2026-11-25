@@ -219,7 +219,7 @@ form { margin: 0; }
 .form-dikey { display: flex; flex-direction: column; gap: 14px; flex-grow: 1; }
 
 .alan { display: flex; flex-direction: column; gap: 6px; }
-.alan label { font-size: 13px; color: var(--soluk); }
+.alan label, .alan-baslik { font-size: 13px; color: var(--soluk); }
 
 .izgara-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
 .izgara-urun { display: grid; grid-template-columns: 2fr 1fr; gap: 12px; }
@@ -2011,3 +2011,42 @@ textarea.girdi, .girdi--cok-satir { height: auto; min-height: 88px; padding: 12p
 .gun-formlari { align-items: stretch; }
 .gun-formlari > .kutu { height: 100%; display: flex; flex-direction: column; }
 .gun-formlari > .kutu > div:last-child { margin-top: auto; }
+.alan--adet { flex: 0 0 auto; min-width: 180px; }
+.satir-ekle--alt { align-items: flex-end; flex-wrap: wrap; }
+a:not([class]), a.mono:not(.satir-bag):not(.seri-cip), a.uyari-metin:not(.satir-bag), .yardim a, .not a {
+  display: inline-flex; align-items: center; gap: 4px; padding: 2px 10px; border-radius: 999px; text-decoration: none;
+  background: var(--ana-acik); color: var(--ana-koyu); font-weight: 600; line-height: 1.5;
+  transition: background-color .25s var(--yumusak), color .25s var(--yumusak), transform .2s var(--yumusak);
+}
+a:not([class]):hover, a.mono:not(.satir-bag):not(.seri-cip):hover, a.uyari-metin:not(.satir-bag):hover, .yardim a:hover, .not a:hover {
+  background: var(--ana); color: #fff; text-decoration: none;
+}
+a.uyari-metin:not(.satir-bag) { background: var(--uyari-zemin); color: var(--uyari); }
+.tablo a:hover, .lot-baglanti:hover, .hareket-numara:hover, .btn-baglanti:hover { text-decoration: none; }
+a.satir-bag { color: var(--metin); font-weight: 600; text-decoration: none; }
+.satir-tikla:hover a.satir-bag { color: var(--ana-koyu); }
+.numara-uyarisi { display: block; margin-top: 4px; font-size: 12.5px; font-weight: 600; color: var(--hata); }
+.secim-veya-yeni { display: flex; flex-direction: column; gap: 6px; }
+.seri-girisleri { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; }
+.uret-formu { gap: 12px; }
+
+.kargo-formu {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 10px 14px;
+  width: 100%;
+  margin-top: 8px;
+  padding: 12px;
+  border: 1px solid var(--kenar-ince);
+  border-radius: 10px;
+  background: var(--kart);
+}
+.kargo-formu > b { width: 100%; font-size: 0.9rem; }
+.kargo-formu .alan { min-width: 180px; flex: 1; }
+.kargo-ozeti { display: flex; flex-direction: column; gap: 2px; }
+
+.secim-sutun { width: 44px; }
+.secim-sutun input { width: 18px; height: 18px; cursor: pointer; accent-color: var(--ana); }
+.tablo tr.satir-secili td { background: var(--ana-acik); }
+.adim-ek { text-transform: none; letter-spacing: 0; color: var(--ana); font-weight: 600; }

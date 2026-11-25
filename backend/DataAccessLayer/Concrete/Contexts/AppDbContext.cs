@@ -264,6 +264,10 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         {
             e.ToTable("UrunGeriCagirma", t => t.HasCheckConstraint("CK_UrunGeriCagirma_Aciklama", "LEN([Aciklama]) > 0"));
             e.Property(x => x.Aciklama).HasMaxLength(500);
+            e.Property(x => x.GeriAlmaKargoFirmasi).HasMaxLength(100);
+            e.Property(x => x.GeriAlmaTakipNo).HasMaxLength(100);
+            e.Property(x => x.GeriGondermeKargoFirmasi).HasMaxLength(100);
+            e.Property(x => x.GeriGondermeTakipNo).HasMaxLength(100);
             e.HasIndex(x => x.UretimId).IsUnique().HasFilter("[KapanmaZamani] IS NULL");
             e.HasOne(x => x.Uretim).WithMany(u => u.GeriCagirmalar).HasForeignKey(x => x.UretimId);
             e.HasOne(x => x.StokLotu).WithMany().HasForeignKey(x => x.StokLotuId);

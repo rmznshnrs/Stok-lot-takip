@@ -10,6 +10,7 @@ import { bugun, tarih } from "@/lib/bicim";
 import { useVeri } from "@/lib/kancalar";
 import { siparisAdresi } from "./MusteriSiparisleri";
 import SayiGirdi from "@/components/SayiGirdi";
+import NumaraUyarisi from "@/components/NumaraUyarisi";
 
 const YENI = "yeni";
 
@@ -102,6 +103,7 @@ export default function SiparisFormu({ musteriId }: { musteriId: number }) {
           <div className="alan">
             <label htmlFor="sip-no">Sipariş No</label>
             <input id="sip-no" className="girdi girdi--mono" maxLength={50} value={siparisNo} onChange={(e) => setSiparisNo(e.target.value)} />
+            <NumaraUyarisi tur="siparis" deger={siparisNo} />
           </div>
           <div className="alan">
             <label htmlFor="sip-istenen">İstenen Teslim Tarihi</label>

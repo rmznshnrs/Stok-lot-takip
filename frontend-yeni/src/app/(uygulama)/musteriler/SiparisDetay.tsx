@@ -161,7 +161,7 @@ function Sevkiyatlar({ siparis: s }: { siparis: Siparis }) {
       <div className="bas-satir">
         <strong>Sevkiyatlar</strong>
         {hazir > 0 && !s.iptalZamani && (
-          <Link href={`/sevkiyat?yeni=1&siparis=${s.id}`} className="btn btn--kucuk">Sevkiyat Oluştur · {hazir} Hazır</Link>
+          <Link href={`/sevkiyat?yeni=1&siparis=${s.id}`} className="btn btn--kucuk">Kargoya Verileceklere Ekle · {hazir}</Link>
         )}
       </div>
       {liste.map((x) => (

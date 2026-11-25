@@ -47,9 +47,9 @@ public class TanimServisi(AppDbContext db, IStokServisi stok) : ITanimServisi
         arama = arama?.Trim();
         if (!string.IsNullOrEmpty(arama))
             q = q.Where(u => EF.Functions.Like(u.Kod, Arama.Desen(arama)) || EF.Functions.Like(u.Ad, Arama.Desen(arama)));
-        return await q.OrderBy(u => u.Kod)
+        return (await q
             .Select(u => new UrunListeDto(u.Id, u.Kod, u.Ad, u.SeriOneki, u.Agac.Count, u.Uretimler.Count, u.Aciklama))
-            .ToListAsync(ct);
+            .ToListAsync(ct)).OrderBy(u => u.Kod, DogalSira.Ornek).ToList();
     }
 
     public async Task<UrunDetayDto?> UrunGetirAsync(int id, CancellationToken ct = default)
@@ -61,7 +61,7 @@ public class TanimServisi(AppDbContext db, IStokServisi stok) : ITanimServisi
         var uretimVar = await db.Uretimler.AnyAsync(u => u.UrunId == id, ct);
         var stoklar = (await stok.ParcaStoklariAsync(ct: ct)).ToDictionary(p => p.Id);
         return new UrunDetayDto(urun.Id, urun.Kod, urun.Ad, urun.SeriOneki, !uretimVar,
-            [.. urun.Agac.OrderBy(a => a.Parca!.Kod).Select(a => new UrunAgaciSatiriDto(
+            [.. urun.Agac.OrderBy(a => a.Parca!.Kod, DogalSira.Ornek).Select(a => new UrunAgaciSatiriDto(
                 a.ParcaId, a.Parca!.Kod, a.Parca.Ad, a.Adet,
                 stoklar[a.ParcaId].KullanilabilirStok, stoklar[a.ParcaId].MinAltinda))], urun.Aciklama);
     }

@@ -912,6 +912,26 @@ namespace DataAccessLayer.Migrations
                     b.Property<DateTimeOffset?>("GeriAlinmaZamani")
                         .HasColumnType("datetimeoffset");
 
+                    b.Property<string>("GeriAlmaKargoFirmasi")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("GeriAlmaTakipNo")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("GeriGondermeKargoFirmasi")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("GeriGondermeTakipNo")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
                     b.Property<DateTimeOffset?>("KapanmaZamani")
                         .HasColumnType("datetimeoffset");
 

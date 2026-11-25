@@ -25,7 +25,7 @@ public class StokServisi(AppDbContext db) : IStokServisi
             Hatali = p.Lotlar.SelectMany(l => l.Duzeltmeler).Sum(d => (int?)d.HataliAdet) ?? 0,
         }).ToListAsync(ct);
         var ayrilan = await Ayrilan.ParcalarAsync(db, [.. satirlar.Select(s => s.Id)], null, ct);
-        return [.. satirlar.Select(s => new ParcaStokDto(
+        return [.. satirlar.OrderBy(s => s.Kod, DogalSira.Ornek).Select(s => new ParcaStokDto(
             s.Id, s.Kod, s.Ad, s.MinStok, s.Toplam, s.Kullanilabilir, s.LotSayisi, s.Urunler, s.Hatali,
             ayrilan.GetValueOrDefault(s.Id), s.Aciklama))];
     }
@@ -107,7 +107,10 @@ public class StokServisi(AppDbContext db) : IStokServisi
             };
             db.StokLotlari.Add(lot);
             await db.SaveChangesAsync(ct);
-            return new MalGirisiSonucuDto(Donusum.Lot(lot), yeni);
+            var dto = Donusum.Lot(lot);
+            var girenler = await new UretimSirasiServisi(db, new StokLotuRepository(db), new UretimRepository(db))
+                .EksikleriSirayaAlAsync(kullaniciId, ct);
+            return new MalGirisiSonucuDto(dto, yeni, girenler);
         }, ct);
     }
 

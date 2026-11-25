@@ -6,6 +6,7 @@ import type { ReactNode } from "react";
 import HesapMenusu from "./HesapMenusu";
 import Ikon from "./Ikon";
 import SekmeKaydiraci from "./SekmeKaydiraci";
+import OnerisizGirdiler from "./OnerisizGirdiler";
 import { useKullanici } from "./Oturum";
 
 type Baglanti = { yol: string; ad: string };
@@ -69,6 +70,7 @@ export function UstMenuCercevesi({ admin = false, sag, ust, children }: { admin?
       </aside>
       <div className="govde">
         <SekmeKaydiraci />
+        <OnerisizGirdiler />
         {ust}
         {children}
       </div>

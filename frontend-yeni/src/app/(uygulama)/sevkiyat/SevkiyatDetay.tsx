@@ -8,13 +8,16 @@ import { ApiHatasi, sevkiyat, siparisler, type Sevkiyat } from "@/lib/api";
 import { seriAdresi } from "@/lib/adres";
 import { tarih, tarihSaat } from "@/lib/bicim";
 import { KARGO_FIRMALARI, takipAdresi } from "@/lib/kargo";
+import SecimVeyaYeni from "@/components/SecimVeyaYeni";
 import { useVeri } from "@/lib/kancalar";
 import { siparisAdresi } from "../musteriler/MusteriSiparisleri";
 import { sevkiyatRozeti } from "./ortak";
+import NumaraUyarisi from "@/components/NumaraUyarisi";
 
 export default function SevkiyatDetay({ id }: { id: number }) {
   const { veri: s, hata, yenile } = useVeri(() => sevkiyat.getir(id), [id]);
   const [mesaj, setMesaj] = useState<MesajBilgisi | null>(null);
+  const [secilmeyen, setSecilmeyen] = useState<string[]>([]);
 
   async function teslim() {
     if (!s || !confirm(`${s.no ?? "Bu sevkiyat"} teslim edildi olarak işaretlensin mi?`)) return;
@@ -40,7 +43,7 @@ export default function SevkiyatDetay({ id }: { id: number }) {
         <div className="akis">
           <section className="kart kart--iz">
             <div className="adim-baslik">Sevkiyat</div>
-            <SevkiyatNoBilgisi key={s.no ?? ""} id={s.id} no={s.no} degisti={yenile} />
+            <SevkiyatNoBilgisi key={`sv-${s.no ?? ""}`} id={s.id} no={s.no} degisti={yenile} />
             <div className="iz-ad">{sevkiyatRozeti(s)}</div>
             <div className="bilgi-liste">
               <div className="bilgi"><span>Müşteri</span><Link href={`/musteriler?id=${s.musteriId}`}>{s.musteriAd}</Link></div>
@@ -48,41 +51,72 @@ export default function SevkiyatDetay({ id }: { id: number }) {
               {s.aciklama && <div className="bilgi"><span>Açıklama</span><span>{s.aciklama}</span></div>}
               <div className="bilgi"><span>Kaydeden</span><span>{s.kullaniciAd}</span></div>
             </div>
-            {s.siparisId && <SiparisNoBilgisi key={s.siparisNo ?? ""} siparisId={s.siparisId} siparisNo={s.siparisNo} degisti={yenile} />}
+            {s.siparisId && <SiparisNoBilgisi key={`sp-${s.siparisNo ?? ""}`} siparisId={s.siparisId} siparisNo={s.siparisNo} degisti={yenile} />}
             <Adimlar s={s} />
             <Mesaj mesaj={mesaj} />
-            <KargoBilgisi s={s} degisti={yenile} />
+            <KargoBilgisi s={s} secili={s.kalemler.map((k) => k.seriNo).filter((x) => !secilmeyen.includes(x))}
+              degisti={() => { setSecilmeyen([]); yenile(); }} />
             {s.durum !== "TeslimEdildi" && (
               <button type="button" className="btn btn--ikincil btn--tam" onClick={teslim}>Teslim Edildi</button>
             )}
           </section>
 
           <section className="kart kart--genis kart--iz-sutun">
-            <div className="adim-baslik">Gönderilen Ürünler · {s.kalemler.length}</div>
-            <div className="tablo-kap">
-              <table className="tablo">
-                <thead>
-                  <tr>
-                    <th>Seri No</th>
-                    <th>Ürün</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {s.kalemler.map((k) => (
-                    <tr key={k.seriNo}>
-                      <td className="mono"><Link href={seriAdresi(k.seriNo)}>{k.seriNo}</Link></td>
-                      <td>{k.urunAd}</td>
-                    </tr>
-                  ))}
-                  {s.iadeler.map((seri) => (
-                    <tr key={`iade-${seri}`} className="soluk">
-                      <td className="mono"><Link href={seriAdresi(seri)}>{seri}</Link></td>
-                      <td>İade alındı</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            {(() => {
+              const secimli = s.durum === "Hazirlaniyor" && s.kalemler.length > 1;
+              const seciliSayi = s.kalemler.filter((k) => !secilmeyen.includes(k.seriNo)).length;
+              const degistir = (seri: string) =>
+                setSecilmeyen(secilmeyen.includes(seri) ? secilmeyen.filter((x) => x !== seri) : [...secilmeyen, seri]);
+              return (
+                <>
+                  <div className="adim-baslik">
+                    {s.durum === "Hazirlaniyor" ? "Kargoya Verilecek Ürünler" : "Gönderilen Ürünler"} · {s.kalemler.length}
+                    {secimli && <span className="adim-ek"> · {seciliSayi} seçili</span>}
+                  </div>
+                  {secimli && <p className="not">Kargoya verilecekleri işaretleyin; seçilmeyenler kargoya verileceklerde bekler.</p>}
+                  <div className="tablo-kap">
+                    <table className="tablo">
+                      <thead>
+                        <tr>
+                          {secimli && (
+                            <th className="secim-sutun">
+                              <input type="checkbox" aria-label="Hepsini seç" checked={seciliSayi === s.kalemler.length}
+                                onChange={(e) => setSecilmeyen(e.target.checked ? [] : s.kalemler.map((k) => k.seriNo))} />
+                            </th>
+                          )}
+                          <th>Seri No</th>
+                          <th>Ürün</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {s.kalemler.map((k) => {
+                          const secili = !secilmeyen.includes(k.seriNo);
+                          return (
+                            <tr key={k.seriNo} className={secimli ? `satir-tikla${secili ? " satir-secili" : ""}` : undefined}
+                              onClick={secimli ? (e) => { if (!(e.target as HTMLElement).closest("a, input")) degistir(k.seriNo); } : undefined}>
+                              {secimli && (
+                                <td className="secim-sutun">
+                                  <input type="checkbox" aria-label={`${k.seriNo} seç`} checked={secili} onChange={() => degistir(k.seriNo)} />
+                                </td>
+                              )}
+                              <td className="mono"><Link href={seriAdresi(k.seriNo)}>{k.seriNo}</Link></td>
+                              <td>{k.urunAd}</td>
+                            </tr>
+                          );
+                        })}
+                        {s.iadeler.map((seri) => (
+                          <tr key={`iade-${seri}`} className="soluk">
+                            {secimli && <td />}
+                            <td className="mono"><Link href={seriAdresi(seri)}>{seri}</Link></td>
+                            <td>İade alındı</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </>
+              );
+            })()}
           </section>
         </div>
       )}
@@ -108,10 +142,13 @@ function Adimlar({ s }: { s: Sevkiyat }) {
   );
 }
 
-function KargoBilgisi({ s, degisti }: { s: Sevkiyat; degisti: () => void }) {
+function KargoBilgisi({ s, secili, degisti }: { s: Sevkiyat; secili: string[]; degisti: () => void }) {
   const [duzenle, setDuzenle] = useState(!s.takipNo && s.durum !== "TeslimEdildi");
   const [firma, setFirma] = useState(s.kargoFirmasi);
   const [takipNo, setTakipNo] = useState(s.takipNo);
+  const hazirlaniyor = s.durum === "Hazirlaniyor";
+  const tumu = s.kalemler.map((k) => k.seriNo);
+  const [no, setNo] = useState(s.no ?? "");
   const [hata, setHata] = useState("");
   const [bekliyor, setBekliyor] = useState(false);
   const link = takipAdresi(s.kargoFirmasi, s.takipNo);
@@ -119,9 +156,10 @@ function KargoBilgisi({ s, degisti }: { s: Sevkiyat; degisti: () => void }) {
   async function kaydet(e: FormEvent) {
     e.preventDefault();
     setHata("");
+    if (hazirlaniyor && secili.length === 0) return setHata("Kargoya verilecek ürünleri seçin.");
     setBekliyor(true);
     try {
-      await sevkiyat.kargo(s.id, firma.trim(), takipNo.trim());
+      await sevkiyat.kargo(s.id, firma.trim(), takipNo.trim(), hazirlaniyor ? secili : undefined, hazirlaniyor ? no.trim() : undefined);
       setDuzenle(false);
       degisti();
     } catch (err) {
@@ -153,11 +191,21 @@ function KargoBilgisi({ s, degisti }: { s: Sevkiyat; degisti: () => void }) {
   }
   return (
     <form className="form-dikey" onSubmit={kaydet}>
+      {hazirlaniyor && tumu.length > 1 && (
+        <p className="not">
+          <b>{secili.length}/{tumu.length}</b> ürün kargoya verilecek. Seçimi sağdaki listeden değiştirin.
+        </p>
+      )}
+      {hazirlaniyor && (
+        <div className="alan">
+          <label htmlFor="kargo-sv-no">Sevkiyat No</label>
+          <input id="kargo-sv-no" className="girdi girdi--mono" maxLength={20} value={no} onChange={(e) => setNo(e.target.value)} />
+          <NumaraUyarisi tur="sevkiyat" deger={no} haric={s.id} />
+        </div>
+      )}
       <div className="alan">
         <label htmlFor="kargo-firma">Kargo Firması</label>
-        <input id="kargo-firma" className="girdi" list="kargo-firmalari" maxLength={100} required value={firma}
-          onChange={(e) => setFirma(e.target.value)} />
-        <KargoFirmaListesi />
+        <KargoFirmaSecimi id="kargo-firma" required value={firma} onChange={setFirma} />
       </div>
       <div className="alan">
         <label htmlFor="kargo-takip">Takip No</label>
@@ -206,6 +254,7 @@ function SevkiyatNoBilgisi({ id, no, degisti }: { id: number; no: string | null;
       <div className="alan">
         <label htmlFor="sevkiyat-no">Sevkiyat No</label>
         <input id="sevkiyat-no" className="girdi girdi--mono" maxLength={20} autoFocus value={deger} onChange={(e) => setDeger(e.target.value)} />
+        <NumaraUyarisi tur="sevkiyat" deger={deger} haric={id} />
       </div>
       {hata && <div className="mesaj mesaj--error" role="alert">{hata}</div>}
       <div className="dugme-grup">
@@ -250,6 +299,7 @@ export function SiparisNoBilgisi({ siparisId, siparisNo, degisti }: { siparisId:
       <div className="alan">
         <label htmlFor="siparis-no">Sipariş No</label>
         <input id="siparis-no" className="girdi girdi--mono" maxLength={50} autoFocus value={no} onChange={(e) => setNo(e.target.value)} />
+        <NumaraUyarisi tur="siparis" deger={no} haric={siparisId} />
       </div>
       {hata && <div className="mesaj mesaj--error" role="alert">{hata}</div>}
       <div className="dugme-grup">
@@ -260,10 +310,6 @@ export function SiparisNoBilgisi({ siparisId, siparisNo, degisti }: { siparisId:
   );
 }
 
-export function KargoFirmaListesi() {
-  return (
-    <datalist id="kargo-firmalari">
-      {KARGO_FIRMALARI.map((k) => <option key={k.ad} value={k.ad} />)}
-    </datalist>
-  );
+export function KargoFirmaSecimi({ id, value, onChange, required }: { id: string; value: string; onChange: (v: string) => void; required?: boolean }) {
+  return <SecimVeyaYeni id={id} secenekler={KARGO_FIRMALARI.map((k) => k.ad)} value={value} onChange={onChange} required={required} bosEtiketi="Kargo firması seçin" />;
 }

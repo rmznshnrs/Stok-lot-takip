@@ -62,7 +62,7 @@ public class IzlemeServisi(AppDbContext db) : IIzlemeServisi
             return null;
 
         var parcalar = uretim.Tuketimler
-            .OrderBy(t => t.StokLotu!.Parca!.Kod).ThenBy(t => t.StokLotu!.SiparisTarihi).ThenBy(t => t.StokLotuId)
+            .OrderBy(t => t.StokLotu!.Parca!.Kod, DogalSira.Ornek).ThenBy(t => t.StokLotu!.SiparisTarihi).ThenBy(t => t.StokLotuId)
             .Select(t => new SeriIzParcaDto(Donusum.Ozet(t.StokLotu!.Parca!), Donusum.Lot(t.StokLotu!), t.Adet))
             .ToList();
         var satis = uretim.SatisKalemi?.Satis;

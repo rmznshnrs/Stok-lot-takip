@@ -4,7 +4,8 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Fragment, useLayoutEffect, useRef, useState, type FormEvent } from "react";
 import Mesaj, { type MesajBilgisi } from "@/components/Mesaj";
-import { ApiHatasi, sira, type UretimEmri, type UretimSonucu } from "@/lib/api";
+import { ApiHatasi, sira, uretim, type UretimEmri, type UretimSonucu } from "@/lib/api";
+import NumaraUyarisi from "@/components/NumaraUyarisi";
 import { seriAdresi } from "@/lib/adres";
 import { ETIKET_TURLERI, etiketTuruKaydet, kayitliEtiketTuru, type EtiketTuru } from "@/lib/etiket";
 import { useGecikmeli, useVeri } from "@/lib/kancalar";
@@ -201,16 +202,36 @@ export default function UretimSirasi({ uretimde }: { uretimde: boolean }) {
 
 function UretFormu({ emir, kapat, uretildi }: { emir: UretimEmri; kapat: () => void; uretildi: (s: UretimSonucu) => void }) {
   const kalan = emir.adet - emir.uretilen;
-  const [adet, setAdet] = useState(String(kalan));
+  const [adet, setAdet] = useState("1");
+  const [seriler, setSeriler] = useState<string[]>([]);
   const [hata, setHata] = useState("");
   const [bekliyor, setBekliyor] = useState(false);
+  const n = Math.max(0, Math.min(kalan, Math.floor(Number(adet)) || 0));
+  const gorunen = Array.from({ length: n }, (_, i) => seriler[i] ?? "");
+  const tekrarlar = new Set(gorunen.map((s) => s.trim().toLocaleUpperCase("tr")).filter((s, i, a) => s && a.indexOf(s) !== i));
+
+  function seriYaz(i: number, deger: string) {
+    const yeni = [...gorunen];
+    yeni[i] = deger;
+    setSeriler(yeni);
+  }
+
+  async function siradakileriYaz() {
+    try {
+      setSeriler(await uretim.seriOnerisi(emir.urunId, n));
+    } catch {
+      setHata("Seri no önerisi alınamadı.");
+    }
+  }
 
   async function kaydet(e: FormEvent) {
     e.preventDefault();
     setHata("");
+    if (gorunen.some((s) => !s.trim())) return setHata("Her ürün için seri no girin.");
+    if (tekrarlar.size) return setHata("Aynı seri no iki kez yazıldı.");
     setBekliyor(true);
     try {
-      uretildi(await sira.uret(emir.id, Number(adet)));
+      uretildi(await sira.uret(emir.id, n, gorunen.map((s) => s.trim())));
     } catch (err) {
       setHata(err instanceof ApiHatasi ? err.message : "Üretim kaydedilemedi.");
     } finally {
@@ -219,12 +240,28 @@ function UretFormu({ emir, kapat, uretildi }: { emir: UretimEmri; kapat: () => v
   }
 
   return (
-    <form className="satir-ekle" onSubmit={kaydet}>
-      <label htmlFor={`uret-${emir.id}`}>Üretilen adet (kalan {kalan})</label>
-      <SayiGirdi id={`uret-${emir.id}`} min={1} max={kalan} required kucuk value={adet} onChange={setAdet} />
-      <button type="submit" className="btn btn--kucuk" disabled={bekliyor}>{bekliyor ? "Kaydediliyor…" : "Kaydet"}</button>
-      <button type="button" className="btn btn--ikincil btn--kucuk" onClick={kapat}>Vazgeç</button>
+    <form className="form-dikey uret-formu" onSubmit={kaydet}>
+      <div className="satir-ekle">
+        <label htmlFor={`uret-${emir.id}`}>Üretilen adet (kalan {kalan})</label>
+        <SayiGirdi id={`uret-${emir.id}`} min={1} max={kalan} required kucuk value={adet} onChange={setAdet} />
+        <button type="button" className="btn btn--ikincil btn--kucuk" onClick={siradakileriYaz} disabled={n === 0}>Sıradaki Numaraları Yaz</button>
+      </div>
+      <div className="seri-girisleri">
+        {gorunen.map((s, i) => (
+          <div key={i} className="alan">
+            <label htmlFor={`seri-${emir.id}-${i}`}>Seri No {i + 1}</label>
+            <input id={`seri-${emir.id}-${i}`} className="girdi girdi--mono" required maxLength={50} value={s}
+              onChange={(e) => seriYaz(i, e.target.value)} />
+            {tekrarlar.has(s.trim().toLocaleUpperCase("tr")) ? <span className="numara-uyarisi">Bu numara listede iki kez var.</span>
+              : <NumaraUyarisi tur="seri" deger={s} />}
+          </div>
+        ))}
+      </div>
       {hata && <div className="mesaj mesaj--error" role="alert">{hata}</div>}
+      <div className="dugme-grup">
+        <button type="submit" className="btn btn--kucuk" disabled={bekliyor || n === 0}>{bekliyor ? "Kaydediliyor…" : "Kaydet"}</button>
+        <button type="button" className="btn btn--ikincil btn--kucuk" onClick={kapat}>Vazgeç</button>
+      </div>
     </form>
   );
 }

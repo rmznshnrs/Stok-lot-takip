@@ -42,6 +42,10 @@ public class StokController(IStokServisi stok, IStokDuzeltmeServisi duzeltme) : 
 [Route("api/uretim")]
 public class UretimController(IUretimServisi uretim, IUretimSirasiServisi sira) : ControllerBase
 {
+    [HttpGet("seri-onerisi")]
+    public Task<List<string>> SeriOnerisi([FromQuery] int urunId, [FromQuery] int adet, CancellationToken ct) =>
+        uretim.SonrakiSeriNolarAsync(urunId, adet, ct);
+
     [HttpGet("onizleme")]
     public Task<UretimOnizlemeDto> Onizle([FromQuery] int urunId, [FromQuery] int adet, CancellationToken ct) =>
         uretim.OnizleAsync(urunId, adet, ct);
@@ -118,7 +122,7 @@ public class SiparisController(ISiparisServisi siparis) : ControllerBase
     public Task<SiparisDto> Iptal(int id, CancellationToken ct) => siparis.IptalAsync(id, User.KullaniciId(), ct);
 
     [HttpPost("kalem/{kalemId:int}/ayir")]
-    public Task<SiparisDto> Ayir(int kalemId, SeriAyirIstek istek, CancellationToken ct) => siparis.SeriAyirAsync(kalemId, istek, ct);
+    public Task<SiparisDto> Ayir(int kalemId, SeriAyirIstek istek, CancellationToken ct) => siparis.SeriAyirAsync(kalemId, istek, ct, User.KullaniciId());
 
     [HttpDelete("kalem/{kalemId:int}/seri/{seriNo}")]
     public Task<SiparisDto> Birak(int kalemId, string seriNo, CancellationToken ct) => siparis.SeriBirakAsync(kalemId, seriNo, ct);
@@ -272,7 +276,8 @@ public class GeriCagirmaController(IGeriCagirmaServisi geri) : ControllerBase
 
     [HttpPost("{id:int}/geri-al")]
     [Authorize(Policy = Politikalar.Admin)]
-    public Task<GeriCagirmaDto> GeriAl(int id, CancellationToken ct) => geri.GeriAlAsync(id, User.KullaniciId(), ct);
+    public Task<GeriCagirmaDto> GeriAl(int id, [FromBody(EmptyBodyBehavior = Microsoft.AspNetCore.Mvc.ModelBinding.EmptyBodyBehavior.Allow)] KargoIstek? kargo,
+                                       CancellationToken ct) => geri.GeriAlAsync(id, User.KullaniciId(), ct, kargo);
 
     [HttpPost("{id:int}/satisa-ac")]
     [Authorize(Policy = Politikalar.Admin)]
@@ -280,7 +285,8 @@ public class GeriCagirmaController(IGeriCagirmaServisi geri) : ControllerBase
 
     [HttpPost("{id:int}/musteriye-ver")]
     [Authorize(Policy = Politikalar.Admin)]
-    public Task<GeriCagirmaDto> MusteriyeVer(int id, CancellationToken ct) => geri.MusteriyeVerAsync(id, User.KullaniciId(), ct);
+    public Task<GeriCagirmaDto> MusteriyeVer(int id, [FromBody(EmptyBodyBehavior = Microsoft.AspNetCore.Mvc.ModelBinding.EmptyBodyBehavior.Allow)] KargoIstek? kargo,
+                                             CancellationToken ct) => geri.MusteriyeVerAsync(id, User.KullaniciId(), ct, kargo);
 
     [HttpPost("{id:int}/bilgi-verildi")]
     [Authorize(Policy = Politikalar.Admin)]
@@ -290,4 +296,13 @@ public class GeriCagirmaController(IGeriCagirmaServisi geri) : ControllerBase
     [Authorize(Policy = Politikalar.Admin)]
     public Task<GeriCagirmaDto> Hurda(int id, GeriCagirmaHurdaIstek istek, CancellationToken ct) =>
         geri.HurdayaAyirAsync(id, istek, User.KullaniciId(), ct);
+}
+
+[ApiController]
+[Route("api/kontrol")]
+public class KontrolController(IKontrolServisi kontrol) : ControllerBase
+{
+    [HttpGet("numara")]
+    public Task<NumaraKontrolDto> Numara([FromQuery] string tur, [FromQuery] string deger, [FromQuery] int? haric,
+                                         CancellationToken ct) => kontrol.NumaraAsync(tur, deger, haric, ct);
 }

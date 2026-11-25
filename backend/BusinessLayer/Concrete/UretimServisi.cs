@@ -97,8 +97,23 @@ public class UretimServisi(AppDbContext db, IStokLotuRepository lotlar, IUretimR
         }, ct);
 
     internal async Task<UretimSonucuDto> UretIcAsync(Urun urun, int adet, Kullanici kullanici, DateTimeOffset? tarih,
-                                                     UretimEmri? emir, CancellationToken ct)
+                                                     UretimEmri? emir, CancellationToken ct, IReadOnlyList<string>? verilenSeriler = null)
     {
+        List<string>? elleSeriler = null;
+        if (verilenSeriler is { Count: > 0 })
+        {
+            elleSeriler = [.. verilenSeriler.Select(s => (s ?? "").Trim().ToUpperInvariant())];
+            if (elleSeriler.Count != adet || elleSeriler.Any(s => s.Length == 0))
+                throw new IsKuraliHatasi($"{adet} ürün için {adet} seri no girin.");
+            if (elleSeriler.Any(s => s.Length > 50))
+                throw new IsKuraliHatasi("Seri no en fazla 50 karakter olabilir.");
+            var tekrar = elleSeriler.GroupBy(s => s).Where(g => g.Count() > 1).Select(g => g.Key).ToList();
+            if (tekrar.Count > 0)
+                throw new IsKuraliHatasi($"Aynı seri no iki kez yazıldı: {string.Join(", ", tekrar)}");
+            var kullanilan = await db.Uretimler.Where(x => elleSeriler.Contains(x.SeriNo)).Select(x => x.SeriNo).ToListAsync(ct);
+            if (kullanilan.Count > 0)
+                throw new IsKuraliHatasi($"Bu seri no daha önce kullanıldı: {string.Join(", ", kullanilan.Order())}");
+        }
         var parcaIdleri = urun.Agac.Select(a => a.ParcaId).ToList();
         var kilitli = await lotlar.KullanilabilirLotlariKilitleAsync(parcaIdleri, ct);
         var ayrilan = await Ayrilan.ParcalarAsync(db, parcaIdleri, emir?.Id, ct);
@@ -111,7 +126,7 @@ public class UretimServisi(AppDbContext db, IStokLotuRepository lotlar, IUretimR
             throw new YetersizStokHatasi(eksikler);
 
         var an = tarih ?? Zaman.Simdi();
-        var seriNolar = await SonrakiSeriNolarAsync(urun, adet, ct);
+        var seriNolar = elleSeriler ?? await SonrakiSeriNolarAsync(urun, adet, ct);
         var kuyruklar = plan.Parcalar.ToDictionary(p => p.Satir.ParcaId, p => new Queue<StokLotu>(p.Lotlar));
 
         foreach (var seriNo in seriNolar)
@@ -167,7 +182,7 @@ public class UretimServisi(AppDbContext db, IStokLotuRepository lotlar, IUretimR
     private async Task<Plan> PlanlaAsync(Urun urun, int adet, List<StokLotu> kullanilabilir, Dictionary<int, int> ayrilan,
                                          CancellationToken ct, bool atlananlariHesapla = true)
     {
-        var satirlar = urun.Agac.OrderBy(a => a.Parca!.Kod).ToList();
+        var satirlar = urun.Agac.OrderBy(a => a.Parca!.Kod, DogalSira.Ornek).ToList();
         Dictionary<int, List<string>> atlanan = [];
         if (atlananlariHesapla)
         {

@@ -73,7 +73,6 @@ function LotDetayi({ iz, degisti }: { iz: LotIz; degisti: () => void }) {
         <Mesaj mesaj={mesaj} />
         <div className="bilgi-izgara">
           <Bilgi ad="Tedarikçi">{lot.tedarikciAd}</Bilgi>
-          {lot.tedarikciLotNo && <Bilgi ad="Tedarikçi lot no"><span className="mono">{lot.tedarikciLotNo}</span></Bilgi>}
           <Bilgi ad="Sipariş tarihi">{tarih(lot.siparisTarihi)}</Bilgi>
           <Bilgi ad="Giriş zamanı">{tarihSaat(lot.girisZamani)}</Bilgi>
           <Bilgi ad="Gelen adet">{lot.girisAdet}</Bilgi>

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import GeriCagirmaEylemleri, { DURUM_ADI, acikMi } from "@/components/GeriCagirmaEylemleri";
+import GeriCagirmaEylemleri, { DURUM_ADI, KargoOzeti, acikMi } from "@/components/GeriCagirmaEylemleri";
 import { useAdminMi } from "@/components/Oturum";
 import { geriCagirma } from "@/lib/api";
 import { tarihSaat } from "@/lib/bicim";
@@ -67,6 +67,7 @@ export default function GeriCagirmalar({ kapat }: { kapat?: () => void }) {
                   <td>
                     <span className={`rozet rozet--kucuk ${acikMi(g) ? "rozet--uyari" : "rozet--basari"}`}>{DURUM_ADI[g.durum]}</span>
                     {g.bilgiVerildiZamani && <div className="yardim">Bilgi verildi · {tarihSaat(g.bilgiVerildiZamani)}</div>}
+                    <div className="yardim"><KargoOzeti g={g} /></div>
                   </td>
                   <td>
                     {g.musteriAd ?? <span className="soluk">—</span>}

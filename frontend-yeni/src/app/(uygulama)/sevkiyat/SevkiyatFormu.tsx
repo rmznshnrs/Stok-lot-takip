@@ -8,8 +8,9 @@ import SeriSecimi from "@/components/SeriSecimi";
 import { ApiHatasi, sevkiyat, siparisler, type SatisUyarisi } from "@/lib/api";
 import { tarih } from "@/lib/bicim";
 import { useVeri } from "@/lib/kancalar";
-import { KargoFirmaListesi } from "./SevkiyatDetay";
+import { KargoFirmaSecimi } from "./SevkiyatDetay";
 import { sevkiyatAdresi } from "./ortak";
+import NumaraUyarisi from "@/components/NumaraUyarisi";
 
 export default function SevkiyatFormu({ ilkSiparis }: { ilkSiparis: number | null }) {
   const router = useRouter();
@@ -83,12 +84,12 @@ export default function SevkiyatFormu({ ilkSiparis }: { ilkSiparis: number | nul
         <div className="alan">
           <label htmlFor="sv-no">Sevkiyat No</label>
           <input id="sv-no" className="girdi girdi--mono" maxLength={20} value={sevkiyatNo} onChange={(e) => setSevkiyatNo(e.target.value)} />
+          <NumaraUyarisi tur="sevkiyat" deger={sevkiyatNo} />
         </div>
         <div className="izgara-2">
           <div className="alan">
             <label htmlFor="sv-firma">Kargo Firması</label>
-            <input id="sv-firma" className="girdi" list="kargo-firmalari" maxLength={100} value={firma} onChange={(e) => setFirma(e.target.value)} />
-            <KargoFirmaListesi />
+            <KargoFirmaSecimi id="sv-firma" value={firma} onChange={setFirma} />
           </div>
           <div className="alan">
             <label htmlFor="sv-takip">Takip No</label>

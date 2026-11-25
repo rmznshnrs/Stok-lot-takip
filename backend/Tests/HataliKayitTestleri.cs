@@ -34,8 +34,10 @@ public class MusteriyeGeriVermeTestleri(TestVeritabani vt) : IsKuraliTesti(vt)
         var id = await Cagir("SN-IP-0001");
         await Geri.GeriAlAsync(id, Admin.Id);
 
-        var g = await Geri.MusteriyeVerAsync(id, Admin.Id);
-        Assert.Equal(("musteriye_verildi", "Atlas"), (g.Durum, g.MusteriAd));
+        var g = await Geri.MusteriyeVerAsync(id, Admin.Id, kargo: new KargoIstek("MNG Kargo", "MN-1"));
+        Assert.Equal(("musteriye_verildi", "Atlas", "MNG Kargo", "MN-1"), (g.Durum, g.MusteriAd, g.GeriGondermeKargoFirmasi, g.GeriGondermeTakipNo));
+        var giden = await Db.Satislar.OrderByDescending(x => x.Id).FirstAsync();
+        Assert.Equal((SevkiyatDurumu.Kargoda, "MN-1", (string?)null), (giden.Durum, giden.TakipNo, giden.No));
         var gecmis = await Satis.SatisGecmisiAsync();
         Assert.Equal(2, gecmis.Count);
         var yeni = gecmis.Single(s => s.SeriNolar.Contains("SN-IP-0001"));

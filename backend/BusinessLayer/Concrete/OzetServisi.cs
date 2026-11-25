@@ -42,7 +42,7 @@ public class OzetServisi(AppDbContext db, IStokServisi stok) : IOzetServisi
             [.. kapasiteler.Where(u => u.Uretilebilir <= UyariEsigi)], yaklasan,
             [.. kapasiteler.Select(u => new UrunKapasitesiDto(u.UrunId, u.UrunAd, u.Uretilebilir))
                 .OrderBy(u => u.UrunAd, StringComparer.CurrentCulture)],
-            [.. parcalar.Where(p => p.MinAltinda).OrderBy(p => (double)p.Serbest / p.MinStok).ThenBy(p => p.Kod)]);
+            [.. parcalar.Where(p => p.MinAltinda).OrderBy(p => (double)p.Serbest / p.MinStok).ThenBy(p => p.Kod, DogalSira.Ornek)]);
     }
 
     public async Task<GrafikVerisiDto> GrafiklerAsync(CancellationToken ct = default)
@@ -185,7 +185,7 @@ public class OzetServisi(AppDbContext db, IStokServisi stok) : IOzetServisi
                     .Select(x => (x.Agac, x.Serbest, Adet: x.Serbest / x.Agac.Adet)).ToList();
                 var enAz = satirlar.Min(x => x.Adet);
                 return new UretilebilirUyariDto(u.Id, u.Kod, u.Ad, enAz,
-                    [.. satirlar.Where(x => x.Adet <= UyariEsigi).OrderBy(x => x.Adet).ThenBy(x => x.Agac.Parca!.Kod)
+                    [.. satirlar.Where(x => x.Adet <= UyariEsigi).OrderBy(x => x.Adet).ThenBy(x => x.Agac.Parca!.Kod, DogalSira.Ornek)
                         .Select(x => new UretilebilirParcaDto(Donusum.Ozet(x.Agac.Parca!), x.Agac.Adet, x.Serbest))]);
             })
             .OrderBy(u => u.Uretilebilir).ThenBy(u => u.UrunAd, StringComparer.CurrentCulture)];

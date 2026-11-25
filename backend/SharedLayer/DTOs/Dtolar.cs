@@ -29,7 +29,7 @@ public record MalGirisiIstek(
     int ParcaId, string TedarikciAdi, string? LotNo, int Adet, DateOnly SiparisTarihi, string SiparisNo = "",
     string TedarikciLotNo = "");
 
-public record MalGirisiSonucuDto(LotDto Lot, bool YeniTedarikci);
+public record MalGirisiSonucuDto(LotDto Lot, bool YeniTedarikci, IReadOnlyList<string>? SirayaGirenler = null);
 
 public record StokDuzeltmeIstek(int StokLotuId, int Miktar, string Tur, string Aciklama);
 
@@ -81,7 +81,8 @@ public record GeriCagirmaIstek(IReadOnlyList<string> SeriNolar, string Aciklama,
 public record GeriCagirmaDto(
     int Id, string SeriNo, string UrunAd, string? LotNo, string Aciklama, DateTimeOffset Zaman, string KullaniciAd,
     string Durum, string? MusteriAd, string? MusteriIletisim, DateTimeOffset? GeriAlinmaZamani, DateTimeOffset? KapanmaZamani,
-    DateTimeOffset? BilgiVerildiZamani = null);
+    DateTimeOffset? BilgiVerildiZamani = null, string GeriAlmaKargoFirmasi = "", string GeriAlmaTakipNo = "",
+    string GeriGondermeKargoFirmasi = "", string GeriGondermeTakipNo = "");
 
 public record GeriCagirmaHurdaIstek(string Aciklama);
 
@@ -179,7 +180,7 @@ public record UretimEmriDto(
     DateTimeOffset OlusturmaZamani, string KullaniciAd, DateTimeOffset? BaslamaZamani, DateTimeOffset? BitisZamani,
     IReadOnlyList<EmirParcasiDto> Parcalar, IReadOnlyList<string> SeriNolar);
 
-public record EmirUretIstek(int? Adet = null);
+public record EmirUretIstek(int? Adet = null, IReadOnlyList<string>? SeriNolar = null);
 
 public record EmirTasiIstek(int Yon);
 
@@ -194,7 +195,9 @@ public record SevkiyatNoIstek(string? No);
 
 public record SiparisNoIstek(string SiparisNo);
 
-public record KargoIstek(string KargoFirmasi, string TakipNo);
+public record NumaraKontrolDto(bool Kullaniliyor, string Mesaj);
+
+public record KargoIstek(string KargoFirmasi, string TakipNo, IReadOnlyList<string>? SeriNolar = null, string? SevkiyatNo = null);
 
 public record SevkiyatKalemiDto(string SeriNo, string UrunAd);
 

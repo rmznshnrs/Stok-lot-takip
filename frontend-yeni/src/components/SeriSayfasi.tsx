@@ -3,7 +3,7 @@
 import Link from "next/link";
 import GeriIleri from "@/components/GeriIleri";
 import { useState, type FormEvent } from "react";
-import GeriCagirmaEylemleri, { DURUM_ADI, acikMi } from "@/components/GeriCagirmaEylemleri";
+import GeriCagirmaEylemleri, { DURUM_ADI, KargoOzeti, acikMi } from "@/components/GeriCagirmaEylemleri";
 import { useAdminMi } from "@/components/Oturum";
 import { ApiHatasi, geriCagirma, hurdaAdi, izleme, type SeriIz } from "@/lib/api";
 import { lotAdresi } from "@/lib/adres";
@@ -81,6 +81,7 @@ function SeriDetayi({ iz, degisti }: { iz: SeriIz; degisti: () => void }) {
             {g.bilgiVerildiZamani && <> · müşteriye bilgi verildi ({tarihSaat(g.bilgiVerildiZamani)})</>}
             <br />
             {g.aciklama} · {tarihSaat(g.zaman)}
+            <div><KargoOzeti g={g} /></div>
             {admin && <div className="alt-not islem-dugmeleri"><GeriCagirmaEylemleri g={g} degisti={degisti} /></div>}
           </div>
         )}

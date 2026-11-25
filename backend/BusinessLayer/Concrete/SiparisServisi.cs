@@ -60,9 +60,16 @@ public class SiparisServisi(AppDbContext db) : ISiparisServisi
         {
             var s = await db.Siparisler.SingleOrDefaultAsync(x => x.Id == id, ct) ?? throw new BulunamadiHatasi("Talep bulunamadı.");
             s.SiparisNo = SiparisNoTemizle(istek.SiparisNo);
+            await SiparisNoBenzersizAsync(s.SiparisNo, s.Id, ct);
             await db.SaveChangesAsync(ct);
             return await GetirAsync(id, ct);
         }, ct);
+
+    private async Task SiparisNoBenzersizAsync(string no, int haricId, CancellationToken ct)
+    {
+        if (no.Length > 0 && await db.Siparisler.AnyAsync(x => x.SiparisNo == no && x.Id != haricId, ct))
+            throw new IsKuraliHatasi($"{no} sipariş no başka bir talepte kullanılıyor.");
+    }
 
     private static string SiparisNoTemizle(string? no)
     {
@@ -100,6 +107,7 @@ public class SiparisServisi(AppDbContext db) : ISiparisServisi
                 Aciklama = (istek.Aciklama ?? "").Trim(), SiparisNo = SiparisNoTemizle(istek.SiparisNo),
                 OlusturanKullanici = kullanici, OlusturmaZamani = Zaman.Simdi(),
             };
+            await SiparisNoBenzersizAsync(siparis.SiparisNo, 0, ct);
             foreach (var k in kalemler)
             {
                 var kalem = new SiparisKalemi
@@ -111,11 +119,12 @@ public class SiparisServisi(AppDbContext db) : ISiparisServisi
             }
             db.Siparisler.Add(siparis);
             await db.SaveChangesAsync(ct);
+            await new SevkiyatServisi(db).BekleyenleriAlAsync(siparis.Id, kullanici.Id, ct);
             return await GetirAsync(siparis.Id, ct);
         }, ct);
     }
 
-    public Task<SiparisDto> SeriAyirAsync(int kalemId, SeriAyirIstek istek, CancellationToken ct = default) =>
+    public Task<SiparisDto> SeriAyirAsync(int kalemId, SeriAyirIstek istek, CancellationToken ct = default, int? kullaniciId = null) =>
         Islem.CalistirAsync(db, async () =>
         {
             var kalem = await KalemGetirAsync(kalemId, ct);
@@ -123,6 +132,7 @@ public class SiparisServisi(AppDbContext db) : ISiparisServisi
                 throw new IsKuraliHatasi("Seri no seçin.");
             await AyirAsync(kalem, istek.SeriNolar, ct);
             await db.SaveChangesAsync(ct);
+            await new SevkiyatServisi(db).BekleyenleriAlAsync(kalem.SiparisId, kullaniciId ?? kalem.Siparis!.OlusturanKullaniciId, ct);
             return await GetirAsync(kalem.SiparisId, ct);
         }, ct);
 
@@ -133,7 +143,14 @@ public class SiparisServisi(AppDbContext db) : ISiparisServisi
             var u = kalem.Ayrilanlar.SingleOrDefault(x => string.Equals(x.SeriNo, (seriNo ?? "").Trim(), StringComparison.OrdinalIgnoreCase))
                     ?? throw new BulunamadiHatasi($"{seriNo} bu kaleme ayrılmamış.");
             if (u.SatisKalemi is not null)
-                throw new IsKuraliHatasi($"{u.SeriNo} gönderilmiş; ayrımı kaldırılamaz.");
+            {
+                var sevkiyat = await db.Satislar.Include(s => s.Kalemler).SingleAsync(s => s.Id == u.SatisKalemi.SatisId, ct);
+                if (sevkiyat.Durum != SevkiyatDurumu.Hazirlaniyor || sevkiyat.TakipNo.Length > 0)
+                    throw new IsKuraliHatasi($"{u.SeriNo} kargoya verilmiş; ayrımı kaldırılamaz.");
+                db.SatisKalemleri.Remove(u.SatisKalemi);
+                if (sevkiyat.Kalemler.Count == 1)
+                    db.Satislar.Remove(sevkiyat);
+            }
             u.SiparisKalemiId = null;
             await db.SaveChangesAsync(ct);
             return await GetirAsync(kalem.SiparisId, ct);
@@ -150,6 +167,17 @@ public class SiparisServisi(AppDbContext db) : ISiparisServisi
                           ?? throw new BulunamadiHatasi("Talep bulunamadı.");
             if (siparis.IptalZamani is not null)
                 throw new IsKuraliHatasi("Talep zaten iptal edilmiş.");
+            var bekleyenler = await db.Satislar.Include(x => x.Kalemler)
+                .Where(x => x.SiparisId == id && x.Durum == SevkiyatDurumu.Hazirlaniyor && x.TakipNo == "").ToListAsync(ct);
+            foreach (var b in bekleyenler)
+            {
+                db.SatisKalemleri.RemoveRange(b.Kalemler);
+                db.Satislar.Remove(b);
+            }
+            var bekleyenUretimler = bekleyenler.SelectMany(b => b.Kalemler).Select(k => k.UretimId).ToHashSet();
+            foreach (var kalem in siparis.Kalemler)
+                foreach (var u in kalem.Ayrilanlar.Where(u => bekleyenUretimler.Contains(u.Id)))
+                    u.SatisKalemi = null;
             foreach (var kalem in siparis.Kalemler)
             {
                 foreach (var u in kalem.Ayrilanlar.Where(u => u.SatisKalemi is null))
@@ -218,12 +246,13 @@ public class SiparisServisi(AppDbContext db) : ISiparisServisi
             [.. k.Ayrilanlar.Where(u => u.SatisKalemi is not null).Select(u => u.SeriNo).Order()],
             k.UretimEmirleri.Where(e => e.Durum == UretimEmriDurumu.Bekliyor).Sum(e => e.Adet - e.Uretilen))).ToList();
         var kargolanan = s.Kalemler.Sum(k => k.Ayrilanlar.Count(u => u.SatisKalemi?.Satis is { } v && v.Durum != SevkiyatDurumu.Hazirlaniyor));
-        return new SiparisDto(s.Id, s.No, s.MusteriId, s.Musteri!.Ad, s.Tarih, s.IstenenTarih, s.Aciklama, Durum(s, kalemler, kargolanan),
+        var kargoyaVerilecek = s.Kalemler.Sum(k => k.Ayrilanlar.Count(u => u.SatisKalemi?.Satis is { Durum: SevkiyatDurumu.Hazirlaniyor }));
+        return new SiparisDto(s.Id, s.No, s.MusteriId, s.Musteri!.Ad, s.Tarih, s.IstenenTarih, s.Aciklama, Durum(s, kalemler, kargolanan, kargoyaVerilecek),
             kalemler, s.OlusturmaZamani, $"{s.OlusturanKullanici!.Ad} {s.OlusturanKullanici.Soyad}", s.IptalZamani,
             s.SiparisNo.Length > 0 ? s.SiparisNo : null);
     }
 
-    private static string Durum(Siparis s, List<SiparisKalemiDto> kalemler, int gonderilen)
+    private static string Durum(Siparis s, List<SiparisKalemiDto> kalemler, int gonderilen, int kargoyaVerilecek)
     {
         if (s.IptalZamani is not null)
             return "iptal";
@@ -232,6 +261,8 @@ public class SiparisServisi(AppDbContext db) : ISiparisServisi
             return "tamamlandi";
         if (gonderilen > 0)
             return "kismen_gonderildi";
+        if (kargoyaVerilecek > 0)
+            return "kargoya_verilecek";
         var ayrilan = kalemler.Sum(k => k.Ayrilanlar.Count);
         if (ayrilan >= toplam)
             return "hazir";

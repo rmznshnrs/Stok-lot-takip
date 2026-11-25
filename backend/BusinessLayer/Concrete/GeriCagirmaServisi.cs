@@ -49,7 +49,18 @@ public class GeriCagirmaServisi(AppDbContext db) : IGeriCagirmaServisi
         }, ct);
     }
 
-    public Task<GeriCagirmaDto> GeriAlAsync(int id, int kullaniciId, CancellationToken ct = default) =>
+    private static (string Firma, string TakipNo) KargoTemizle(KargoIstek? kargo)
+    {
+        var firma = (kargo?.KargoFirmasi ?? "").Trim();
+        var takip = (kargo?.TakipNo ?? "").Trim();
+        if (takip.Length > 0 && firma.Length == 0)
+            throw new IsKuraliHatasi("Kargo firmasını girin.");
+        if (firma.Length > 100 || takip.Length > 100)
+            throw new IsKuraliHatasi("Kargo firması ve takip no en fazla 100 karakter olabilir.");
+        return (firma, takip);
+    }
+
+    public Task<GeriCagirmaDto> GeriAlAsync(int id, int kullaniciId, CancellationToken ct = default, KargoIstek? kargo = null) =>
         Islem.CalistirAsync(db, async () =>
         {
             var admin = await Kullanicilar.AdminGetirAsync(db, kullaniciId, "Geri alma", ct);
@@ -64,6 +75,7 @@ public class GeriCagirmaServisi(AppDbContext db) : IGeriCagirmaServisi
             });
             db.SatisKalemleri.Remove(kalem);
             g.GeriAlinmaZamani = zaman;
+            (g.GeriAlmaKargoFirmasi, g.GeriAlmaTakipNo) = KargoTemizle(kargo);
             await db.SaveChangesAsync(ct);
             return await Sorgu().Where(x => x.Id == id).Select(Donustur).SingleAsync(ct);
         }, ct);
@@ -80,12 +92,14 @@ public class GeriCagirmaServisi(AppDbContext db) : IGeriCagirmaServisi
             return await Sorgu().Where(x => x.Id == id).Select(Donustur).SingleAsync(ct);
         }, ct);
 
-    public Task<GeriCagirmaDto> MusteriyeVerAsync(int id, int kullaniciId, CancellationToken ct = default) =>
+    public Task<GeriCagirmaDto> MusteriyeVerAsync(int id, int kullaniciId, CancellationToken ct = default, KargoIstek? kargo = null) =>
         Islem.CalistirAsync(db, async () =>
         {
             var admin = await Kullanicilar.AdminGetirAsync(db, kullaniciId, "Müşteriye geri verme", ct);
             var g = await AcikGetirAsync(id, ct);
             var zaman = Zaman.Simdi();
+            var (firma, takip) = KargoTemizle(kargo);
+            (g.GeriGondermeKargoFirmasi, g.GeriGondermeTakipNo) = (firma, takip);
             if (!await db.SatisKalemleri.AnyAsync(k => k.UretimId == g.UretimId, ct))
             {
                 if (g.GeriAlinmaZamani is null)
@@ -95,7 +109,9 @@ public class GeriCagirmaServisi(AppDbContext db) : IGeriCagirmaServisi
                     .Select(i => i.Satis!.MusteriId).FirstAsync(ct);
                 db.Satislar.Add(new Satis
                 {
-                    No = await SatisServisi.YeniNoAsync(db, ct), Aciklama = "Geri çağrılan ürün müşteriye geri gönderiliyor.",
+                    No = null, Aciklama = "Geri çağrılan ürün müşteriye geri gönderiliyor.",
+                    KargoFirmasi = firma, TakipNo = takip,
+                    Durum = takip.Length > 0 ? SevkiyatDurumu.Kargoda : SevkiyatDurumu.Hazirlaniyor, KargoZamani = takip.Length > 0 ? zaman : null,
                     MusteriId = musteriId, Tarih = Zaman.YerelTarih(zaman), Zaman = zaman, OlusturanKullanici = admin, OlusturmaZamani = zaman,
                     Kalemler = [new SatisKalemi { UretimId = g.UretimId }],
                 });
@@ -190,5 +206,6 @@ public class GeriCagirmaServisi(AppDbContext db) : IGeriCagirmaServisi
                 : g.GeriAlinmaZamani != null ? g.Uretim.Iadeler.OrderByDescending(i => i.OlusturmaZamani).Select(i => i.Satis!.Musteri!.Ad).FirstOrDefault()
                 : null,
             g.Uretim.SatisKalemi != null ? g.Uretim.SatisKalemi.Satis!.Musteri!.Iletisim : null,
-            g.GeriAlinmaZamani, g.KapanmaZamani, g.BilgiVerildiZamani);
+            g.GeriAlinmaZamani, g.KapanmaZamani, g.BilgiVerildiZamani,
+            g.GeriAlmaKargoFirmasi, g.GeriAlmaTakipNo, g.GeriGondermeKargoFirmasi, g.GeriGondermeTakipNo);
 }
