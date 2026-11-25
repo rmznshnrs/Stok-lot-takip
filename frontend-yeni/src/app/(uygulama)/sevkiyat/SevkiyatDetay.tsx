@@ -43,7 +43,13 @@ export default function SevkiyatDetay({ id }: { id: number }) {
         <div className="akis">
           <section className="kart kart--iz">
             <div className="adim-baslik">Sevkiyat</div>
-            <SevkiyatNoBilgisi key={`sv-${s.no ?? ""}`} id={s.id} no={s.no} degisti={yenile} />
+            {s.durum === "Hazirlaniyor" ? (
+              <div className="bas-satir">
+                {s.no ? <div className="buyuk-numara">{s.no}</div> : <span className="soluk">Sevkiyat no kargoya verirken girilir</span>}
+              </div>
+            ) : (
+              <SevkiyatNoBilgisi key={`sv-${s.no ?? ""}`} id={s.id} no={s.no} degisti={yenile} />
+            )}
             <div className="iz-ad">{sevkiyatRozeti(s)}</div>
             <div className="bilgi-liste">
               <div className="bilgi"><span>Müşteri</span><Link href={`/musteriler?id=${s.musteriId}`}>{s.musteriAd}</Link></div>
