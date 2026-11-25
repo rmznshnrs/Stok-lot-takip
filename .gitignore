@@ -19,18 +19,6 @@ next-env.d.ts
 .env*.local
 .env
 
-# --- Flutter (mobile) ---
-.dart_tool/
-.flutter-plugins
-.flutter-plugins-dependencies
-.packages
-build/
-*.iml
-mobile/android/local.properties
-mobile/android/key.properties
-*.jks
-*.keystore
-
 # --- Genel ---
 .idea/
 .vscode/*

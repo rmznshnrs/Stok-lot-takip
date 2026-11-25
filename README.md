@@ -13,7 +13,6 @@ bazında izlenebilirlik.
 |---|---|
 | `backend/` | .NET 10 Web API (katmanlar: EntityLayer, DataAccessLayer, BusinessLayer, SharedLayer, PresentationLayer, Tests) |
 | `frontend/` | Next.js web arayüzü |
-| `mobile/` | Flutter mobil uygulama |
 
 Veritabanı SQL Server; şema EF Core migration'larıyla kurulur.
 
