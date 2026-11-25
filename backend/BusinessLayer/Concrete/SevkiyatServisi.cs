@@ -28,7 +28,7 @@ public class SevkiyatServisi(AppDbContext db) : ISevkiyatServisi
                              || s.Kalemler.Any(k => EF.Functions.Like(k.Uretim!.SeriNo, desen))
                              || s.Iadeler.Any(i => EF.Functions.Like(i.Uretim!.SeriNo, desen)));
         }
-        var sirali = q.OrderByDescending(s => s.Tarih).ThenByDescending(s => s.Zaman).ThenByDescending(s => s.Id);
+        var sirali = q.OrderByDescending(s => s.TeslimZamani ?? s.KargoZamani ?? s.Zaman).ThenByDescending(s => s.Tarih).ThenByDescending(s => s.Id);
         var liste = await (baslangic is null ? sirali.Take(500) : sirali).ToListAsync(ct);
         return [.. liste.Select(Donustur)];
     }

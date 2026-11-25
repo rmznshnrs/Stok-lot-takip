@@ -39,7 +39,7 @@ function SevkiyatListesi() {
   const aranan = useGecikmeli(arama.trim());
   const { veri: liste, hata } = useVeri(() => sevkiyat.liste(aranan, durum || undefined), [aranan, durum]);
   const { sirali, baslik, siralamaAnahtari } = useSiralama(liste, {
-    no: (s) => s.no, tarih: (s) => s.zaman ?? s.tarih, musteri: (s) => s.musteriAd, siparisNo: (s) => s.siparisNo,
+    no: (s) => s.no, tarih: (s) => s.teslimZamani ?? s.kargoZamani ?? s.zaman ?? s.tarih, musteri: (s) => s.musteriAd, siparisNo: (s) => s.siparisNo,
     kargo: (s) => s.kargoFirmasi, durum: (s) => s.durum,
   });
   const { gorunen, cubuk } = useSayfalama(sirali, `${aranan}|${durum}|${siralamaAnahtari}`);
@@ -82,7 +82,7 @@ function SevkiyatListesi() {
               {gorunen?.map((s) => (
                 <tr key={s.id} className="satir-tikla">
                   <td className="mono"><Link href={sevkiyatAdresi(s.id)} className="satir-bag">{s.no ?? <span className="soluk">Girilmedi</span>}</Link></td>
-                  <td>{s.zaman ? tarihSaat(s.zaman) : tarih(s.tarih)}</td>
+                  <td>{(() => { const z = s.teslimZamani ?? s.kargoZamani ?? s.zaman; return z ? tarihSaat(z) : tarih(s.tarih); })()}</td>
                   <td><Link href={`/musteriler?id=${s.musteriId}`}>{s.musteriAd}</Link></td>
                   <td className="mono">{s.siparisNo ?? <span className="soluk">—</span>}</td>
                   <td>{urunOzeti(s) || <span className="soluk">{s.iadeler.length} ürün iade alındı</span>}</td>
