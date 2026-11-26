@@ -20,6 +20,12 @@ type Suzgec = "acik" | "geciken" | "tamamlandi" | "iptal" | "tumu";
 const acikMi = (s: Siparis) => s.durum !== "tamamlandi" && s.durum !== "iptal";
 const gecikti = (s: Siparis) => acikMi(s) && !!s.istenenTarih && s.istenenTarih < bugun();
 
+const ONCELIK: Partial<Record<Siparis["durum"], number>> = { kargoya_verilecek: 0, kismen_gonderildi: 1 };
+const acilisSirasi = (a: Siparis, b: Siparis) =>
+  (ONCELIK[a.durum] ?? 2) - (ONCELIK[b.durum] ?? 2)
+  || (a.istenenTarih ?? "9999").localeCompare(b.istenenTarih ?? "9999")
+  || a.tarih.localeCompare(b.tarih);
+
 const SUZGECLER: { deger: Suzgec; ad: string; uyar: (s: Siparis) => boolean }[] = [
   { deger: "acik", ad: "Açık", uyar: acikMi },
   { deger: "geciken", ad: "Geciken", uyar: gecikti },
@@ -81,7 +87,7 @@ function SiparisListesi() {
   const eskiSayisi = suzgec === "tamamlandi" && !aranan && !eskiler ? (tumu?.filter(eskiTamamlanan).length ?? 0) : 0;
   const liste = tumu && tumu.filter((s) => (kosul(s) || (suzgec === "tamamlandi" && (eskiler || !!aranan) && eskiTamamlanan(s))) && (!aranan
     || `${s.siparisNo ?? ""} ${s.musteriAd} ${s.aciklama} ${s.kalemler.map((k) => `${k.urunAd} ${k.urunKod} ${k.ayrilanlar.join(" ")}`).join(" ")}`
-      .toLocaleLowerCase("tr").includes(aranan)));
+      .toLocaleLowerCase("tr").includes(aranan))).sort(acilisSirasi);
   const { sirali, baslik, siralamaAnahtari } = useSiralama(liste, {
     musteri: (s) => s.musteriAd, tarih: (s) => s.tarih, istenen: (s) => s.istenenTarih,
     gonderilen: (s) => s.kalemler.reduce((t, k) => t + k.gonderilenler.length, 0), siparisNo: (s) => s.siparisNo, durum: (s) => s.durum,

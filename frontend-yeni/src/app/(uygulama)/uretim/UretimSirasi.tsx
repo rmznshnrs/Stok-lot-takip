@@ -22,7 +22,8 @@ export default function UretimSirasi({ uretimde }: { uretimde: boolean }) {
   const [arama, setArama] = useState("");
   const aranan = useGecikmeli(arama.trim().toLocaleLowerCase("tr"));
   const liste = tumu && tumu.filter((e) => basladi(e) === uretimde
-    && (!aranan || `${e.urunAd} ${e.urunKod} ${e.musteriAd ?? ""} ${e.aciklama}`.toLocaleLowerCase("tr").includes(aranan)));
+    && (!aranan || `${e.urunAd} ${e.urunKod} ${e.musteriAd ?? ""} ${e.aciklama}`.toLocaleLowerCase("tr").includes(aranan)))
+    .sort((a, b) => uretimde ? (a.talepTarihi ?? "9999").localeCompare(b.talepTarihi ?? "9999") || a.sira - b.sira : 0);
   const [acik, setAcik] = useState<number | null>(null);
   const [baslat, setBaslat] = useState<number | null>(null);
   const [sonuc, setSonuc] = useState<UretimSonucu | null>(null);

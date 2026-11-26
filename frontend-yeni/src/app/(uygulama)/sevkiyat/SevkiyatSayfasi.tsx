@@ -35,6 +35,11 @@ const SUZGECLER: { deger: SevkiyatSuzgeci; ad: string; uyar: (s: Sevkiyat) => bo
   { deger: "TeslimEdildi", ad: "Teslim Edildi", uyar: (s) => s.durum === "TeslimEdildi" && yakinMi(s.teslimZamani ?? s.kargoZamani ?? s.zaman) },
   { deger: "", ad: "Tümü", uyar: () => true },
 ];
+const DURUM_SIRASI: Record<SevkiyatDurumu, number> = { Hazirlaniyor: 0, Kargoda: 1, TeslimEdildi: 2 };
+const sonIslem = (s: Sevkiyat) => s.teslimZamani ?? s.kargoZamani ?? s.zaman ?? s.tarih;
+const acilisSirasi = (a: Sevkiyat, b: Sevkiyat) =>
+  DURUM_SIRASI[a.durum] - DURUM_SIRASI[b.durum]
+  || (a.durum === "Hazirlaniyor" ? sonIslem(a).localeCompare(sonIslem(b)) : sonIslem(b).localeCompare(sonIslem(a)));
 const eskiTeslim = (s: Sevkiyat) => s.durum === "TeslimEdildi" && !yakinMi(s.teslimZamani ?? s.kargoZamani ?? s.zaman);
 
 function SevkiyatListesi() {
@@ -45,7 +50,7 @@ function SevkiyatListesi() {
   const { veri: tumu, hata } = useVeri(() => sevkiyat.liste(aranan), [aranan]);
   const kosul = SUZGECLER.find((s) => s.deger === durum)!.uyar;
   const eskiGoster = durum === "TeslimEdildi" && (eskiler || !!aranan);
-  const liste = tumu && tumu.filter((s) => kosul(s) || (eskiGoster && eskiTeslim(s)));
+  const liste = tumu && tumu.filter((s) => kosul(s) || (eskiGoster && eskiTeslim(s))).sort(acilisSirasi);
   const eskiSayisi = durum === "TeslimEdildi" && !eskiGoster ? (tumu?.filter(eskiTeslim).length ?? 0) : 0;
   const { sirali, baslik, siralamaAnahtari } = useSiralama(liste, {
     no: (s) => s.no, tarih: (s) => s.teslimZamani ?? s.kargoZamani ?? s.zaman ?? s.tarih, musteri: (s) => s.musteriAd, siparisNo: (s) => s.siparisNo,
