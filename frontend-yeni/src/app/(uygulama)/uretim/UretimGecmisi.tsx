@@ -28,9 +28,16 @@ export default function UretimGecmisi({ ilkArama = "" }: { ilkArama?: string }) 
     <main className="icerik icerik--dikey">
       <section className="panel">
         <div className="panel-bas">
-          <div className="baslik-grup">
+          <div className="baslik-grup baslik-grup--yan">
             <UretimSekmeleri />
-            {liste && <span className="ozet">{liste.length} ürün · {depoda} depoda · {liste.length - depoda - ayrilan} gönderildi{ayrilan > 0 && ` · ${ayrilan} hurda / kayıp`}</span>}
+            {liste && (
+              <span className="sayac-grubu">
+                <span className="sayac"><b>{liste.length}</b> Ürün</span>
+                <span className="sayac"><b>{depoda}</b> Depoda</span>
+                <span className="sayac"><b>{liste.length - depoda - ayrilan}</b> Gönderildi</span>
+                {ayrilan > 0 && <span className="sayac"><b>{ayrilan}</b> Hurda / Kayıp</span>}
+              </span>
+            )}
           </div>
           <div className="arama-satiri">
             <select className="girdi" aria-label="Ürün" value={urunId} onChange={(e) => setUrunId(e.target.value)}>

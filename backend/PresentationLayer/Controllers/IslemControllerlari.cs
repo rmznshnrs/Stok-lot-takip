@@ -68,7 +68,8 @@ public class UretimController(IUretimServisi uretim, IUretimSirasiServisi sira) 
         sira.UretAsync(id, istek, User.KullaniciId(), ct);
 
     [HttpPost("sira/{id:int}/basla")]
-    public Task<UretimEmriDto> SiraBasla(int id, CancellationToken ct) => sira.BaslaAsync(id, ct);
+    public Task<UretimEmriDto> SiraBasla(int id, [FromBody(EmptyBodyBehavior = Microsoft.AspNetCore.Mvc.ModelBinding.EmptyBodyBehavior.Allow)] EmirBaslaIstek? istek,
+        CancellationToken ct) => sira.BaslaAsync(id, ct, istek?.Adet);
 
     [HttpPost("sira/{id:int}/iptal")]
     public Task<UretimEmriDto> SiraIptal(int id, CancellationToken ct) => sira.IptalAsync(id, User.KullaniciId(), ct);

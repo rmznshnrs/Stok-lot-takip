@@ -337,7 +337,7 @@ export const uretim = {
 export const sira = {
   liste: (bitenler = false) => al<UretimEmri[]>("uretim/sira", { bitenler }),
   ekle: (e: UretimEmriIstek) => gonder<UretimEmri>("uretim/sira", e),
-  basla: (id: number) => gonder<UretimEmri>(`uretim/sira/${id}/basla`),
+  basla: (id: number, adet?: number) => gonder<UretimEmri>(`uretim/sira/${id}/basla`, { adet }),
   uret: (id: number, adet?: number, seriNolar?: string[]) => gonder<UretimSonucu>(`uretim/sira/${id}/uret`, { adet, seriNolar }),
   iptal: (id: number) => gonder<UretimEmri>(`uretim/sira/${id}/iptal`),
   tasi: (id: number, yon: -1 | 1) => gonder<UretimEmri[]>(`uretim/sira/${id}/tasi`, { yon }),

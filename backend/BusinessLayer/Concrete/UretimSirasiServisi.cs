@@ -157,15 +157,34 @@ public class UretimSirasiServisi(AppDbContext db, IStokLotuRepository lotlar, IU
             }
         }, ct);
 
-    public Task<UretimEmriDto> BaslaAsync(int id, CancellationToken ct = default) =>
+    public Task<UretimEmriDto> BaslaAsync(int id, CancellationToken ct = default, int? adet = null) =>
         Islem.CalistirAsync(db, async () =>
         {
             var emir = await BekleyenGetirAsync(id, ct);
             if (emir.BaslamaZamani is not null)
                 throw new IsKuraliHatasi("Bu işin üretimine zaten başlandı.");
-            emir.BaslamaZamani = Zaman.Simdi();
+            var kalan = emir.Adet - emir.Uretilen;
+            var baslayan = adet ?? kalan;
+            if (baslayan < 1 || baslayan > kalan)
+                throw new IsKuraliHatasi($"1 ile {kalan} arasında adet girin.");
+            if (baslayan == kalan)
+            {
+                emir.BaslamaZamani = Zaman.Simdi();
+                await db.SaveChangesAsync(ct);
+                return await GetirAsync(id, ct);
+            }
+            var parcalar = await db.Set<UretimEmriParcasi>().Where(p => p.UretimEmriId == id).ToListAsync(ct);
+            emir.Adet -= baslayan;
+            var yeni = new UretimEmri
+            {
+                UrunId = emir.UrunId, Adet = baslayan, Sira = emir.Sira, PlanlananTarih = emir.PlanlananTarih,
+                Durum = UretimEmriDurumu.Bekliyor, Aciklama = emir.Aciklama, SiparisKalemiId = emir.SiparisKalemiId,
+                OlusturanKullaniciId = emir.OlusturanKullaniciId, OlusturmaZamani = emir.OlusturmaZamani, BaslamaZamani = Zaman.Simdi(),
+                Parcalar = [.. parcalar.Select(p => new UretimEmriParcasi { ParcaId = p.ParcaId, BirimAdet = p.BirimAdet })],
+            };
+            db.UretimEmirleri.Add(yeni);
             await db.SaveChangesAsync(ct);
-            return await GetirAsync(id, ct);
+            return await GetirAsync(yeni.Id, ct);
         }, ct);
 
     public Task<UretimEmriDto> IptalAsync(int id, int kullaniciId, CancellationToken ct = default) =>

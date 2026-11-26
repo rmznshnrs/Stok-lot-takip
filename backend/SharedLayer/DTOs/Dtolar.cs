@@ -181,6 +181,7 @@ public record UretimEmriDto(
     IReadOnlyList<EmirParcasiDto> Parcalar, IReadOnlyList<string> SeriNolar);
 
 public record EmirUretIstek(int? Adet = null, IReadOnlyList<string>? SeriNolar = null);
+public record EmirBaslaIstek(int? Adet = null);
 
 public record EmirTasiIstek(int Yon);
 

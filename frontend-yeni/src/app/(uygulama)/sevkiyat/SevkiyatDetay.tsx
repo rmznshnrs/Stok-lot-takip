@@ -17,7 +17,7 @@ import NumaraUyarisi from "@/components/NumaraUyarisi";
 export default function SevkiyatDetay({ id }: { id: number }) {
   const { veri: s, hata, yenile } = useVeri(() => sevkiyat.getir(id), [id]);
   const [mesaj, setMesaj] = useState<MesajBilgisi | null>(null);
-  const [secilmeyen, setSecilmeyen] = useState<string[]>([]);
+  const [secilen, setSecilen] = useState<string[]>([]);
 
   async function teslim() {
     if (!s || !confirm(`${s.no ?? "Bu sevkiyat"} teslim edildi olarak işaretlensin mi?`)) return;
@@ -45,7 +45,7 @@ export default function SevkiyatDetay({ id }: { id: number }) {
             <div className="adim-baslik">Sevkiyat</div>
             {s.durum === "Hazirlaniyor" ? (
               <div className="bas-satir">
-                {s.no ? <div className="buyuk-numara">{s.no}</div> : <span className="soluk">Sevkiyat no kargoya verirken girilir</span>}
+                {s.no ? <div className="buyuk-numara">{s.no}</div> : <span className="soluk">Sevkiyat no girilmedi</span>}
               </div>
             ) : (
               <SevkiyatNoBilgisi key={`sv-${s.no ?? ""}`} id={s.id} no={s.no} degisti={yenile} />
@@ -60,8 +60,8 @@ export default function SevkiyatDetay({ id }: { id: number }) {
             {s.siparisId && <SiparisNoBilgisi key={`sp-${s.siparisNo ?? ""}`} siparisId={s.siparisId} siparisNo={s.siparisNo} degisti={yenile} />}
             <Adimlar s={s} />
             <Mesaj mesaj={mesaj} />
-            <KargoBilgisi s={s} secili={s.kalemler.map((k) => k.seriNo).filter((x) => !secilmeyen.includes(x))}
-              degisti={() => { setSecilmeyen([]); yenile(); }} />
+            <KargoBilgisi s={s} secili={s.kalemler.length > 1 ? s.kalemler.map((k) => k.seriNo).filter((x) => secilen.includes(x)) : s.kalemler.map((k) => k.seriNo)}
+              degisti={() => { setSecilen([]); yenile(); }} />
             {s.durum !== "TeslimEdildi" && (
               <button type="button" className="btn btn--ikincil btn--tam" onClick={teslim}>Teslim Edildi</button>
             )}
@@ -70,16 +70,15 @@ export default function SevkiyatDetay({ id }: { id: number }) {
           <section className="kart kart--genis kart--iz-sutun">
             {(() => {
               const secimli = s.durum === "Hazirlaniyor" && s.kalemler.length > 1;
-              const seciliSayi = s.kalemler.filter((k) => !secilmeyen.includes(k.seriNo)).length;
+              const seciliSayi = s.kalemler.filter((k) => secilen.includes(k.seriNo)).length;
               const degistir = (seri: string) =>
-                setSecilmeyen(secilmeyen.includes(seri) ? secilmeyen.filter((x) => x !== seri) : [...secilmeyen, seri]);
+                setSecilen(secilen.includes(seri) ? secilen.filter((x) => x !== seri) : [...secilen, seri]);
               return (
                 <>
                   <div className="adim-baslik">
                     {s.durum === "Hazirlaniyor" ? "Kargoya Verilecek Ürünler" : "Gönderilen Ürünler"} · {s.kalemler.length}
                     {secimli && <span className="adim-ek"> · {seciliSayi} seçili</span>}
                   </div>
-                  {secimli && <p className="not">Kargoya verilecekleri işaretleyin; seçilmeyenler kargoya verileceklerde bekler.</p>}
                   <div className="tablo-kap">
                     <table className="tablo">
                       <thead>
@@ -87,7 +86,7 @@ export default function SevkiyatDetay({ id }: { id: number }) {
                           {secimli && (
                             <th className="secim-sutun">
                               <input type="checkbox" aria-label="Hepsini seç" checked={seciliSayi === s.kalemler.length}
-                                onChange={(e) => setSecilmeyen(e.target.checked ? [] : s.kalemler.map((k) => k.seriNo))} />
+                                onChange={(e) => setSecilen(e.target.checked ? s.kalemler.map((k) => k.seriNo) : [])} />
                             </th>
                           )}
                           <th>Seri No</th>
@@ -96,7 +95,7 @@ export default function SevkiyatDetay({ id }: { id: number }) {
                       </thead>
                       <tbody>
                         {s.kalemler.map((k) => {
-                          const secili = !secilmeyen.includes(k.seriNo);
+                          const secili = secilen.includes(k.seriNo);
                           return (
                             <tr key={k.seriNo} className={secimli ? `satir-tikla${secili ? " satir-secili" : ""}` : undefined}
                               onClick={secimli ? (e) => { if (!(e.target as HTMLElement).closest("a, input")) degistir(k.seriNo); } : undefined}>
@@ -153,7 +152,6 @@ function KargoBilgisi({ s, secili, degisti }: { s: Sevkiyat; secili: string[]; d
   const [firma, setFirma] = useState(s.kargoFirmasi);
   const [takipNo, setTakipNo] = useState(s.takipNo);
   const hazirlaniyor = s.durum === "Hazirlaniyor";
-  const tumu = s.kalemler.map((k) => k.seriNo);
   const [no, setNo] = useState(s.no ?? "");
   const [hata, setHata] = useState("");
   const [bekliyor, setBekliyor] = useState(false);
@@ -197,11 +195,6 @@ function KargoBilgisi({ s, secili, degisti }: { s: Sevkiyat; secili: string[]; d
   }
   return (
     <form className="form-dikey" onSubmit={kaydet}>
-      {hazirlaniyor && tumu.length > 1 && (
-        <p className="not">
-          <b>{secili.length}/{tumu.length}</b> ürün kargoya verilecek. Seçimi sağdaki listeden değiştirin.
-        </p>
-      )}
       {hazirlaniyor && (
         <div className="alan">
           <label htmlFor="kargo-sv-no">Sevkiyat No</label>

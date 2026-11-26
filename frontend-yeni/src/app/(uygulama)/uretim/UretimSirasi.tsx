@@ -24,6 +24,7 @@ export default function UretimSirasi({ uretimde }: { uretimde: boolean }) {
   const liste = tumu && tumu.filter((e) => basladi(e) === uretimde
     && (!aranan || `${e.urunAd} ${e.urunKod} ${e.musteriAd ?? ""} ${e.aciklama}`.toLocaleLowerCase("tr").includes(aranan)));
   const [acik, setAcik] = useState<number | null>(null);
+  const [baslat, setBaslat] = useState<number | null>(null);
   const [sonuc, setSonuc] = useState<UretimSonucu | null>(null);
   const [mesaj, setMesaj] = useState<MesajBilgisi | null>(null);
   const [surukle, setSurukle] = useState<number | null>(null);
@@ -145,7 +146,7 @@ export default function UretimSirasi({ uretimde }: { uretimde: boolean }) {
                               && calistir(() => sira.planla(e.id, ev.target.value))} />
                         </td>
                         <td className="yardim">
-                          {e.parcalar.map((p) => `${p.parca.kod} ${p.ayrilan}`).join(" · ")}
+                          {e.parcalar.map((p) => `${p.ayrilan} × ${p.parca.kod}`).join("  —  ")}
                         </td>
                         <td className="hucre-dar sag">
                           <div className="dugme-grup dugme-grup--sik">
@@ -163,8 +164,10 @@ export default function UretimSirasi({ uretimde }: { uretimde: boolean }) {
                                 <button type="button" className="sira-dugme" title="En alta al" aria-label="En alta al" disabled={i === liste.length - 1}
                                   onClick={() => tasi(e.id, liste[liste.length - 1]?.id)}>⇊</button>
                               </span>
-                              <button type="button" className="btn btn--kucuk"
-                                onClick={() => calistir(() => sira.basla(e.id), `${e.urunAd} üretime alındı; Üretimde sekmesinde.`)}>Üretime Başla</button>
+                              <button type="button" className="btn btn--kucuk" aria-expanded={baslat === e.id}
+                                onClick={() => e.adet - e.uretilen > 1
+                                  ? setBaslat(baslat === e.id ? null : e.id)
+                                  : calistir(() => sira.basla(e.id, 1), `${e.urunAd} üretime alındı; Üretimde sekmesinde.`)}>Üretime Başla</button>
                             </>)}
                             <button type="button" className="btn btn--ikincil btn--kucuk"
                               onClick={() => confirm(`${e.urunAd} işi sıradan çıkarılsın mı? Ayrılan parçalar bırakılır.`)
@@ -174,6 +177,14 @@ export default function UretimSirasi({ uretimde }: { uretimde: boolean }) {
                       </>
                     )}
                   </tr>
+                  {baslat === e.id && !uretimde && (
+                    <tr>
+                      <td colSpan={sutun}>
+                        <BaslaFormu emir={e} kapat={() => setBaslat(null)}
+                          baslat={(adet) => { setBaslat(null); calistir(() => sira.basla(e.id, adet), `${adet} adet ${e.urunAd} üretime alındı; Üretimde sekmesinde.`); }} />
+                      </td>
+                    </tr>
+                  )}
                   {acik === e.id && (
                     <tr>
                       <td colSpan={sutun}>
@@ -197,6 +208,21 @@ export default function UretimSirasi({ uretimde }: { uretimde: boolean }) {
         </div>
       </section>
     </main>
+  );
+}
+
+function BaslaFormu({ emir, kapat, baslat }: { emir: UretimEmri; kapat: () => void; baslat: (adet: number) => void }) {
+  const kalan = emir.adet - emir.uretilen;
+  const [adet, setAdet] = useState("1");
+  const n = Math.floor(Number(adet));
+  const gecerli = n >= 1 && n <= kalan;
+  return (
+    <form className="satir-ekle satir-ekle--orta" onSubmit={(ev) => { ev.preventDefault(); if (gecerli) baslat(n); }}>
+      <label htmlFor={`basla-${emir.id}`}>Üretime başlanacak adet (sırada {kalan})</label>
+      <SayiGirdi id={`basla-${emir.id}`} min={1} max={kalan} required kucuk value={adet} onChange={setAdet} />
+      <button type="submit" className="btn btn--kucuk" disabled={!gecerli}>Başlat</button>
+      <button type="button" className="btn btn--ikincil btn--kucuk" onClick={kapat}>Vazgeç</button>
+    </form>
   );
 }
 
@@ -241,7 +267,7 @@ function UretFormu({ emir, kapat, uretildi }: { emir: UretimEmri; kapat: () => v
 
   return (
     <form className="form-dikey uret-formu" onSubmit={kaydet}>
-      <div className="satir-ekle">
+      <div className="satir-ekle satir-ekle--orta">
         <label htmlFor={`uret-${emir.id}`}>Üretilen adet (kalan {kalan})</label>
         <SayiGirdi id={`uret-${emir.id}`} min={1} max={kalan} required kucuk value={adet} onChange={setAdet} />
         <button type="button" className="btn btn--ikincil btn--kucuk" onClick={siradakileriYaz} disabled={n === 0}>Sıradaki Numaraları Yaz</button>

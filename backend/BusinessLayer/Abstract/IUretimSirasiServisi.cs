@@ -10,7 +10,7 @@ public interface IUretimSirasiServisi
 
     Task<UretimSonucuDto> UretAsync(int id, EmirUretIstek istek, int kullaniciId, CancellationToken ct = default);
 
-    Task<UretimEmriDto> BaslaAsync(int id, CancellationToken ct = default);
+    Task<UretimEmriDto> BaslaAsync(int id, CancellationToken ct = default, int? adet = null);
 
     Task<UretimEmriDto> IptalAsync(int id, int kullaniciId, CancellationToken ct = default);
 

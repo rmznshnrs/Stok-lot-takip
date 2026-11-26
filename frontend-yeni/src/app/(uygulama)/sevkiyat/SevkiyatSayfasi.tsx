@@ -9,6 +9,7 @@ import { sevkiyat, type SevkiyatDurumu } from "@/lib/api";
 import { tarih, tarihSaat } from "@/lib/bicim";
 import { useGecikmeli, useVeri } from "@/lib/kancalar";
 import { useSiralama } from "@/lib/siralama";
+import { useSatirSiniri } from "@/lib/satirSiniri";
 import SevkiyatDetay from "./SevkiyatDetay";
 import SevkiyatFormu from "./SevkiyatFormu";
 import { sevkiyatAdresi, sevkiyatRozeti, urunOzeti } from "./ortak";
@@ -43,6 +44,7 @@ function SevkiyatListesi() {
     kargo: (s) => s.kargoFirmasi, durum: (s) => s.durum,
   });
   const { gorunen, cubuk } = useSayfalama(sirali, `${aranan}|${durum}|${siralamaAnahtari}`);
+  const tabloKap = useSatirSiniri<HTMLDivElement>(10, gorunen);
 
   return (
     <main className="icerik icerik--dikey">
@@ -63,7 +65,7 @@ function SevkiyatListesi() {
           </div>
         </div>
         {hata && <div className="mesaj mesaj--error">{hata}</div>}
-        <div className="tablo-kap">
+        <div className="tablo-kap" ref={tabloKap}>
           <table className="tablo">
             <thead>
               <tr>

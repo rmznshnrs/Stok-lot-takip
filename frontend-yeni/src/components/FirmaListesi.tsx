@@ -20,7 +20,7 @@ export default function FirmaListesi({ tur, kok, ek }: { tur: Tur; kok: string; 
   const { veri: liste, hata, yenile } = useVeri(() => (tur === "musteri" ? firmalar.musteriler() : firmalar.tedarikciler()), [tur]);
   const [arama, setArama] = useState("");
   const gorunen = liste?.filter((f) => icerir(`${f.ad} ${f.iletisim}`, arama.trim())) ?? [];
-  const secili = liste?.find((f) => f.id === seciliId) ?? null;
+  const secili = liste?.find((f) => f.id === seciliId) ?? (seciliId || yeni ? null : liste?.[0] ?? null);
   const adres = (ek = "") => `${kok}${kok.includes("?") ? ek : ek.replace(/^&/, "?")}`;
 
   return (
@@ -40,7 +40,7 @@ export default function FirmaListesi({ tur, kok, ek }: { tur: Tur; kok: string; 
         />
         {hata && <div className="mesaj mesaj--error">{hata}</div>}
         {gorunen.map((f) => {
-          const aktif = !yeni && f.id === seciliId;
+          const aktif = !yeni && f.id === secili?.id;
           return (
             <Link
               key={f.id}

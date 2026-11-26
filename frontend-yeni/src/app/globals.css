@@ -2050,3 +2050,6 @@ a.satir-bag { color: var(--metin); font-weight: 600; text-decoration: none; }
 .secim-sutun input { width: 18px; height: 18px; cursor: pointer; accent-color: var(--ana); }
 .tablo tr.satir-secili td { background: var(--ana-acik); }
 .adim-ek { text-transform: none; letter-spacing: 0; color: var(--ana); font-weight: 600; }
+
+.satir-ekle--orta { align-items: center; flex-wrap: wrap; gap: 10px; }
+.satir-ekle--orta > label { margin: 0; }
