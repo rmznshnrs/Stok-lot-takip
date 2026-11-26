@@ -129,7 +129,7 @@ export interface SiparisKalemi {
 export interface Siparis {
   id: number; no: string; musteriId: number; musteriAd: string; tarih: string; istenenTarih: string | null; aciklama: string;
   durum: SiparisDurumu; kalemler: SiparisKalemi[]; olusturmaZamani: string; kullaniciAd: string; iptalZamani: string | null;
-  siparisNo: string | null;
+  siparisNo: string | null; sonGonderimZamani?: string | null;
 }
 export interface SiparisIstek {
   musteriId: number; kalemler: { urunId: number; adet: number; seriNolar?: string[] }[];

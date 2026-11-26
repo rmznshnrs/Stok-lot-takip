@@ -2053,3 +2053,5 @@ a.satir-bag { color: var(--metin); font-weight: 600; text-decoration: none; }
 
 .satir-ekle--orta { align-items: center; flex-wrap: wrap; gap: 10px; }
 .satir-ekle--orta > label { margin: 0; }
+
+.eskiler-satiri { display: flex; justify-content: center; padding: 10px 0 4px; }

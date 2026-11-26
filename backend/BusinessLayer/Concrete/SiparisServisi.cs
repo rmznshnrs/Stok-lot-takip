@@ -249,7 +249,10 @@ public class SiparisServisi(AppDbContext db) : ISiparisServisi
         var kargoyaVerilecek = s.Kalemler.Sum(k => k.Ayrilanlar.Count(u => u.SatisKalemi?.Satis is { Durum: SevkiyatDurumu.Hazirlaniyor }));
         return new SiparisDto(s.Id, s.No, s.MusteriId, s.Musteri!.Ad, s.Tarih, s.IstenenTarih, s.Aciklama, Durum(s, kalemler, kargolanan, kargoyaVerilecek),
             kalemler, s.OlusturmaZamani, $"{s.OlusturanKullanici!.Ad} {s.OlusturanKullanici.Soyad}", s.IptalZamani,
-            s.SiparisNo.Length > 0 ? s.SiparisNo : null);
+            s.SiparisNo.Length > 0 ? s.SiparisNo : null,
+            s.Kalemler.SelectMany(k => k.Ayrilanlar).Select(u => u.SatisKalemi?.Satis)
+                .Where(v => v is not null && v.Durum != SevkiyatDurumu.Hazirlaniyor)
+                .Max(v => v!.TeslimZamani ?? v.KargoZamani ?? v.Zaman));
     }
 
     private static string Durum(Siparis s, List<SiparisKalemiDto> kalemler, int gonderilen, int kargoyaVerilecek)

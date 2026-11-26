@@ -6,7 +6,7 @@ import { Fragment, useState } from "react";
 import SayfaSekmeleri from "@/components/SayfaSekmeleri";
 import { useSayfalama } from "@/components/Sayfalama";
 import { firmalar, siparisler, type Siparis } from "@/lib/api";
-import { bugun, tarih } from "@/lib/bicim";
+import { YAKIN_GUN, bugun, tarih, yakinMi } from "@/lib/bicim";
 import { useGecikmeli, useVeri } from "@/lib/kancalar";
 import { useSiralama } from "@/lib/siralama";
 import { KalanGun } from "../AnaSayfaPanolari";
@@ -23,7 +23,7 @@ const gecikti = (s: Siparis) => acikMi(s) && !!s.istenenTarih && s.istenenTarih 
 const SUZGECLER: { deger: Suzgec; ad: string; uyar: (s: Siparis) => boolean }[] = [
   { deger: "acik", ad: "Açık", uyar: acikMi },
   { deger: "geciken", ad: "Geciken", uyar: gecikti },
-  { deger: "tamamlandi", ad: "Tamamlanan", uyar: (s) => s.durum === "tamamlandi" },
+  { deger: "tamamlandi", ad: "Tamamlanan", uyar: (s) => s.durum === "tamamlandi" && yakinMi(s.sonGonderimZamani ?? s.olusturmaZamani) },
   { deger: "iptal", ad: "İptal", uyar: (s) => s.durum === "iptal" },
   { deger: "tumu", ad: "Tümü", uyar: () => true },
 ];
@@ -75,8 +75,11 @@ function SiparisListesi() {
   const [arama, setArama] = useState("");
   const aranan = useGecikmeli(arama.trim().toLocaleLowerCase("tr"));
   const [acik, setAcik] = useState<number | null>(null);
+  const [eskiler, setEskiler] = useState(false);
+  const eskiTamamlanan = (s: Siparis) => s.durum === "tamamlandi" && !yakinMi(s.sonGonderimZamani ?? s.olusturmaZamani);
   const kosul = SUZGECLER.find((s) => s.deger === suzgec)!.uyar;
-  const liste = tumu && tumu.filter((s) => kosul(s) && (!aranan
+  const eskiSayisi = suzgec === "tamamlandi" && !aranan && !eskiler ? (tumu?.filter(eskiTamamlanan).length ?? 0) : 0;
+  const liste = tumu && tumu.filter((s) => (kosul(s) || (suzgec === "tamamlandi" && (eskiler || !!aranan) && eskiTamamlanan(s))) && (!aranan
     || `${s.siparisNo ?? ""} ${s.musteriAd} ${s.aciklama} ${s.kalemler.map((k) => `${k.urunAd} ${k.urunKod} ${k.ayrilanlar.join(" ")}`).join(" ")}`
       .toLocaleLowerCase("tr").includes(aranan)));
   const { sirali, baslik, siralamaAnahtari } = useSiralama(liste, {
@@ -160,6 +163,13 @@ function SiparisListesi() {
             </tbody>
           </table>
         </div>
+        {eskiSayisi > 0 && (
+          <div className="eskiler-satiri">
+            <button type="button" className="btn btn--ikincil btn--kucuk" onClick={() => setEskiler(true)}>
+              {YAKIN_GUN} Günden Eskileri Göster · {eskiSayisi}
+            </button>
+          </div>
+        )}
         {cubuk}
       </section>
     </main>

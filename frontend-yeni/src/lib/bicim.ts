@@ -37,3 +37,10 @@ export function istanbulZamani(deger: string) {
 export function bugun() {
   return new Intl.DateTimeFormat("sv-SE", { timeZone: "Europe/Istanbul" }).format(new Date());
 }
+
+export const YAKIN_GUN = 60;
+
+export function yakinMi(zaman: string | null | undefined, gun = YAKIN_GUN) {
+  if (!zaman) return true;
+  return Date.now() - new Date(zaman).getTime() <= gun * 86_400_000;
+}

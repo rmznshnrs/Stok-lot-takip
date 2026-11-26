@@ -5,8 +5,8 @@ import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 import SayfaSekmeleri from "@/components/SayfaSekmeleri";
 import { useSayfalama } from "@/components/Sayfalama";
-import { sevkiyat, type SevkiyatDurumu } from "@/lib/api";
-import { tarih, tarihSaat } from "@/lib/bicim";
+import { sevkiyat, type Sevkiyat, type SevkiyatDurumu } from "@/lib/api";
+import { YAKIN_GUN, tarih, tarihSaat, yakinMi } from "@/lib/bicim";
 import { useGecikmeli, useVeri } from "@/lib/kancalar";
 import { useSiralama } from "@/lib/siralama";
 import { useSatirSiniri } from "@/lib/satirSiniri";
@@ -27,18 +27,26 @@ export default function SevkiyatSayfasi() {
   );
 }
 
-const SUZGECLER: { deger: SevkiyatDurumu | ""; ad: string }[] = [
-  { deger: "", ad: "Tümü" },
-  { deger: "Hazirlaniyor", ad: "Kargoya Verilecek" },
-  { deger: "Kargoda", ad: "Kargoda" },
-  { deger: "TeslimEdildi", ad: "Teslim Edildi" },
+type SevkiyatSuzgeci = SevkiyatDurumu | "acik" | "";
+const SUZGECLER: { deger: SevkiyatSuzgeci; ad: string; uyar: (s: Sevkiyat) => boolean }[] = [
+  { deger: "acik", ad: "Açık", uyar: (s) => s.durum !== "TeslimEdildi" },
+  { deger: "Hazirlaniyor", ad: "Kargoya Verilecek", uyar: (s) => s.durum === "Hazirlaniyor" },
+  { deger: "Kargoda", ad: "Kargoda", uyar: (s) => s.durum === "Kargoda" },
+  { deger: "TeslimEdildi", ad: "Teslim Edildi", uyar: (s) => s.durum === "TeslimEdildi" && yakinMi(s.teslimZamani ?? s.kargoZamani ?? s.zaman) },
+  { deger: "", ad: "Tümü", uyar: () => true },
 ];
+const eskiTeslim = (s: Sevkiyat) => s.durum === "TeslimEdildi" && !yakinMi(s.teslimZamani ?? s.kargoZamani ?? s.zaman);
 
 function SevkiyatListesi() {
-  const [durum, setDurum] = useState<SevkiyatDurumu | "">("");
+  const [durum, setDurum] = useState<SevkiyatSuzgeci>("acik");
+  const [eskiler, setEskiler] = useState(false);
   const [arama, setArama] = useState("");
   const aranan = useGecikmeli(arama.trim());
-  const { veri: liste, hata } = useVeri(() => sevkiyat.liste(aranan, durum || undefined), [aranan, durum]);
+  const { veri: tumu, hata } = useVeri(() => sevkiyat.liste(aranan), [aranan]);
+  const kosul = SUZGECLER.find((s) => s.deger === durum)!.uyar;
+  const eskiGoster = durum === "TeslimEdildi" && (eskiler || !!aranan);
+  const liste = tumu && tumu.filter((s) => kosul(s) || (eskiGoster && eskiTeslim(s)));
+  const eskiSayisi = durum === "TeslimEdildi" && !eskiGoster ? (tumu?.filter(eskiTeslim).length ?? 0) : 0;
   const { sirali, baslik, siralamaAnahtari } = useSiralama(liste, {
     no: (s) => s.no, tarih: (s) => s.teslimZamani ?? s.kargoZamani ?? s.zaman ?? s.tarih, musteri: (s) => s.musteriAd, siparisNo: (s) => s.siparisNo,
     kargo: (s) => s.kargoFirmasi, durum: (s) => s.durum,
@@ -54,7 +62,7 @@ function SevkiyatListesi() {
             {SUZGECLER.map((s) => (
               <button key={s.deger} type="button" role="radio" aria-checked={durum === s.deger}
                 className={`sekme${durum === s.deger ? " sekme--aktif" : ""}`} onClick={() => setDurum(s.deger)}>
-                {s.ad}
+                {s.ad}{tumu && ` ${tumu.filter(s.uyar).length}`}
               </button>
             ))}
           </div>
@@ -95,6 +103,13 @@ function SevkiyatListesi() {
             </tbody>
           </table>
         </div>
+        {eskiSayisi > 0 && (
+          <div className="eskiler-satiri">
+            <button type="button" className="btn btn--ikincil btn--kucuk" onClick={() => setEskiler(true)}>
+              {YAKIN_GUN} Günden Eskileri Göster · {eskiSayisi}
+            </button>
+          </div>
+        )}
         {cubuk}
       </section>
     </main>

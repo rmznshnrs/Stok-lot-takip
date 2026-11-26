@@ -163,7 +163,7 @@ public record SiparisKalemiDto(
 public record SiparisDto(
     int Id, string No, int MusteriId, string MusteriAd, DateOnly Tarih, DateOnly? IstenenTarih, string Aciklama,
     string Durum, IReadOnlyList<SiparisKalemiDto> Kalemler, DateTimeOffset OlusturmaZamani, string KullaniciAd,
-    DateTimeOffset? IptalZamani, string? SiparisNo = null);
+    DateTimeOffset? IptalZamani, string? SiparisNo = null, DateTimeOffset? SonGonderimZamani = null);
 
 public record SeriAyirIstek(IReadOnlyList<string> SeriNolar);
 
