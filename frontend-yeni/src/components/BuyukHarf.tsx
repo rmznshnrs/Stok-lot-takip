@@ -5,9 +5,12 @@ import { useEffect } from "react";
 const ATLA = "script, style, textarea, input, code, .mono, .yazi-normal, [contenteditable]";
 const KELIME = /(^|[\s(“"«/·–—-])(\p{Ll})/gu;
 
+const BAGLAC = new Set(["ya", "da", "de", "ve", "ile", "veya"]);
+
 function cevir(metin: string) {
-  return metin.split(/(\s+)/).map((parca) => {
+  return metin.split(/(\s+)/).map((parca, i) => {
     if (/@|:\/\/|^www\./i.test(parca)) return parca;
+    if (i > 0 && BAGLAC.has(parca)) return parca;
     return parca.replace(KELIME, (_, once: string, harf: string) => once + harf.toLocaleUpperCase("tr"));
   }).join("");
 }

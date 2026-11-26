@@ -1555,7 +1555,7 @@ h1, h2, h3, h4, label, th, .yan-menu, .sekme, .btn, .btn-baglanti, .rozet, .etik
 .kargo-adim--tamam:not(:last-child)::after { background: var(--ana); }
 .kargo-adim-ad { font-weight: 600; text-transform: capitalize; }
 
-@media (min-width: 900px) { .ozet-kutular { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (min-width: 900px) { .ozet-kutular { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 .ozet-kutu small { font-size: 12px; }
 .panel--dikkat { border-color: var(--uyari); background: var(--uyari-satir); }
 .uyari-satiri { padding: 8px 0; border-bottom: 1px solid var(--kenar-ince); align-items: center; }
@@ -1765,7 +1765,7 @@ html { scrollbar-gutter: stable; }
 .lejant li { display: flex; align-items: center; gap: 8px; }
 .lejant li b { margin-left: auto; padding-left: 16px; }
 .lejant-renk { width: 11px; height: 11px; border-radius: 3px; flex-shrink: 0; }
-@media (min-width: 1200px) { .ozet-kutular { grid-template-columns: repeat(5, minmax(0, 1fr)); } }
+@media (min-width: 1200px) { .ozet-kutular { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
 .uyari-karti--bag, .uyari-karti--bag:hover { text-decoration: none; }
 .uyari-karti--bag:hover { border-color: var(--uyari); }
 .ilerleme { display: inline-block; width: 64px; height: 7px; margin-right: 8px; border-radius: 999px; background: var(--kenar-ince); overflow: hidden; vertical-align: middle; }
